@@ -1,0 +1,234 @@
+---
+
+# file: create-flannel-environmeng.yml
+
+# remark:
+#   this routine is called by:
+#     . create-kube-cluster-master
+#     . create-kube-worker-node
+#
+
+# func:
+#   . create user and group
+#   . create directory
+#   . create cert
+#   . create binary
+#   . (not yet - systemd file)
+#   . (start/restart service)
+#
+
+##############################################################
+# 1.
+# create flannel user/group, home directory and data directory
+#
+
+# func:
+#   . create flannel group
+#   . create flannel user
+#   . add flannel user to kube group
+#   . create flannel config directory
+#   . create flannel data directory
+#
+# prv:
+#   . need kube group exist
+#
+
+# 1.0
+#
+
+# not use - flannel use as root group
+#- name: create system flannel group
+#  group:
+#    name: "{{ flannel_group }}"
+#    state: present
+
+# 1.1
+#
+
+# not use - flannel us as root user
+#- name: create system flannel user
+#  user:
+#    name: "{{ flannel_user }}"
+#    comment: "flannel user"
+#    shell: /sbin/nologin
+#    state: present
+#    system: yes
+#    home: "{{ kube_home_path }}"
+##   ATTENTION: also add kube user to etcd group, to enable kube user has rights to access etcd certs
+#    groups: "{{ flannel_group }}, {{ kube_group}}"
+
+# 1.2
+# not use
+# create flannel data directory
+#- name: create flannel home directory and data directory
+#  file:
+#    path: "{{ item }}"
+#    recurse: yes
+#    state: directory
+#    owner: "{{ flannel_user }}"
+#    group: "{{ flannel_group }}"
+#  with_items:
+##    - "{{ kube_home_path }}"
+#    - "{{ kube_data_path }}"
+
+
+#######################################################################
+# 2.
+# create flannel config, cert directory
+
+# func:
+#
+#   ( remark: hoeme directory and data directory for flannel user was created
+#       when creating flannel user/group previously)
+#
+#   . create flannel config directory (main flannel directory /etc/flannel/)
+#   . create flannel cert directory (dir at /etc/flannel/cert/)
+
+# create flannel config directory (/etc/flannel/)
+- name: create and ensure flannel config directory exists
+  file:
+    path: "{{ flannel_config_path }}"
+    recurse: yes
+    state: directory
+    mode: 0760
+    owner: "{{ flannel_user }}"
+    group: "{{ flannel_group }}"
+
+#
+#   . create flannel cert directory (dir at /etc/flannel/cert/)
+
+- name: create flannel cert
+  file:
+    path: "{{ item }}"
+    recurse: yes
+    state: directory
+    mode: 0760
+    owner: "{{ flannel_user }}"
+    group: "{{ flannel_cert_group }}"
+  with_items:
+    - "{{ flannel_cert_path }}"
+
+#################################################################################
+# 3.
+# create flannel cert files
+
+# func:
+#   create flannel client cert files
+#     for accessing etcd
+
+# fetch flannel cert from cert-cache from node-0 of cluster masters
+#   to ansible machine
+- name: fetch flannel cert from cert-cache
+  fetch:
+    src: "{{ cert_cache_path_flanneld }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - ca.pem
+    - flanneld.pem
+    - flanneld-key.pem
+    - timestamp.log
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy flannel daemon cert to node
+- name: copy flannel cert to nodes from ansible machine
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ flannel_cert_path }}/"
+    owner: "{{ flannel_user }}"
+    group: "{{ flannel_cert_group }}"
+    mode: 0750
+  with_items:
+    - ca.pem
+    - flanneld.pem
+    - flanneld-key.pem
+    - timestamp.log
+
+################################################################################
+# 4.
+# create flannel binary
+
+# create flannel binary to node
+#   copy flannel binary to node
+- name: copy flannel binary
+  copy:
+    src: "{{ dep_path_local_bin_flannel }}/{{ item }}"
+    dest: "{{ flannel_bin_path }}/"
+    owner: "{{ flannel_user }}"
+    group: "{{ flannel_group }}"
+    mode: 0751
+  with_items:
+    - flanneld
+    - mk-docker-opts.sh
+
+- name:
+  debug:
+    msg: "flannel binaries are installed on {{ inventory_hostname }}."
+
+# 5.
+# create pre-process shell script to delete dock0 interface may already exist
+- name: create pro-process shell script for removing dock0 interface
+  copy:
+    src: ../../create-kube-cluster-master/files/remove-docker0.sh
+    dest: "{{ flannel_bin_path }}/remove-docker0.sh"
+    owner: "{{ flannel_user }}"
+    group: "{{ flannel_group }}"
+    mode: 0751
+
+# 6.
+# create flannel config enviroment file flanneld ( systemd requires )
+# ( /etc/flannel/flanneld.config )
+- name: create flannel environment config file
+  template:
+    src:  ../../create-kube-cluster-master/templates/flanneld.config.j2
+    dest: "{{ flannel_config_path }}/flanneld.config"
+    owner: "{{ flannel_user }}"
+    group: "{{ flannel_group }}"
+    mode: 0751
+
+# 7. 
+# create flannel data directory ( /run/flannel/ ) - mk-docker-opts.sh and service need this
+#   to generate /run/flannel/docker.flannelconfig from /run/flannel/subnet.env in this directory
+- name: create flannel network config data directory /run/flannel
+  file:
+    path: "{{ flannel_data_path }}"
+    state: directory
+    owner: "{{ flannel_user }}"
+    group: "{{ flannel_group }}"
+    mode: 0640
+
+# 8. 
+# not use - change into use default shell scrip
+# create shell script for generate docker env 
+#- name: create shell script
+#  copy:
+#    src: ../../create-kube-cluster-master/files/mk-docker-opts-stdout.sh
+#    dest: "{{ flannel_bin_path }}/mk-docker-opts-stdout.sh"
+#    owner: "{{ flannel_user }}"
+#    group: "{{ flannel_group }}"
+#    mode: 0751
+
+#- name: run script
+#  command: "{{ flannel_bin_path }}/mk-docker-opts-stdout.sh"
+#  register: docker_opts_output
+
+#- name: debug std output
+#  debug:
+#    msg: "std output is: {{ docker_opts_output }}"
+
+# 9.
+# create flanneld service systemd unit file
+- name: create kube flannel systemd unit file
+  template:
+    src: ../../create-kube-cluster-master/templates/flannel.service.j2
+    dest: /etc/systemd/system/flannel.service
+
+# 10. 
+# create cni interface for flanneld service
+# it is required by kubelet systemd file to define cni plugin and its runing and network
+#   setting information
+- name: create cni interface for flanneld service
+  template:
+    src: ../../create-kube-cluster-master/templates/10-flannel.conf.j2
+    dest: "{{ cni_config_path }}/10-flannel.conf"
+

@@ -1,0 +1,63 @@
+---
+
+# file: roles/create-kube-cluster-master/defaults/main.yml
+#
+
+# contents:
+#   . kubernetes version and binary url
+#   . kube core service def: service url, bind ip address, service port
+#   . misc. string definition for generating kube config file
+#
+
+#########################################################################################
+kube_api_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:6443"
+kube_api_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
+
+
+#########################################################################################
+# varibles for gen kube config
+#
+
+###################################
+# argument string of kubectl config
+#
+
+# ###  cluster config argument string
+arg_str_cluster: " config set-cluster kubernetes  --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_load_balancer_apiserver_url }} --kubeconfig={{ kubectl_config_file }}"
+
+# ### credential config argument string
+arg_str_credentials: " config set-credentials kubernetes-admin --client-certificate={{ kube_admin_cert_file }} --embed-certs=true --client-key={{ kube_admin_key_file }} --kubeconfig={{ kubectl_config_file }}"
+
+# ###  context config argument string
+arg_str_context: " config set-context kubernetes-admin@kubernetes --cluster=kubernetes --user=kubernetes-admin --kubeconfig={{ kubectl_config_file }}"
+
+# ### default context config argument string
+arg_str_defaultcontext: " config use-context kubernetes-admin@kubernetes --kubeconfig={{ kubectl_config_file }}"
+
+# ###
+arg_str_kube_config: "{{ arg_str_cluster }}{{ arg_str_credentials }}{{ arg_str_context }}{{ arg_str_defaultcontext }}"
+
+#######################################
+# argument string of kube-controller-manager config
+
+#######################################
+# argument string of kube-scheduler config
+
+#======================================
+# varibles for gen kube-proxy config
+
+#kube_proxy_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+kube_proxy_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:6443"
+kube_proxy_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
+
+arg_str_kube_proxy_cluster: " config set-cluster kubernetes --certificate-authority={{ kube_ca_file }} --embed-certs=true --server={{ kube_proxy_load_balancer_apiserver_url }} --kubeconfig={{ kube_proxy_config_file }}"
+arg_str_kube_proxy_credentials: " config set-credentials system:kube-proxy --client-certificate={{ kube_proxy_cert_file }} --embed-certs=true --client-key={{ kube_proxy_key_file }} --kubeconfig={{ kube_proxy_config_file }}"
+arg_str_kube_proxy_context: " config set-context system:kube-proxy@kubernetes --cluster=kubernetes --user=system:kube-proxy --kubeconfig={{ kube_proxy_config_file }}"
+arg_str_kube_proxy_defaultcontext: " config use-context system:kube-proxy@kubernetes --kubeconfig={{ kube_proxy_config_file }}"
+
+arg_str_kube_proxy_kube_config: "{{ arg_str_kube_proxy_cluster }}{{ arg_str_kube_proxy_credentials }}{{ arg_str_kube_proxy_context }}{{ arg_str_kube_proxydefaultcontext }}"
+
+
+#######################################
+# command argument to create pod network config in etcd
+

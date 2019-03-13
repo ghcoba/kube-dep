@@ -1,0 +1,82 @@
+---
+
+# file: remove-created-rbac-ex.yml
+#
+
+# remove all created rbac role and binding in deployment
+
+- block:
+    - name: check rbac crb kubelet-nodes
+      command: "{{ bin_path }}/kubectl delete clusterrolebinding kubelet-nodes"
+      register: rbac_kubelet-nodes_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting kubelet-nodes clusterrolebinding"
+#     end block
+
+- block:
+    - name: check rbac crb kubelet-bootstrap" 
+      command: "{{ bin_path }}/kubectl delete clusterrolebinding kubelet-bootstrap"
+      register: rbac_kubelet-bootstrap_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting kubelet-bootstrap clusterrolebinding"
+#     end block
+
+
+
+- block:
+    - name: check rbac crb kube-apiserver-to-kubelet-api-access"
+      command: "{{ bin_path }}/kubectl delete clusterrolebinding system:kube-apiserver-to-kubelet-api-access"
+      register: rbac_kube-apiserver-to-kubelet-api-access_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting kube-apiserver-to-kubelet-api-access clusterrolebinding"
+#     end block
+- block:
+    - name: check rbac crb role system:kubelet-api-access"
+      command: "{{ bin_path }}/kubectl delete clusterrole system:kubelet-api-access"
+      register: rbac_role_system_kubelet-api-access_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting system:kubelet-api-access clusterrole"
+#     end block
+
+
+
+- block:
+    - name: check rbac crb auto-approve-csrs-for-group
+      command: "{{ bin_path }}/kubectl delete clusterrolebinding auto-approve-csrs-for-group"
+      register: rbac_auto-approve-csrs-for-group_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting auto-approve-csrs-for-group clusterrolebinding"
+#     end block
+
+- block:
+    - name: check rbac crb node-client-cert-renewal
+      command: "{{ bin_path }}/kubectl delete clusterrolebinding node-client-cert-renewal"
+      register: rbac_node-client-cert-renewal_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting node-client-cert-renewal clusterrolebinding"
+#     end block
+
+- block:
+    - name: check rbac crb approve-node-server-renewal-csr
+      command: "{{ bin_path }}/kubectl delete clusterrole approve-node-server-renewal-csr"
+      register: rbac_approve-node-server-renewal-csr_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting approve-node-server-renewal-csr clusterrole"
+#     end block
+
+- block:
+    - name: check rbac crb node-server-cert-renewal
+      command: "{{ bin_path }}/kubectl delete clusterrolebinding node-server-cert-renewal"
+      register: rbac_node-server-cert-renewal_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting node-server-cert-renewal clusterrolebinding"
+#     end block
+

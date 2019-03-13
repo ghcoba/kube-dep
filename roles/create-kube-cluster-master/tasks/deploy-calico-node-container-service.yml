@@ -1,0 +1,44 @@
+---
+
+# file: deploy-calico-node-container-service.yml
+#
+
+# remark:
+#
+# in the calico deployment, calico daemonset not include node container contents,
+#   calico node container is impliment in a systemd service. this routine is used the 
+#   create this service
+#
+# func:
+#   1. create calico-node-container service
+#   2. enable and start the service
+#   3. (when the service start up, it will create and run a calico node docker container - it is also govored by daemon set and kubernetes)
+#
+# process:
+# . create calico node container service file
+# . (create calico node container image - has move to calico common environment prepare deploy)
+# . (import calico node container docker image to local docker image directory - has move to calico common environment prepare deploy)
+# . enable and start calico node container service to create and run calico container node in docker
+#
+# calico-node-container.service.j2
+#
+
+# create calico node docker container service systemd file
+- name: create calico node service systemd file
+  template:
+    src: ../../create-kube-cluster-master/templates/calico-node-container.service.j2
+    dest: /etc/systemd/system/calico-node-container.service
+
+#### DO NOT START SERVICE
+# enable calico node container service
+#- name: enable and start calico-node-container service
+#  systemd:
+#    name: calico-node-container
+#    daemon_reload: yes
+#    state: restarted
+#    enabled: yes
+
+- name:
+  debug:
+    msg: "calico-node-container.service for calico node {{ calico_version }} installed on {{ inventory_hostname }}."
+

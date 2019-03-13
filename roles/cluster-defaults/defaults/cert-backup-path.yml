@@ -1,0 +1,53 @@
+---
+
+# file: roles/cluster-defaults/defaults/cert-backup-path.yml
+
+# definition of directory to store cert files on ansible deploy site 
+#   works as: 
+#     1. backup; 
+#     2. source file for deployment
+#   directory: dep-data/cert-local/<item_directory_name>
+#
+
+# --------------------
+# cert backup path (on ansible deploy site)
+#
+
+# {{ dep_path_backup_cert }} - dep-data/cert-local
+
+
+# path for ca-config
+cert_backup_path_ca_config: "{{ dep_path_backup_cert }}/ca-config"
+
+# path for root ca
+cert_backup_path_ca: "{{ dep_path_backup_cert }}/ca"
+
+# path for admin ( admin account of kubectl client)
+cert_backup_path_kube_admin: "{{ dep_path_backup_cert }}/kube-admin"
+
+# path for etcd cluster
+cert_backup_path_etcd: "{{ dep_path_backup_cert }}/etcd"
+
+# path for flannel daemon
+cert_backup_path_flanneld: "{{ dep_path_backup_cert }}/flanneld"
+
+# path for kubernetes cert
+cert_backup_path_kubernetes: "{{ dep_path_backup_cert }}/kubernetes"
+
+# path for kube apiserver cert
+cert_backup_path_kube_apiserver: "{{ dep_path_backup_cert }}/kube-apiserver"
+
+# path for kube controller-manager cert
+cert_backup_path_kube_controller_manager: "{{ dep_path_backup_cert }}/kube-controller-manager"
+
+# path for kube scheduler cert
+cert_backup_path_kube_scheduler: "{{ dep_path_backup_cert }}/kube-scheduler"
+
+# path for kube proxy cert
+cert_backup_path_kube_proxy: "{{ dep_path_backup_cert }}/kube-proxy"
+
+# path for kube service account cert ( sa - service account )
+cert_backup_path_kube_serviceaccount: "{{ dep_path_backup_cert }}/kube-serviceaccount"
+
+# path for kubelet cert (server and client cert), every node has it sub dire
+cert_backup_path_kubelet: "{{ dep_path_backup_cert }}/kubelet"

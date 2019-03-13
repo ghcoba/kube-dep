@@ -1,0 +1,32 @@
+---
+
+# check kubernetes directory (/etc/kubernetes) exist
+- name: check kubernetes directory exist
+  stat:
+    path: /etc/kubernetes
+  register: test_dir_exist_result
+
+- block:
+  
+  - debug:
+      msg: >
+        hostname: {{ inventory_hostname }}
+        directory exist: false
+
+  - name:
+    shell: mkdir /root/test1 && cp /etc/kubernetes/kubectl.kubeconfig /root/test1/ && mv /root/test1/kubectl.kubeconfig /root/test1/kubconfig
+
+  - name:
+    shell: mkdir /root/test2 && cat /etc/kubernetes/kubectl.kubeconfig > /root/test2/kubeconfig
+
+# end block
+  when: test_dir_exist_result.stat.exists == true
+
+- block:
+
+  - debug:
+      msg: >
+        hostname: {{ inventory_hostname }}
+        directory exist: {{ test_dir_exist_result.stat.exists }}
+
+# end block

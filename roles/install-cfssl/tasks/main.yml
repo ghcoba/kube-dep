@@ -1,0 +1,26 @@
+---
+
+# file: roles/install-cfssl/tasks/main.yml
+#
+# copy cfssl utility files from ansible deploy site deploy data directory
+#    to node-0 of master cluster
+
+- name: configure start install-cfssl task main
+  debug:
+    msg: "check tracing - start install-cfssl task main"
+
+- name: install cfssl utility
+  copy:
+    src: "{{ cfssl_bin_local_path }}/{{ item }}_linux-amd64"
+    dest: "{{ bin_path }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0750
+  with_items:
+    - cfssl
+    - cfssljson
+    - cfssl-certinfo
+    - cfssl-newkey
+    - cfssl-scan
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

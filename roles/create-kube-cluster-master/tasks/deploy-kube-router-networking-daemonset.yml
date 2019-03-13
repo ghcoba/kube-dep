@@ -1,0 +1,50 @@
+---
+
+# file: deploy-kube-router-networking-daemonset.yml
+#
+
+# func:
+#   deploy kube-router networking daemonset 
+#
+#   remark: 
+#     on worker node: calico is deployed using this routine
+#     on master node: (daemonset will not deployed on master node.) on master node, 
+#                       kube-router system  run in a docker container, 
+#                        a systemd service is used to start the docker. 
+#
+# process include:
+# . create kube-router manifest yaml file
+# . apply kube-router manifest yaml file to create calico networking daemonset
+# (rem: rbac/abac is created in deploying common environmeng of kube-router )
+#
+
+### 
+
+
+# deploy kube-router networking daemonset 
+
+
+### create kube-router manifest daemonset yaml
+
+- name: create kube-router manifest ( yaml ) file
+  template:
+    src: kube-router.yaml.j2
+    dest: "{{ kube_daemonset_path }}/kube-router.yaml"
+#  run_once: true
+#  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+### create kube-router daemonset
+
+- name: create kube-router daemonset
+  command: "{{ bin_path }}/kubectl create -f {{ kube_daemonset_path }}/kube-router.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+### create rbac for kube-router serviceaccount
+#   (already created in abac deploy file, also included in kube-router.yaml file)
+
+- name:
+  debug:
+    msg: "kube-router daemonset deployed on cluster."
+     
+

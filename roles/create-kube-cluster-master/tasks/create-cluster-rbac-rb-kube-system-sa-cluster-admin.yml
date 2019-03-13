@@ -1,0 +1,39 @@
+---
+
+# file: create-cluster-rbac-roles-kube-system-serviceaccount-cluster-admin.yml
+#
+
+################################################################
+# 0.0
+#   type: cluster role binding
+#   func: binding user system:kube-system:serviceaccount:default with cluster role cluster-admin
+
+#   binding name: kube-system-serviceaccount-cluster-admin 
+#   role: cluster-admin
+#   user: system:kube-system:serviceaccount:default
+#   file name: rbac-crb-kube-system-sa-cluster-admin.yaml.j2
+
+- block:
+
+#    - name: create crb file
+#      template:
+#        src: rbac-crb-kube-system-sa-cluster-admin.yaml.j2
+#        dest: "{{ kube_rbac_config_path }}/rbac-crb-kube-system-sa-cluster-admin.yaml"
+
+    - name: generate kube-system-serviceaccount-cluster-admin clusterrolebinding
+      command: "{{ bin_path }}/kubectl create -f {{ kube_rbac_config_path }}/rbac-crb-kube-system-sa-cluster-admin.yaml"
+      register: kube_system_sa_cluster_admin_result_a
+
+  rescue:
+    - debug:
+        msg: >
+          - "error occured during create rbac rule binding"
+          - "ERROR: {{  kube_system_sa_cluster_admin_result_a.stderr_lines }}"
+          - "exit from rbac role creating. please check rbac role ..."
+
+  always:
+    - debug: 
+        msg: >
+          - "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding kube-system-serviceaccount-cluster-admin"
+          - "will continue ..."
+

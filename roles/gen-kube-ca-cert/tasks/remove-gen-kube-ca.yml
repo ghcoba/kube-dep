@@ -1,0 +1,35 @@
+---
+
+# file: remove-gen-kube-ca.yml
+#
+
+# func:
+#   general: remove generated ca cert procedure
+#     1. remove remote /etc/cert-cache/kubernetes directory
+#     2. remove remote /etc/cert-cache/kube-admin directory
+#     3. remove remote /etc/cert-cache/kube-apiserver directory
+#     4. remove remote /etc/cert-cache/kube-controller-manager directory
+#     5. remove remote /etc/cert-cache/kube-scheduler directory
+#     6. remove remote /etc/cert-cache/kube-proxy directory
+#     7. remove remote /etc/cert-cache/kube-serviceaccount directory
+
+
+# remove kube cache dir on remote
+- name: remove kube cache directory on remote
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ cert_cache_path_kubernetes }}"
+    - "{{ cert_cache_path_kube_admin }}"
+    - "{{ cert_cache_path_kube_apiserver }}"
+    - "{{ cert_cache_path_kube_controller_manager }}"
+    - "{{ cert_cache_path_kube_scheduler }}"
+    - "{{ cert_cache_path_kube_proxy }}"
+    - "{{ cert_cache_path_kube_serviceaccount }}"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+- debug: msg="/etc/cert-cache/<kubernetes,kube-admin,kube-apiserver,kube-controller-manager,kube-scheduler,kube-proxy> directory removed."
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

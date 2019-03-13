@@ -1,0 +1,118 @@
+---
+
+# file: create-kube-router-common-environment.yml
+#
+
+# func:
+#   create kube-router common environment ( on all node - master nodes and worker nodes)
+#
+# process include:
+# X . create networkmanger config file (/etc/NetworkManager/conf.d/calico.conflist) to avoid networkmanager interfere calico networking
+# . install calico cni plugin exec files (calico, calico-ipam) to cni binary directory (/opt/cni/bin - directory already created in cni deployment
+# . create kube-router network config file - /etc/kube-router/kuberoute-cni-conf.json
+# . create kube-router kubeconfig file - /etc/kube-router/kube-router.kubeconfig
+#
+
+# create kube-router log, lib directory (/var/log/kube-router, /var/lib/kube-router)
+#   for calicoctl, calico, calico node daemonset, calico node container service
+
+# create kube-router log directory /var/log/kube-router
+- name: create kube-router log dicrectory
+  file:
+    path: "{{ kuberouter_log_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0660
+    state: directory
+
+# create kube-router data directory /var/lib/kube-router
+- name: create kube-router data dicrectory
+  file:
+    path: "{{ kuberouter_data_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0660
+    state: directory
+
+# create kube-router config directory (/etc/kube-router)
+- name: create kube-router config dicrectory
+  file:
+    path: "{{ kuberouter_config_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0640
+    state: directory
+
+# create kube-router config yaml directory (/etc/kube-router/yaml)
+- name: create kube-router config yaml dicrectory
+  file:
+    path: "{{ kuberouter_config_yaml_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0640
+    state: directory
+
+# create cni config directory (/etc/cni/net.d)
+- name: create cni config dicrectory
+  file:
+    path: "{{ cni_config_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+
+
+
+### copy files
+
+#   copy kube-router bin files to /usr/local/bin on node
+- name: exec create kube-router binary
+  copy:
+    src: "{{ kuberouter_cni_plugin_binary_dep_path }}/{{ item }}"
+    dest: "{{ bin_path }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0751
+  with_items:
+    - kube-router
+
+
+### create kube-router network config file 
+#   copy template kuberouter-cn-conf.json.j2 to
+#     cni-conf.json in /etc/kube-router/ directory
+- name: create kube-router network config file
+  template:
+    src: ../../create-kube-cluster-master/templates/kuberouter-cni-conf.json.j2
+    dest: "{{ kuberouter_network_conf_file_path }}"
+- name: set file attrib
+  file: 
+    path: "{{ kuberouter_network_conf_file_path }}"
+    mode: 0640
+
+
+### no need to create kubeconfig for kube-router daemonset, as it is created in sub-pod of daemonset
+
+#### create kube-router kubeconfig file 
+##     - var name: kuberouter_kubeconfig_file_path : /etc/kube-router/kube-router.kubeconfig
+##   # copy kubectl kubeconfig - /etc/kubernetes/kube-proxy.kubeconfig to 
+#        kube-router data director /var/lib/kube-router as file - kubeconfig
+#- name: copy kube-proxy.kubeconfig from ansible temp exchange to kube-router config directory
+#  copy:
+#    src: "{{ kube_config_path }}/kubectl.kubeconfig"
+#    dest: "{{ kuberouter_data_path }}/"
+#    remote_src: yes
+#    mode: 0640
+#- name: copy kubectl kubeconfig to kube-router data dirctory and rename it to kubeconfig
+#  shell: "cd {{ kuberouter_data_path }}/ && cp {{ kube_config_path }}/kubectl.kubeconfig {{ kuberouter_data_path }}/ && mv {{ kuberouter_data_path }}/kubectl.kubeconfig {{ kuberouter_data_path }}/kubeconfig && chmod 0640 {{ kuberouter_data_path }}/kubeconfig"
+#- name: create kubeconfig file for kube-router
+#  shell: "cat {{ kube_config_path }}/kubectl.kubeconfig > {{ kuberouter_data_path }}/kubeconfig"
+
+
+## add service account bac to abac file
+#  (REMARK: already added to ABAC control file - kube-router, kube-router sa roles)
+#  (system:serviceaccount:kube-system:kube-router   to access api * namespace * or kube-system, pod *, svs *)
+##
+
+- name:
+  debug:
+    msg: "kube-router environment deployed on {{ inventory_hostname }}."

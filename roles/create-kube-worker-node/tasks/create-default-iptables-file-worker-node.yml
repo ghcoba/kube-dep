@@ -1,0 +1,18 @@
+---
+
+# file: create-default-iptables-file-worker-node.yml
+
+#
+- name:
+  template:
+    src: ../../cluster-defaults/templates/iptables-master-node-conf.j2
+    dest: /etc/sysconfig/iptables-master-node.backup
+- name:
+  template:
+    src: ../../cluster-defaults/templates/iptables-worker-node-conf.j2
+    dest: /etc/sysconfig/iptables-worker-node.backup
+
+- name:
+  template:
+    src: ../../cluster-defaults/templates/iptables-worker-node-conf.j2
+    dest: /etc/sysconfig/iptables

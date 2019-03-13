@@ -1,0 +1,111 @@
+---
+
+# file: calico-default-setting.yml
+#
+
+# calico version number
+#calico_version: "v3.1.3"
+calico_version: "v3.5.2"
+
+# calico node image version number
+#calico_node_version_number: "v3.1.3"
+#calico_kuber_controller_version_number: "v3.1.3"
+#calico_cni_version_number: "v3.1.3"
+
+calico_node_version_number: "v3.5.2"
+calico_kuber_controller_version_number: "v3.5.2"
+calico_cni_version_number: "v3.5.2"
+
+# calicoctl local binary path
+calicoctl_bin_dep_path: "{{ dep_path_local_bin }}/calico-bin-local/release-{{ calico_version }}"
+calico_cni_plugin_bin_dep_path: "{{ dep_path_local_bin }}/calico-bin-local/release-{{ calico_version }}"
+
+# calico docker image binary path
+calico_docker_image_dep_path: "{{ dep_path_local_bin }}/calico-bin-local/release-{{ calico_version }}/images"
+
+# calico cni plugin local binary path
+# NOT USE THIS VAR - use calico_cni_plugin_bin_dep_path instead
+calico_cni_bin_dep_path: "{{ dep_path_local_bin }}/calico-cni-bin-local"
+
+# calico config path /etc/calico
+calico_config_path: "{{ config_path }}/calico"
+calico_config_conf_path: "{{ calico_config_path }}/conf"
+calico_config_yaml_path: "{{ calico_config_path }}/yaml"
+
+# calico log path
+calico_log_path: "/var/log/calico"
+
+# calico data path
+calico_data_path: "{{ data_path }}/calico"
+
+# calico etcd tls cert path
+calico_etcd_tls_cert_path: "{{ calico_config_path }}/calico-tls"
+# calico etcd tls cert file
+calico_tls_ca_file: "{{ calico_etcd_tls_cert_path }}/etcd-ca"
+calico_tls_cert_file: "{{ calico_etcd_tls_cert_path }}/etcd-cert"
+calico_tls_key_file: "{{ calico_etcd_tls_cert_path }}/etcd-key"
+
+# calico cni etcd tls cert path (/etc/cni/net.d/calico-tls)
+calico_cni_tls_cert_path: "{{ cni_config_path }}/calico-tls"
+calico_cni_tls_ca_file: "{{ calico_cni_tls_cert_path }}/etcd-ca"
+calico_cni_tls_cert_file: "{{ calico_cni_tls_cert_path }}/etcd-cert"
+calico_cni_tls_key_file: "{{ calico_cni_tls_cert_path }}/etcd-key"
+
+# calico cni kubeconfig file 
+calico_cni_kubeconfig_file: "{{ cni_config_path }}/calico.kubeconfig"
+
+# calico run path
+calico_run_path: "/var/run/calico"
+
+
+# calico node docker image resource location
+calico_node_docker_image_resource_location: "quay.io/calico/node:{{ calico_node_version_number }}"
+
+# calico cni docker image resource location
+calico_cni_docker_image_resource_location: "quay.io/calico/cni:{{ calico_cni_version_number }}"
+
+# calico kube-controller docker image resource location
+calico_kube_controller_docker_image_resource_location: "quay.io/calico/kube-controllers:{{ calico_kuber_controller_version_number }}"
+
+# calico kubeconfig file
+calico_kubeconfig_file: "{{ calico_config_path }}/calico.kubeconfig"
+
+# calico ip autodetect interface value
+calico_ip_autodetect_interface_regex_value: "ens32.*"
+calico_ip_autodetect_nic_interface_name: "ens32"
+
+# calico liveness traffic port
+calico_liveness_port: 9099
+
+# calico veth mtu
+calico_veth_mtu: 1500
+calico_ipinip_mtu: 1440
+
+# calico default ipv4 ippool name - for ansible to delete the default ippool 192.168.0.0/16
+calico_default_ipv4_ippool_name: default-ipv4-ippool
+
+# calico network AS number ("" = use default private 65140)
+calico_AS_number: ""
+
+# calico felix iptable mark mask - at lease 16bit for kube-proxy using ipvs proxy mode
+# ref:
+# When using Calico with Kubernetes’ kube-proxy in IPVS mode, Calico uses additional 
+# iptables mark bits to store an ID for each local Calico endpoint. 
+# For example, the default IptablesMarkMask value, 0xffff0000 gives Calico 16 bits, 
+# up to 6 of which are used for internal purposes, leaving 10 bits for endpoint IDs. 
+# 10 bits is enough for 1024 different values and Calico uses 2 of those for 
+# internal purposes, leaving enough for 1022 endpoints on the host.
+#
+#  ref: calico mark mask bit for kubernetes need at lease 16 bit ( 6bit intl use + 10bit pod #)
+#       calico mark mask use upper 16bit, meanwhile, kube-proxy use lower ( default lower 14bit for kube-proxy)
+#
+calico_felix_iptables_mark_mask: "0xffff0000"
+
+# calico felix kube nodeport (service port) range 
+# ref:
+# A list of port ranges that Felix should treat as Kubernetes node ports. 
+# Only when kube-proxy is configured to use IPVS mode: Felix assumes that traffic arriving 
+# at the host one one of these ports will ultimately be forwarded instead 
+# of being terminated by a host process.
+calico_felix_kube_nodeport_ranges: "{{ sevice_port_range_for_calico_felix }}"
+

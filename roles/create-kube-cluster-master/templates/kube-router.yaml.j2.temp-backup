@@ -1,0 +1,292 @@
+{% macro initial_cluster() -%}
+{% for host in groups['etcd-nodes'] -%}
+   https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_client_port }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-router-cfg
+  namespace: kube-system
+  labels:
+    tier: node
+    k8s-app: kube-router
+data:
+  cni-conf.json: |
+    {
+       "cniVersion":"0.3.0",
+       "name":"k8s-pod-network",
+       "plugins":[
+          {
+             "name":"kubernetes",
+             "type":"bridge",
+             "bridge":"kube-bridge",
+             "isDefaultGateway":true,
+             "hairpinMode":{{ kuberouter_hairpin_mode }},
+             "ipam":{
+                "type":"host-local"
+             }
+          },
+          {
+             "type":"portmap",
+             "capabilities":{
+                "snat":true,
+                "portMappings":true
+             }
+          }
+       ]
+    }
+
+# ## org conf settings template
+#    {
+#      "name":"kubernetes",
+#      "type":"bridge",
+#      "bridge":"kube-bridge",
+#      "isDefaultGateway":true,
+#      "ipam": {
+#        "type":"host-local"
+#      }
+#    }
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+# ##
+# kube-router main pod interface (host and container use the same file path)
+# . input: for kube-router to access master apiserver
+#     - kubeconfig file /etc/kube-router/kube-router.kubeconfig on host
+#       kube-router main pod use above file to get master address/port and certificate data
+# ##
+# interface of install-cni sub pod (host and container use the same file path):
+# . input: for install cni network config
+#     - kube-router network configuration file for cni
+#       config file /etc/kube-router/kuberouter-cni-conf.json
+# . output: after install cni proc
+#     - cni network config file for cni (kube-router plugin for cni)
+#       config file: /etc/cni/net.d/10-kuberouter.conflist (same path on host and container)
+##
+# interface of host cni plugin (for kube-route plugin)
+# . input: network config file for kube-router
+#    - /etc/cni/net.d/10-kuberouter.conflist
+# . input: cni plugin exec files
+#    - bridge cni exec
+#    - host-local cni exec
+#    - kube-rouer cni exec (? create by kube-router image - main pod or ? manual install)
+#
+metadata:
+  name: kube-router
+  namespace: kube-system
+  labels:
+    k8s-app: kube-router
+    tier: node
+  annotations:
+    scheduler.alpha.kubernetes.io/critical-pod: ''
+spec:
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-router
+        tier: node
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      serviceAccountName: kube-router
+      serviceAccount: kube-router
+      containers:
+      - name: kube-router
+        securityContext:
+          privileged: true
+        image: docker.io/cloudnativelabs/kube-router
+        imagePullPolicy: Always
+        #imagePullPolicy: IfNotPresent
+        args:
+          - "--run-router=true"
+          - "--run-firewall=true"
+          - "--run-service-proxy=true"
+          - "--v={{ kuberouter_log_level }}"
+          - "--kubeconfig={{ kuberouter_kubeconfig_file_path }}"
+          - "--cluster-cidr={{ cluster_pod_cidr }}"
+          - "--hairpin-mode={{ kuberouter_hairpin_mode }}"
+          - "--cluster-asn={{ kuberouter_cluster_asn }}"
+          - "--masquerade-all={{ kuberouter_masquerade_all }}"
+          - "--nodes-full-mesh={{ kuberouter_node_full_mesh }}"
+          - "--enable-overlay={{ kuberouter_enable_overlay }}"
+          - "--enable-ibgp={{ kuberouter_enable_igbp }}"
+          - "--bgp-graceful-restart={{ kuberouter_bgp_graceful_restart }}"
+          - "--enable-pod-egress={{ kuberouter_enable_pod_egress }}"
+          - "--advertise-cluster-ip={{ kuberouter_advertise_cluster_ip }}"
+          - "--advertise-external-ip={{ kuberouter_advertise_external_ip }}"
+          #- "--peer-router-ips={{ kuberouter_peer_router_ips }}"
+          #- "--peer-router-asns={{ kuberouter_peer_router_asns }}"
+          #
+          # - "--peer-router-ips=192.168.1.99"
+          ## for advertise load balancer ip
+          # - "--advertise-loadbalancer-ip=true"
+          ## for advertise service external ip
+          ## for direct server return - DSR
+          # set "hostIPC: true" in manifest (not in arg)
+          # set "hostPID: true" in manifest (not in arg)
+          # for peer router reflector
+          # - "--nodes-full-mesh=false"
+          # - "--peer-router-ips={{ kuberouter_peer_router_ips }}"
+          # - "--peer-router-asns={{ kuberouter_peer_router_asns }}"
+          # - "--router-id={{ kuberouter_router_reflector_cluster_id }}"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            #port: {{ kuberouter_healthz_port }}
+            port: {{ kuberouter_healthz_port }}
+          initialDelaySeconds: 10
+          periodSeconds: 3
+        resources:
+          requests:
+            cpu: 250m
+            memory: 250Mi
+        volumeMounts:
+        - name: lib-modules
+          mountPath: /lib/modules
+          readOnly: true
+        - name: cni-conf-dir
+          #mountPath: /etc/cni/net.d
+          mountPath: {{ cni_config_path }}
+          readOnly: false
+        - name: kube-router-data-dir
+          mountPath: {{ kuberouter_data_path }}
+          readOnly: false
+        #- name: kube-router-config-dir
+        #  mountPath: {{ kuberouter_config_path }}
+        #  readOnly: true
+        - name: kubeconfig-file
+          #mountPath: /var/lib/kube-router/kubeconfig
+          # use /etc/kuber-router/kube-router.kubeconfig
+          mountPath: {{ kuberouter_kubeconfig_file_path }}
+          readOnly: true
+        ## for direct server return - DSR
+        - name: var-run-docker-sock
+          mountPath: /var/run/docker.sock
+          readOnly: false
+      initContainers:
+      - name: install-cni
+        image: busybox
+        imagePullPolicy: Always
+        #imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        - set -e -x;
+          if [ ! -f {{ kuberouter_cni_network_config_file_path }} ]; then
+            TMP={{ cni_config_path }}/.tmp-kuberouter-cfg;
+            cp {{ kuberouter_network_conf_file_path }} ${TMP};
+            mv ${TMP} {{ kuberouter_cni_network_config_file_path }};
+          fi
+        volumeMounts:
+        - name: cni-conf-dir
+          #mountPath: /etc/cni/net.d
+          mountPath: {{ cni_config_path }}
+          readOnly: false
+        - name: kube-router-cfg
+          #mountPath: /etc/kube-router
+          mountPath: {{ kuberouter_config_path }}
+          #readOnly: true
+      hostNetwork: {{ kuberouter_host_network }}
+      hostIPC: {{ kuberouter_host_ipc }}
+      hostPID: {{ kuberouter_host_pid }}
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      - effect: NoSchedule
+        key: node.kubernetes.io/not-ready
+        operator: Exists
+      volumes:
+      - name: lib-modules
+        hostPath:
+          path: /lib/modules
+      - name: cni-conf-dir
+        hostPath:
+          #path: /etc/cni/net.d
+          path: {{ cni_config_path }}
+      - name: kube-router-data-dir
+        hostPath:
+          #path: /var/lib/kube-router
+          path: {{ kuberouter_data_path }}
+      #- name: kube-router-config-dir
+      #  hostPath:
+      #    path: {{ kuberouter_config_path }}
+      #
+      # for direct server return - DSR
+      # ref: https://cloudnativelabs.github.io/post/2017-11-01-kube-high-available-ingress
+      - name: var-run-docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+      - name: kubeconfig-file
+        hostPath:
+          #path: /etc/kube-router/kube-router.kubeconfig
+          path: {{ kuberouter_kubeconfig_file_path }}
+      - name: kube-router-cfg
+        configMap:
+          name: kube-router-cfg
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-router
+  namespace: kube-system
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: kube-router
+  namespace: kube-system
+rules:
+  - apiGroups:
+    - ""
+    resources:
+      - namespaces
+      - pods
+      - services
+      - nodes
+      - endpoints
+    verbs:
+      - list
+      - get
+      - watch
+  - apiGroups:
+    - "networking.k8s.io"
+    resources:
+      - networkpolicies
+    verbs:
+      - list
+      - get
+      - watch
+  - apiGroups:
+    - extensions
+    resources:
+      - networkpolicies
+    verbs:
+      - get
+      - list
+      - watch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: kube-router
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kube-router
+subjects:
+- kind: ServiceAccount
+  name: kube-router
+  namespace: kube-system

@@ -1,0 +1,33 @@
+---
+
+# file: remove-firewalld-service.yml
+
+# stop and disable firewalld service
+#
+- name:
+  block:
+    - name: stop and disable firewalld services if exist
+      systemd:
+        name: firewalld
+        daemon_reload: no
+        state: stopped
+        enabled: no
+  rescue:
+    - debug:
+        msg: "ERROR: can not stop firewalld service, or service not exist"
+# end block
+
+
+# remove installed firewalld service
+- name:
+  block:
+    - name: remove firewalld service if exist, include its dependancies
+      yum:
+        name: firewalld
+        state: absent
+        autoremove: yes
+  rescue:
+    - debug:
+        msg: "ERROR: can not uninstall firewalld service, please check if service exist"
+# end block
+

@@ -1,0 +1,186 @@
+about create-kube-cluster-master role
+
+implement by using create-master-node - to create every master node of kube cluster masters
+
+description of functions and procedures:
+
+  . dependencies roles
+      - cluster-defaults ( include global cluster default variables )
+      - etcd defaults ( include etcd default variables )
+      - ? os prep tasks ( attn: no reboot )
+  
+  . create user and group
+  . create directories ( bin, data, config, cert )
+  . create etcd client directory ( bin, cert )
+  . create kube cert files (root ca, apiserver, kubelet bootstrapping auto auth token, controller-manager, scheduler )
+  . create etcd cert ( etcd root ca, client cert for etcdctl )
+
+  . copy/install binary files ( kubectl, apiserver, controller-manager, scheduler)
+
+  . copy etcd client binary file ( etcdctl )
+
+  . ? need flannel network on master node ??? (no. flannel only need to deploy on kube-proxy node) 
+
+  . deploy apiserver service
+      - (kubelet bootstrapping auth token file)
+      - create apiserver parameter config file
+      - create apiserver systemd unit file
+      - enable firewall rule for apiserver
+      - enable/start apiserver service
+
+      - kube system rbac role binding using kubectl - authorize apiserver call kubelet API
+        ( # kubectl create clusterrolebinding kube-apiserver:kubelet-apis --clusterrole=system:kubelet-api-admin --user kubernetes )
+
+  . deploy controller-manager service
+      - create controller-manager parameter config file
+      - create controller-manager systemd unit file
+      - enable firewall rule for controller-manager
+      - enable/start controller-manager service
+
+  . deploy scheduler service
+      - create scheduler parameter config file
+      - create scheduler parameter systemd unit file
+      - enable firewall rule for scheduler
+      - enable/start controller-manager service
+
+  . create enviroment settings for etcdctl command-line (need reboot or start new bash environment)
+      (to enable etcdctl client execution on master node)
+
+  . setup and enable ntp server for etcd cluster time sync source, enable ntp client for time sync
+      with external time sync server
+
+
+
+todo:
+  . 
+
+
+
+---------
+
+remark:
+
+
+-------------------
+1. check etcd server
+command line to check etcd using etcdctl (on master node):
+(following command line parameters works)
+
+# etcdctl --ca-file=/etc/etcd/cert/etcd-ca.pem --cert-file=/etc/etcd/cert/etcd-client.pem --key-file=/etc/etcd/cert/etcd-client-key.pem --endpoints=https://10.0.0.111:2379 cluster-health
+
+# etcdctl cluster-health
+
+# etcdctl member list
+
+
+
+2. check kubernetes keys stored in etcd after cluster masters deployed
+
+remark: key stored in etcd in etcd3 type storage.
+
+command line to check (print) kubernetes key stored in etcd (on master node):
+(following command line parameters works, will list all keys)
+
+# ETCDCTL_API=3 etcdctl \
+--endpoints="https://10.0.0.111:2379,https://10.0.0.112:2379,https://10.0.0.113:2379" \
+--cacert=/etc/etcd/cert/etcd-ca.pem \
+--cert=/etc/etcd/cert/etcd-client.pem \
+--key=/etc/etcd/cert/etcd-client-key.pem \
+get /registry/ --prefix --keys-only
+
+
+or in simple, use exported enviroment (/root/.etcdctl-env.rc)
+
+# ETCDCTL_API=3 etcdctl \
+get /registry/ --prefix --keys-only
+
+
+3. create cluster pod network config in etcd for flannel network
+(rem: it is auto exec during deploying masters)
+
+# cmd line to set pod network - for reference
+
+# /usr/local/bin/etcdctl \
+--endpoints="https://10.0.0.111:2379,https://10.0.0.112:2379,https://10.0.0.113:2379" \
+--ca-file=/etc/etcd/cert/etcd-ca.pem \
+--cert-file=/etc/etcd/cert/etcd-client.pem \
+--key-file=/etc/etcd/cert/etcd-client-key.pem \
+set \
+/test/network/config \
+'{"Network":"172.30.0.0/16","SubnetLen": 24, "Backend": {"Type": "vxlan"}}'
+
+remark:
+  . ansible deploy script: - command module exec env do not include /usr/local/bin in path, need full path of etcdctl
+  . ansible deploy script: - command module exec env also do not include etcdctl client exec 
+    environment set for root in ~/.etcd-bash.rc, so need add all env setting in ansible script
+
+
+4. check endpoints
+
+   . kubernetes endpoint in default namespace
+   . kube-controller-manager and kube-scheduler in kube-system namespace
+
+# kubectl get endpoints --namespace=default
+NAME         ENDPOINTS                         AGE
+kubernetes   10.0.0.101:6443,10.0.0.102:6443   12m
+
+# kubectl get endpoints --namespace=kube-system
+NAME                      ENDPOINTS   AGE
+kube-controller-manager   <none>      12m
+kube-scheduler            <none>      12m
+
+
+-- check node of endpoints
+# kubectl get endpoints --namespace=kube-system -o yaml
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Endpoints
+  metadata:
+    annotations:
+      control-plane.alpha.kubernetes.io/leader: '{"holderIdentity":"node1_b221f5ad-1dd4-11e9-b9fd-005056bf94e6","leaseDurationSeconds":15,"acquireTime":"2019-01-21T23:31:37Z","renewTime":"2019-01-21T23:44:31Z","leaderTransitions":0}'
+    creationTimestamp: "2019-01-21T23:31:37Z"
+    name: kube-controller-manager
+    namespace: kube-system
+    resourceVersion: "1169"
+    selfLink: /api/v1/namespaces/kube-system/endpoints/kube-controller-manager
+    uid: b225ab2a-1dd4-11e9-b632-005056bf94e6
+- apiVersion: v1
+  kind: Endpoints
+  metadata:
+    annotations:
+      control-plane.alpha.kubernetes.io/leader: '{"holderIdentity":"node2_b5eee2aa-1dd4-11e9-93de-005056bfd95c","leaseDurationSeconds":15,"acquireTime":"2019-01-21T23:31:44Z","renewTime":"2019-01-21T23:44:30Z","leaderTransitions":0}'
+    creationTimestamp: "2019-01-21T23:31:44Z"
+    name: kube-scheduler
+    namespace: kube-system
+    resourceVersion: "1168"
+    selfLink: /api/v1/namespaces/kube-system/endpoints/kube-scheduler
+    uid: b69ce0c7-1dd4-11e9-a96e-005056bfd95c
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+
+- check port listen of kube system components
+# kubectl get cs
+
+# ss -ntulp | grep kube-
+tcp    LISTEN     0      128       *:10251                 *:*                   users:(("kube-scheduler",pid=110358,fd=3))
+tcp    LISTEN     0      128       *:6443                  *:*                   users:(("kube-apiserver",pid=110086,fd=3))
+tcp    LISTEN     0      128       *:10252                 *:*                   users:(("kube-controller",pid=110223,fd=3))
+tcp    LISTEN     0      128       *:10257                 *:*                   users:(("kube-controller",pid=110223,fd=5))
+tcp    LISTEN     0      128       *:10259                 *:*                   users:(("kube-scheduler",pid=110358,fd=5))
+
+(listen on non-tls port 10251 and 10252 port can be closed by changing apiserver, controller manager and
+   scheduler systemd unit file. rem: apiserver non-tls port 8080 is closed already )
+
+healthz and metrics traffic are set to be watched.
+
+# curl https://10.0.0.101:10257/healthz -k
+# curl https://10.0.0.102:10259/healthz | tail
+
+# curl https://10.0.0.101:10257/metrics -k
+# curl https://10.0.0.102:10259/metrics 
+
+
+

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myip
+  labels:
+    app: myip
+  namespace: default
+  annotations:
+    monitoring: "true"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myip
+  template:
+    metadata:
+      labels:
+        app: myip
+    spec:
+      containers:
+      - image: cloudnativelabs/whats-my-ip
+        name: myip
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "512m"
+          requests:
+            memory: "128Mi"
+            cpu: "128m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: myip
+  name: myip
+  namespace: default
+spec:
+  ports:
+  - nodePort: 30089
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: myip
+  type: NodePort

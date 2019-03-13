@@ -1,0 +1,20 @@
+[Unit]
+Description=bootup iptables setting - service name: bootup-iptables-setting.service
+After=kube-proxy.service
+Requires=kube-proxy.service
+
+[Service]
+Type=simple
+User=root
+ExecStart= /bin/sleep 10
+ExecStartPost= /usr/local/bin/bootup-iptables-setting.sh
+
+TimeoutStopSec= 180
+ExecStop= /bin/kill --version
+
+#Restart=on-failure
+#RestartSec=5
+
+[Install]
+WantedBy=bootup-iptables-setting.target
+

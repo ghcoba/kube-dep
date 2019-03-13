@@ -1,0 +1,21 @@
+---
+
+# file: roles/create-kube-cluster-master/tasks/main.yml
+
+# include etcd variable - using in create-kube-cluster-master role
+- block:
+  - debug:
+      msg: "include etcd default variables ..."
+  - name: INCLUDE VAR main.yml (in dir roles/create-etcd-cluster/defaults)
+    include_vars:
+#   relative directory - relative to roles/roles-item/
+      file: ../create-etcd-cluster/defaults/main.yml
+  - debug:
+      msg: "etcd version: {{ etcd_version }}"
+# end block
+
+- name: exec schedule-create-master-node
+  import_tasks: schedule-create-master-node.yml
+  when:
+    - inventory_hostname in groups['kube-masters']
+

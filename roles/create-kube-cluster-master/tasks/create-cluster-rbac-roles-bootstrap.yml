@@ -1,0 +1,144 @@
+---
+
+# file: create-cluster-rbac-roles-bootstrap.yml
+#
+
+
+
+####################################################################
+# 1.
+#   type: cluster role
+#   func: instruct CSR APPROVER to approve a servering cert
+#
+#   role: system:certificates.k8s.io:certificatesigningrequests:selfnodeserver
+#   apiGroups: ["certificates.k8s.io"]
+#   file name: rbac-cr-instruct-approve-selfnodeserver-csr.yaml.j2
+
+- block:
+    - name: generate rbac selfnodeserver cluster role
+      command: "{{ bin_path }}/kubectl create -f {{ kube_rbac_config_path }}/rbac-cr-instruct-approve-selfnodeserver-csr.yaml"
+      register: selfnodeserver_rbac_create_result
+
+  rescue:
+    - debug:
+        msg: >
+          - "error occured during create rbac role. "
+          - "ERROR: {{ selfnodeserver_rbac_create_result.stderr_lines }}"
+
+  always:
+    - debug:
+        msg: >
+          - "please check rbac role havs been created. using command line: # kubectl get clusterrole system:certificates.k8s.io:certificatesigningrequests:selfnodeserver"
+          - "will continue ..."
+
+
+####################################################################
+# 2. 
+#   type: cluster role binding
+#   func: create bootstrap csr
+#
+#   binding name: kubelet-bootstrap
+#   role: system:node-bootstrapper
+#   group: system:bootstrappers
+#   file name: rbac-crb-kubelet-bootstrap.yaml.j2
+
+- block:
+    - name: generate rbac kubelet-bootstrap clusterrolebinding
+      command: "{{ bin_path }}/kubectl create -f {{ kube_rbac_config_path }}/rbac-crb-kubelet-bootstrap.yaml"
+      register: kubelet_bootstrap_write_rbac_result
+
+  rescue:
+    - debug:
+        msg: >
+          - "error occured during write rbac role binding. "
+          - "ERROR: {{ kubelet_bootstrap_write_rbac_result.stderr_lines }}"
+
+  always:
+    - debug:
+        msg: >
+          - "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding kubelet-bootstrap"
+          - "will continue ..."
+
+#####################################################################
+# 3. 
+#   type: cluster role binding
+#   func: auto approve nodeclient csr
+#   
+#   binding name: auto-approve-nodeclient-csr
+#   role: system:certificates.k8s.io:certificatesigningrequests:nodeclient
+#   group: system:bootstrappers
+#   file name: rbac-crb-auto-approve-nodeclient-csr.yaml.j2
+ 
+- block:
+    - name: generate rbac auto-approve-nodeclient-csr clusterrole binding
+      command: "{{ bin_path }}/kubectl create -f {{ kube_rbac_config_path }}/rbac-crb-auto-approve-nodeclient-csr.yaml"
+      register: autonodeclient_write_rbac_result
+
+  rescue:
+    - debug:
+        msg: >
+          - "error occured during write rbac role. "
+          - "ERROR: {{ autonodeclient_write_rbac_result.stderr_lines }}"
+
+  always:
+    - debug:
+        msg: >
+          - "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding auto-approve-nodeclient-csr"
+          - "will continue ..."
+
+#####################################################################
+# 4.
+#   type: cluster role binding
+#   func: auto approve renewal nodeclient cert csr ( client cert for kubelet to contact apiserver)
+#  
+#   binding name: auto-approve-renewal-nodeclient-csr
+#   role: system:certificates.k8s.io:certificatesigningrequests:selfnodeclient
+#   group: system:nodes
+#   file name: rbac-crb-auto-approve-renewal-nodeclient-csr.yaml.j2
+
+- block:
+    - name: generate rbac auto-approve-renewal-nodeclient-csr clusterrolebinding
+      command: "{{ bin_path }}/kubectl create -f {{ kube_rbac_config_path }}/rbac-crb-auto-approve-renewal-nodeclient-csr.yaml"
+      register: renew_nodeclient_write_rbac_result
+
+  rescue:
+    - debug:
+        msg: >
+          - "error occured during write rbac role. "
+          - "ERROR: {{ renew_nodeclient_write_rbac_result.stderr_lines }}"
+
+  always:
+    - debug:
+        msg: >
+          - "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding auto-approve-renewal-nodeclient-csr"
+          - "will continue ..."
+
+#####################################################################
+# 5.
+#   type: cluster role binding
+#   fucn auto approve renewal nodeserver cert csr (server client for kubelet server which 
+#     servering on port 10250)
+#
+#   binding name: auto-approve-renewal-nodeserver-csr
+#   role: system:certificates.k8s.io:certificatesigningrequests:selfnodeserver
+#   group: system:nodes
+#   file name: rbac-crb-auto-approve-renewal-nodeserver-csr.yaml.j2
+
+- block:
+    - name: generate rbac auto-approve-renewal-nodeserver-csr clusterrolebinding
+      command: "{{ bin_path }}/kubectl create -f {{ kube_rbac_config_path }}/rbac-crb-auto-approve-renewal-nodeserver-csr.yaml"
+      register: renew_nodeserver_write_rbac_result
+
+  rescue:
+    - debug:
+        msg: >
+          - "error occured during write rbac role. "
+          - "ERROR: {{ renew_nodeserver_write_rbac_result.stderr_lines }}"
+
+  always:
+    - debug:
+        msg: >
+          - "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding auto-approve-renewal-nodeserver-csr"
+          - "will continue ..."
+
+

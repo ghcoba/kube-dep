@@ -1,0 +1,46 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/copy-cert-to-etcd-node.yml
+#
+
+# fetch etcd cert from node-0 of cluster masters to ansible temp exchange directory
+#   using delegate_to node-0
+
+# fech all cert to ansible temp exchange dir
+- name: fetch all cert files of etcd cache dir to ansible kube backup dir
+  fetch:
+    src: "{{ cert_cache_path_etcd }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+#    - ca.pem
+#    - ca-key.pem
+    - etcd-ca.pem
+    - etcd-ca-key.pem
+    - etcd-client.pem
+    - etcd-client-key.pem
+    - etcd-server.pem
+    - etcd-server-key.pem
+    - etcd-peer.pem
+    - etcd-peer-key.pem
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy all cert from ansible temp exchange directory to etcd cluster node
+- name: copy all cert files to etcd cluster node
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ etcd_cert_path }}/"
+    owner: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"
+  with_items:
+#    - ca.pem
+#    - ca-key.pem
+    - etcd-ca.pem
+    - etcd-ca-key.pem
+    - etcd-client.pem
+    - etcd-client-key.pem
+    - etcd-server.pem
+    - etcd-server-key.pem
+    - etcd-peer.pem
+    - etcd-peer-key.pem
+  

@@ -1,0 +1,116 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/schedule-create-etcd-node.yml
+#
+
+# func:
+#   0. check etcd config directory ( /etc/etcd ) on remote
+#        skip create-etcd-node procedure if /etc/etcd directory exist
+#   1. create etcd node of etcd cluster
+#
+# scheduled proc:
+#   1. create system etcd user and group (will also create etcd data/home dir /var/lib/etcd)
+#   2. create etcd config (/etc/etcd) and cert (/etc/etcd/cert) directory
+#   3. copy etcd cert to etcd node
+#   4. copy etcd binary to etcd node
+#   5. create etcd service systemd unit file
+#   6. enable firewall rules for etcd network traffic (2379, 2380, 4001/tcp traffic)
+#   7. setting etcd cluster ntp service (server/client) for accurate system time sync
+#   8. enable and start etcd service
+#   9. create etcdctl enviroment settings
+#
+# remark:
+#   1. need to install etcdctl utility, ca/cert and enviroment setting on kube cluster masters (
+#        to make it possible to check or access etcd server on cluster master nodes ). this 
+#        is not applied in this role
+#   2. flannel network and kube-proxy need have rights to access etcd server (as client), we 
+#        also need to installl etcdctel utility, ca/cert and enviroment setting on related 
+#        kube work nodes. this is not applied in this role
+#
+
+########################################################################################
+
+- name: traceing - start create-etcd-node
+  debug:
+    msg: "check tracing - starting schedule-create-etcd-node"
+
+# 0.0
+# check environmental status
+#######################################
+
+# check etcd config directory (/etc/etcd) exist
+- name: check etcd config directory exist
+  stat:
+    path: "{{ etcd_config_path }}"
+  register: etcd_config_path_exist_result
+  run_once: true
+  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+
+- name: check etcd cert directory exist
+  stat:
+    path: "{{ etcd_cert_path }}"
+  register: etcd_cert_path_exist_result
+  run_once: true
+  delegate_to: "{{ groups['etcd-nodes'][0] }}"
+
+
+# skip it exist condition true
+
+###########
+###########
+# set skip false when etcd config or certdirectory not exist
+- block:
+
+# 1.
+#   create system etcd user and group
+    - name: exec create-etcd-user
+      import_tasks: create-etcd-user.yml
+
+# 2.
+#   create etcd config and etcd cert directory
+    - name: exec create-etcd-dir
+      import_tasks: create-etcd-dir.yml
+
+# 3.
+#   copy cert to etcd node
+    - name: exec copy-cert-to-etcd-node
+      import_tasks: copy-cert-to-etcd-node.yml
+
+# 4.
+#   copy binary to etcd node
+    - name: exec copy-bin-to-etcd-node
+      import_tasks: copy-bin-to-etcd-node.yml
+
+
+# 5.
+#   create etcd service systemd unit file
+    - name: exec create-etcd-unit-file
+      import_tasks: create-etcd-unit-file.yml
+
+# 6. 
+#   create firewall rule to enable etcd network traffic
+    - name: exec enable-firewall-rule-for-etcd
+      import_tasks: enable-firewall-rule-for-etcd.yml
+
+# 7.
+#   enable and start etcd service
+    - name: exec enable-start-etcd-service
+      import_tasks: enable-start-etcd-service.yml
+
+# 8.
+#   create etcdctl environment settings
+    - name: create-etcdctl-env-setting
+      import_tasks: create-etcdctl-env-setting.yml
+
+# - condition of block:
+#     when for block (exec block when condition true - need create etcd cluster node)
+  when: ( etcd_config_path_exist_result.stat.exists == false ) or ( etcd_cert_path_exist_result.stat.exists == false )
+
+##########
+##########
+
+# continue do nothing
+#   (
+#     etcd config and cert directory exist, we consider this condition as etcd cluster is exist,
+#       and then need not to re-create etcd cluster
+#   )

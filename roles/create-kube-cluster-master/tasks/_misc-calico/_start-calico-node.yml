@@ -1,0 +1,20 @@
+---
+
+# file: start-calico-node.yml
+#
+
+
+# start calico node 
+#- name: start calico node on host
+#  command: >
+#    /usr/local/bin/calicoctl node run \
+#    --node-image="quay.io/calico/node:{{ calico_node_version_number }}" \
+#    --ip="{{ hostvars[inventory_hostname]['host_ip_address'] }}"
+
+
+- name:
+  debug:
+    msg: >
+      - "### to avoid slow image pull, calico node is not auto started during deploymeng."
+      - ">>> please manually start calico node on each host:\n"
+      - "      # calicoctl node run --node-image=quay.io/calico/node:{{ calico_node_version_number }} --ip={{ hostvars[inventory_hostname]['host_ip_address'] }}"

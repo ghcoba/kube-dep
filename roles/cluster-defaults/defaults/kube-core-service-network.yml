@@ -1,0 +1,83 @@
+---
+
+# file: kube-core-service-network.yml
+#
+
+###########################################################################
+# apiserver service url and ip
+# (view from cluster - used in kubectl config and apiserver systemd unit file)
+
+# kube_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:5000"
+# kube_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:6443"
+kube_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:{{ kube_load_balancer_apiserver_secure_port }}"
+
+kube_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
+
+kube_apiserver_url: "https://{{ hostvars[inventory_hostname]['host_ip_address'] }}:6443"
+
+kube_apiserver_ip: "{{ hostvars[inventory_hostname]['host_ip_address'] }}"
+
+
+
+###########################################################################
+# kube core service definition: service url, bind ip address, listen port
+# (view from every cluster master node - used in apiserver systemd unit file)
+
+##############
+#kube-apiserver service definition
+
+# number of apiservers in cluster masters (used in apiserver systemd file)
+apiserver_node_count: 2
+
+kube_apiserver_master_url: "https://127.0.0.1:{{ kube_apiserver_secure_port }}"
+
+kube_apiserver_secure_bind_address: 0.0.0.0
+kube_apiserver_insecure_bind_address: 127.0.0.1
+
+#kube_load_balancer_apiserver_secure_port: 8443
+kube_load_balancer_apiserver_secure_port: "{{ kube_apiserver_secure_port }}"
+
+# kube-apiserver secure listen port
+kube_apiserver_secure_port: 6443
+# kube apiserver insecure port - default 8080 (for test only), use 0 to disable using insecure port
+kube_apiserver_insecure_port: 8080
+#kube_apiserver_insecure_port: 0
+
+##############
+# kube controller manager secure port (in-secure 10252 port is not used)
+# kube controller manager start secure https listen from v1.13.0
+
+# kube master url used in setting of controller-manager and scheduler config settings
+#kube_controller_manager_master_setting: "http://127.0.0.1:8080"
+#kube_controller_manager_master_setting: "https://127.0.0.1:{{ kube_apiserver_secure_port }}"
+
+#kube_controller_manager_bind_address: 127.0.0.1
+kube_controller_manager_bind_address: 0.0.0.0
+
+kube_controller_manager_secure_port: 10257
+kube_controller_manager_port: 10252
+
+
+###############
+# secure port (default insecure port 10251 can be closd )
+# kube scheduler start supporting secure https listen from v1.13.1
+#   secure port 10259 listen is enable in default
+
+#kube_scheduler_bind_address: 127.0.0.1
+kube_scheduler_bind_address: 0.0.0.0
+
+kube_scheduler_secure_port: 10259
+
+kube_scheduler_port: 10251
+kube_scheduler_metrics_port: 10251
+
+
+##############
+# kube-proxy
+
+kube_proxy_bind_address: 0.0.0.0
+kube_proxy_healthz_bind_ip: 0.0.0.0
+kube_proxy_healthz_port: 10256
+kube_proxy_metrics_bind_ip: 0.0.0.0
+kube_proxy_metrics_port: 10249
+

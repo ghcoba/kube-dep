@@ -1,0 +1,123 @@
+---
+
+# file: enable-firewall-rule-for-kube-worker-node.yml
+#
+
+###
+# firewall rules for  apiserver
+
+
+- name: change firewalll to enable port 6443 (kube-apiserver) for apiserver secure listen port
+  command: "firewall-cmd --zone=public --add-port=6443/tcp --permanent"
+- name: change firewalll to enable port 443 (kube-apiserver) for apiserver secure listen port
+  command: "firewall-cmd --zone=public --add-port=443/tcp --permanent"
+
+- name: change firewalll to enable masquerade
+  command: "firewall-cmd --add-masquerade --permanent"
+
+
+
+###
+# firewall rules for kube-proxy (metrics - 10256, healthz - 10249)
+
+- name: change firewalll to enable port 10256 (healthz) for kube-proxy http/https traffic port
+  command: "firewall-cmd --zone=public --add-port={{ kube_proxy_healthz_port }}/tcp --permanent"
+
+- name: change firewalll to enable port 10249 (metrics) for kube-scheduler https traffic port
+  command: "firewall-cmd --zone=public --add-port={{ kube_proxy_metrics_port }}/tcp --permanent"
+
+
+
+###
+# firewall rules for kubelet (metrics, healthz, cadvisor)
+
+- name: change firewalll to enable port 10250 (metrics) for kubelet http api/metrics traffic port
+  command: "firewall-cmd --zone=public --add-port=10250/tcp --permanent"
+
+- name: change firewalll to enable port 10248 (healthz) for kubelet healthz http traffic
+  command: "firewall-cmd --zone=public --add-port=10248/tcp --permanent"
+
+- name: change firewalll to enable port 4194 for kubelet cadvisor http traffic 
+  command: "firewall-cmd --zone=public --add-port=4194/tcp --permanent"
+
+
+
+###
+# firewall rules for flannel
+
+# enable traffic for flannel pod traffic (on port 8472 in udp, for vxlan)
+- name: change firewalll to enable port 8472 for flannel overlay network pod traffic
+  command: "firewall-cmd --zone=public --add-port=8472/udp --permanent"
+# enable traffic for flannel pod traffic (on port 8285 in udp, for udp)
+- name: change firewalll to enable port 8285 for flannel overlay network pod traffic
+  command: "firewall-cmd --zone=public --add-port=8285/udp --permanent"
+
+
+
+###
+# firewall rule for calico
+
+# enable calico liveness traffic pot 9099/tcp
+- name: change firewalll to enable calico liveness traffic port 9099 tcp
+  command: "firewall-cmd --zone=public --add-port={{calico_liveness_port}}/tcp --permanent"
+
+###
+# firewall rule for calico failsafe port
+#- name: change firewalll to enable port 22 (inbound, tcp) for ssh traffic
+#  command: "firewall-cmd --zone=public --add-port=22/tcp --permanent"
+- name: change firewalll to enable port 53 (outbound, udp) for dns query traffic
+  command: "firewall-cmd --zone=public --add-port=53/udp --permanent"
+- name: change firewalll to enable port 67 (outbound,udp) for dhcp traffic
+  command: "firewall-cmd --zone=public --add-port=67/udp --permanent"
+- name: change firewalll to enable port 68 (inbound,udp) for dhcp traffic
+  command: "firewall-cmd --zone=public --add-port=68/udp --permanent"
+- name: change firewalll to enable port 179 (inbound/outbound, tcp) for BGP access traffic
+  command: "firewall-cmd --zone=public --add-port=179/tcp --permanent"
+- name: change firewalll to enable port 2379 (inbound/outbound, tcp) for etcd traffic
+  command: "firewall-cmd --zone=public --add-port=2379/tcp --permanent"
+- name: change firewalll to enable port 2380 (inbound/outbound, tcp) for etcd traffic
+  command: "firewall-cmd --zone=public --add-port=2380/tcp --permanent"
+- name: change firewalll to enable port 6666 (inbound/outbound, tcp) for self-hosting etcd traffic
+  command: "firewall-cmd --zone=public --add-port=6666/tcp --permanent"
+- name: change firewalll to enable port 6667 (inbound/outbound, tcp) for self-hosting etcd traffic
+  command: "firewall-cmd --zone=public --add-port=6667/tcp --permanent"
+
+
+###
+# firewall rules for coredns (include kube-dns, prometheus )
+
+- name: change firewalll to enable port 9153 docker prometheus port
+  command: "firewall-cmd --zone=public --add-port=9153/udp --permanent"
+
+- name: change firewalll to enable port 9153  for docker prometheus
+  command: "firewall-cmd --zone=public --add-port=9153/tcp --permanent"
+
+# for test - kube-dns (10054, 10055, 8081 tcp, 10053 tcp/udp)
+- name: change firewalll to enable port 10053 udp
+  command: "firewall-cmd --zone=public --add-port=10053/udp --permanent"
+- name: change firewalll to enable port 10053 tcp
+  command: "firewall-cmd --zone=public --add-port=10053/udp --permanent"
+- name: change firewalll to enable port 10054 tcp
+  command: "firewall-cmd --zone=public --add-port=10054/tcp --permanent"
+- name: change firewalll to enable port 10055 tcp
+  command: "firewall-cmd --zone=public --add-port=10055/tcp --permanent"
+- name: change firewalll to enable port 8081 tcp
+  command: "firewall-cmd --zone=public --add-port=8081/tcp --permanent"
+- name: change firewalll to enable insecure port 8080 for coredns health listen port
+  command: "firewall-cmd --zone=public --add-port=8080/tcp --permanent"
+- name: change firewalll to enable port 53 tcp
+  command: "firewall-cmd --zone=public --add-port=53/tcp --permanent"
+- name: change firewalll to enable port 53 udp
+  command: "firewall-cmd --zone=public --add-port=53/udp --permanent"
+
+###
+
+# firewall rule for kube-router
+# - BGP port 179 - already applied in above (calico)
+- name: change firewalll to enable port 20244 (inbound/outbound, tcp) for kube-router healthz traffic
+  command: "firewall-cmd --zone=public --add-port={{ kuberouter_healthz_port }}/tcp --permanent"
+
+
+- name: reload firewall to take effect for kubernetes cluster
+  command: "firewall-cmd --reload"
+

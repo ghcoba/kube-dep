@@ -1,0 +1,6 @@
+.tmp/
+dep-data/
+_doc/
+_os-prep-misc/
+*.retry
+

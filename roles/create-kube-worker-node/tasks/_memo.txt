@@ -1,0 +1,48 @@
+memo.txt
+
+main : 
+  call scheduler routine
+
+scheduler routine:
+  . check enviroment status and define if need to deploy
+
+  . create user/group
+  . create directory
+    ( /etc/kubernetes, /etc/kubernetes/cert and ? kube config directory)
+  . call deploy cni
+    ( 
+       create cni directory
+       create binary
+       ? other settins
+    )
+  . call deploy flannel
+    ( create bin/config/data dir
+      create cert
+      create binary
+      create systemd unit file 
+        ( and setting create docker env config for docker in sevie unit file
+          setting delete docker0 network if exist       
+        )
+      firewall setting
+      start flannel service
+    )
+    . call deplaoy docker
+    (
+       create ? user/group
+       create directory (config, data)
+       create binary
+       create systemd unit file (? set docker mirror url)
+       firewall setting
+       start docker service
+    )
+    . call deploy kubelet
+    (
+       create bootstrap token
+       create rbac role for bootstrap csr, auto approve, renew
+       create kubelet systemd unit file
+       create kubelet config file
+       firewall settings
+       start kubelet service
+    )
+    . call deploy coredns
+

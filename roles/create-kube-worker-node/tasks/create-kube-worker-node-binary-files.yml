@@ -1,0 +1,27 @@
+---
+
+# file: create-kube-worker-node-binary-files.yml
+#
+# func:
+#   . copy/install kube worker node binary files from ansible machine to kube worker node
+#
+
+#   copy kube binary to kube master node
+- name: exec create-kube-binary-files
+  copy:
+    src: "{{ dep_path_local_bin_kube_node }}/{{ item }}"
+    dest: "{{ bin_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0750
+  with_items:
+    - kubeadm
+    - kubectl
+    - kubelet
+    - kube-proxy
+
+
+- name:
+  debug:
+    msg: "kubernetes node binary version {{ kube_node_version }} is installed on {{ inventory_hostname }}."
+

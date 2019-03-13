@@ -1,0 +1,254 @@
+---
+
+# contents:
+#   . definition of system directory ( general and application specific )
+#       general (bin, config, data)
+#       application (etcd, kubernetes, cni, flannel, docker kube-proxy, kubelet )
+#   . kube cert files 
+#       (
+#         root ca, 
+#         apiserver, 
+#         controller-manger, 
+#         scheduler, 
+#         serviceaccount, 
+#         proxy, 
+#         kube-etcd client
+#       )
+#   . etcd cert files (for etcd cluster)
+#   . kubeconfig files
+#
+
+# definition of system directory path and config files path
+#
+
+# ############################################# 
+# system directory path
+# (directory path or file path on remote )
+
+
+#### system directory - general
+
+## general system directory
+
+# application binary directory
+bin_path: "/usr/local/bin"
+
+# application config directory
+config_path: "/etc"
+
+# application data directory
+data_path: "/var/lib"
+
+
+## application specific directory
+
+# etcd
+etcd_config_path: "{{ config_path }}/etcd"
+etcd_data_path: "{{ data_path }}/etcd"
+etcd_cert_path: "{{ etcd_config_path }}/cert"
+
+# flannel
+flannel_bin_path: "{{ bin_path }}"
+flannel_config_path: "{{ config_path }}/flannel"
+flannel_cert_path: "{{ flannel_config_path }}/cert"
+flannel_data_path: "/run/flannel"
+flannel_subenet_env_file: "{{ flannel_data_path }}/subnet.env"
+
+## kubernetes
+##
+
+# kube user home
+#   kube home path for current linux user
+kube_home_path: "$HOME/.kube"
+
+# kube data
+# kubernete data paht /var/lib/kube
+kube_data_path: "{{ data_path }}/kube"
+
+# kubernetes config
+#   kubernetes configurations path /etc/kubernetes
+kube_config_path: "{{ config_path }}/kubernetes"
+
+## kubernetes config sub directory
+##
+
+# rbac
+kube_rbac_config_path: "{{ kube_config_path }}/rbac"
+# abac
+kube_abac_config_path: "{{ kube_config_path }}/abac"
+# cert
+kube_cert_path: "{{ kube_config_path }}/cert"
+# yaml
+kube_yaml_config_path: "{{ kube_config_path }}/yaml"
+# daemonset
+kube_daemonset_path: "{{ kube_config_path }}/daemonset"
+# image
+kube_image_path: "{{ kube_config_path }}/image"
+# manifest
+#   kube manifests directory for static pods
+kube_pod_manifest_path: "{{ kube_config_path }}/manifests"
+# log
+kube_log_path: "/var/log/kubernetes"
+# config
+#   path of new type config script for kubernetes (systemd --config option)
+kube_newtype_config_path: "{{ kube_config_path }}/config"
+# addons
+#   kube addons directory for static pods
+kube_cluster_addon_path: "{{ kube_config_path }}/addons"
+
+
+#### ip-masq-agent config
+#      /etc/config/ip-masq-agent
+kube_ipmasq_agent_config_path: "/etc/config/ip-masq-agent"
+
+
+
+#### kube-proxy
+kube_proxy_bin_path: "{{ bin_path }}"
+kube_proxy_data_path: "{{ data_path}}/kube-proxy"
+kube_proxy_log_path: "{{ kube_log_path }}/kube-proxy"
+
+
+#### kubelet
+kubelet_bin_path: "{{ bin_path }}"
+kubelet_data_path: "{{ data_path }}/kubelet"
+kubelet_log_path: "{{ kube_log_path }}/kubelet"
+
+# kubelet dynamic cert path (after first bootstrap)
+kubelet_dynamic_cert_path: "{{ kube_cert_path }}/kubelet"
+# kubelet dynamic kubeconfig path
+kubelet_dynamic_kubeconfig_path: "{{ kube_config_path }}/kubelet-kubeconfig"
+
+# cni
+cni_config_path: "{{ config_path }}/cni/net.d"
+cni_data_path: "{{ data_path }}/cni"
+cni_bin_path: "/opt/cni/bin"
+
+# docker
+docker_config_path: "{{ config_path }}/docker"
+docker_data_path: "{{ data_path}}/docker"
+
+
+
+
+#
+# ###################################################
+# kube cert files
+# ( file and path on remote )
+#
+
+# kube root ca/cert file
+kube_ca_file: "{{ kube_cert_path }}/ca.pem"
+kube_ca_key_file: "{{ kube_cert_path }}/ca-key.pem"
+
+# kube admin cert file
+kube_admin_cert_file: "{{ kube_cert_path }}/kube-admin.pem"
+kube_admin_key_file: "{{ kube_cert_path }}/kube-admin-key.pem"
+
+# kube apiserver cert file
+kube_apiserver_cert_file: "{{ kube_cert_path }}/kube-apiserver.pem"
+kube_apiserver_key_file: "{{ kube_cert_path }}/kube-apiserver-key.pem"
+kube_apiserver_client_cert_file: "{{ kube_cert_path }}/kube-apiserver-client.pem"
+kube_apiserver_client_key_file: "{{ kube_cert_path }}/kube-apiserver-client-key.pem"
+
+# kube controller-manager cert file
+kube_controller_manager_cert_file: "{{ kube_cert_path }}/kube-controller-manager.pem"
+kube_controller_manager_key_file: "{{ kube_cert_path }}/kube-controller-manager-key.pem"
+
+# kube scheduler cert file
+kube_scheduler_cert_file: "{{ kube_cert_path }}/kube-scheduler.pem"
+kube_scheduler_key_file: "{{ kube_cert_path }}/kube-scheduler-key.pem"
+
+# kube serviceaccount cert
+kube_serviceaccount_cert_file: "{{ kube_cert_path }}/kube-serviceaccount.pem"
+kube_serviceaccount_key_file: "{{ kube_cert_path }}/kube-serviceaccount-key.pem"
+
+# kube-proxy cert file
+kube_proxy_cert_file: "{{ kube_cert_path }}/kube-proxy.pem"
+kube_proxy_key_file: "{{ kube_cert_path }}/kube-proxy-key.pem"
+
+# kubelet cert file
+#kubelet_cert_file: "{{ kubelet_dynamic_cert_path }}/kubelet.pem"
+kubelet_cert_file: "{{ kube_cert_path }}/kubelet.pem"
+
+#kubelet_key_file: "{{ kubelet_dynamic_cert_path }}/kubelet-key.pem"
+kubelet_key_file: "{{ kube_cert_path }}/kubelet-key.pem"
+
+
+
+
+########### ETCD client cert file - for KUBE MASTER and NODE
+# ( used in create-kube-cluster master, and create-kube-worker-node - run as client
+#     to access etcd server - create-kube-master-node-cert-file.yml and apiserver.service.j2
+# )
+# ( file path on remote masters (and worker nodes) )
+kube_etcd_ca_file: "{{ etcd_cert_path }}/etcd-ca.pem"
+kube_etcd_cert_file: "{{ etcd_cert_path }}/etcd-client.pem"
+kube_etcd_key_file: "{{ etcd_cert_path }}/etcd-client-key.pem"
+
+########### ETCD cert files - for ETCD CLUSTER
+# ( file path on remote etcd cluster )
+etcd_server_cert_file: "{{ etcd_cert_path }}/etcd-server.pem"
+etcd_server_key_file:  "{{ etcd_cert_path }}/etcd-server-key.pem"
+etcd_ca_file: "{{ etcd_cert_path }}/etcd-ca.pem"
+
+etcd_peer_cert_file: "{{ etcd_cert_path }}/etcd-peer.pem"
+etcd_peer_key_file: "{{ etcd_cert_path }}/etcd-peer-key.pem"
+etcd_peer_ca_file: "{{ etcd_cert_path }}/etcd-ca.pem"
+
+etcd_client_cert_file: "{{ etcd_cert_path }}/etcd-client.pem"
+etcd_client_key_file: "{{ etcd_cert_path }}/etcd-client-key.pem"
+etcd_client_ca_file: "{{ etcd_cert_path }}/etcd-ca.pem"
+
+
+
+
+# ###################################################
+# config files path and files- application specific
+# ( file path on remote)
+
+# kubectl kubeconfig
+kubectl_config_file: "{{ kube_config_path }}/kubectl.kubeconfig"
+kubectl_client_config_file: "{{ kube_home_path }}/config"
+
+# flannel docker config (config for docker to use flannel network)
+flannel_env_file: "{{ flannel_data_path }}/subnet.env"
+flannel_to_docker_env_file: "/run/docker_opts.env" 
+flannel_docker_config_file: "{{ flannel_data_path }}/docker.flannelconfig"
+
+# apiserver
+encryption_config_file: "{{ kube_cert_path }}/encryption-config.yaml"
+audit_policy_config_file: "{{ kube_yaml_config_path }}/audit-policy.yaml"
+
+kubelet_bootstrap_config_file: "{{ kube_config_path }}/kubelet-bootstrap.kubeconfig"
+kubelet_bootstrap_token_file: "{{ kube_cert_path }}/token.csv"
+
+# tls bootstrap token secret yaml file for kubelet bootsrap
+#   path refer to both on master node and worker node
+#   (created when deploying master node, update when deploying worker node)
+tls_bootstrap_token_secret_file: "{{ kube_cert_path }}/tls-bootstrap-token.yaml"
+
+# bootstrap token auth
+kubelet_bootstrap_auth_config_file: "{{ kube_config_path }}/kubelet-bootstrap-auth.yaml"
+apiserver_bootstrap_auto_csr_crb_config_file: "{{ kube_config_path }}/bootstrap-auto-csr-crb.yaml"
+
+# kube-controller-manager
+kube_controller_manager_config_file: "{{ kube_config_path }}/kube-controller-manager.kubeconfig"
+
+# kube-scheduler
+kube_scheduler_config_file: "{{ kube_config_path }}/kube-scheduler.kubeconfig"
+
+# kube-serviceaccount (sa service account)
+kube_serviceaccount_config_file: "{{ kube_config_path }}/kube-serviceaccount.kubeconfig"
+
+# kubelet
+#kubelet_config_file: "{{ kubelet_dynamic_kubeconfig_path }}/kubelet.kubeconfig"
+kubelet_config_file: "{{ kube_config_path }}/kubelet.kubeconfig"
+
+kubelet_config_json_file: "{{ kube_config_path }}/kubelet.config.json"
+kubelet_newtype_config_file: "{{ kube_newtype_config_path }}/kubelet.config"
+
+# kube-proxy
+kube_proxy_config_file: "{{ kube_config_path }}/kube-proxy.kubeconfig"
+kube_proxy_para_config_file: "{{ kube_config_path }}/kube-proxy.config.yaml"
+

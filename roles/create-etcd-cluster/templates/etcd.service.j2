@@ -1,0 +1,17 @@
+[Unit]
+Description=ETCD service
+After=network.target
+
+[Service]
+Type=notify
+WorkingDirectory={{ etcd_data_path }}
+EnvironmentFile=-/etc/etcd/etcd.conf
+User={{ etcd_user }}
+ExecStart={{ bin_path }}/etcd
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+

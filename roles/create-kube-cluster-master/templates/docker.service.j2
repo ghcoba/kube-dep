@@ -1,0 +1,66 @@
+[Unit]
+Description=docker service - docker application container engine - name: docker.service
+Documentation=https://docs.docker.com
+BindsTo=containerd.service
+After=network-online.target firewalld.service
+Requires=docker.socket
+
+[Service]
+Type=notify
+Environment={{ docker_https_proxy }}
+
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/bin:/sbin
+# need this enviroment file to get flannel network env setting, not use '-' to surpress error
+#   when file not exist
+
+# the default is not to use systemd for cgroups because the delegate issues still
+# exists and systemd currently does not support the cgroup feature set required
+# for containers run by docker
+
+# attention: $DOCKER_NETWORK_OPTIONS need place at end of line if use, or it will cause error(not start, reason unknow )
+#   $DOCKER_... not ${DOCKER_..}, or service fail to run
+
+# for flannel
+#ExecStart=/usr/bin/dockerd --label machine.hostname={{ inventory_hostname }} --iptables=false --ip-forward=true $DOCKER_NETWORK_OPTIONS
+
+# for calico networking - use manual managed docker subnet
+# subnet cidr used for node :  hostvars[inventory_hostname]['docker_subnet_bip']
+ExecStart=/usr/bin/dockerd --label machine.hostname={{ inventory_hostname }} --bip={{ hostvars[inventory_hostname]['docker_subnet_bip'] }}
+# --iptables=false --ip-forward=true 
+
+#ExecStartPost=/sbin/iptables -I FORWARD -s 0.0.0.0/0 -j ACCEPT
+
+ExecReload=/bin/kill -s HUP $MAINPID
+
+#TimeoutSec=0
+#RestartSec=2
+#Restart=always
+
+# Having non-zero Limit*s causes performance problems due to accounting overhead
+# in the kernel. We recommend using cgroups to do container-local accounting.
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+
+# Uncomment TasksMax if your systemd version supports it.
+# Only systemd 226 and above support this version.
+#TasksMax=infinity
+TimeoutStartSec=0
+
+# set delegate yes so that systemd does not reset the cgroups of docker containers
+Delegate=yes
+
+# kill only the docker process, not all processes in the cgroup
+KillMode=process
+
+# restart the docker process if it exits prematurely
+Restart=on-failure
+RestartSec=3
+StartLimitBurst=3
+StartLimitInterval=60s
+
+MountFlags=shared
+
+[Install]
+WantedBy=multi-user.target
+

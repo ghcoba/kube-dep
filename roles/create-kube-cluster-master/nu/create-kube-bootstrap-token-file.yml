@@ -1,0 +1,27 @@
+---
+
+# file: create-kube-bootstrap-token-file.yml
+#
+
+#   copy to create boot-strap token file for kube apiserver to certificate boot-strap csr request
+#     from kubelet
+
+# fech kube boot-strap token file to ansible temp exchange dir
+- name: fetch kube boot-strap token file from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_apiserver }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - token.csv
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy kube boot-strap token file from ansible temp exchange directory to kube cluster master
+- name: copy kube boot-strap token file to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  with_items:
+    - token.csv

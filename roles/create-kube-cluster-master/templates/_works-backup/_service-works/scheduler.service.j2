@@ -1,0 +1,81 @@
+{% macro initial_lb() -%}
+{%- for host in groups['load-balancer'] -%}
+  {{ hostvars[host]['load_balancer_machine_address'] }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+{% macro get_host_ip() -%}
+   {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+{%- endmacro -%}
+
+
+[Unit]
+Description=kubernetes scheduler service - kube-scheduler.service
+After=network.target
+After=kube-apiserver.service
+
+[Service]
+User=root
+EnvironmentFile=-/etc/kubernetes/kube-scheduler
+
+ExecStart={{ bin_path }}/kube-scheduler \
+  --alsologtostderr=false \
+  --logtostderr=true \
+  --v=2 \
+  --log-dir={{ kube_log_path }} \
+  --log-file={{ kube_log_path }}/kube-scheduler.log \
+  \
+  --leader-elect=true \
+  \
+  --bind-address={{ kube_scheduler_bind_address }} \
+  --secure-port={{ kube_scheduler_secure_port }} \
+  --master={{ kube_load_balancer_apiserver_url }} \
+  \
+  --authorization-always-allow-paths=/healthz,/metrics \
+  --requestheader-client-ca-file={{ kube_ca_file }} \
+  \
+  --client-ca-file={{ kube_ca_file }} \
+  \
+  --tls-cert-file={{kube_scheduler_cert_file }} \
+  --tls-private-key-file={{ kube_scheduler_key_file }} \
+  \
+  --authentication-kubeconfig={{ kube_scheduler_config_file }} \
+  --authorization-kubeconfig={{ kube_scheduler_config_file }} \
+  \
+  --kubeconfig={{ kube_scheduler_config_file }}
+
+
+# remark: include following to to disable insecure port
+#  --port=0 \
+# (if insecure port disable, # kubectl get cs will display un-health as apiserser 
+#    use http://127.0.0.1:10252 to check component status.
+#  but, cluster is health. check using:
+#    # curl https://10.0.0.101:10259/healthz -k 
+#    # curl https://10.0.0.101:10257/healthz -k
+#    # curl https://10.0.0.101:10259/metrics -k
+#    # curl https://10.0.0.101:10257/metrics -k
+#)
+
+#  
+#  --client-ca-file=# kube_ca_file #
+
+#  --kubeconfig=# kube_scheduler_config_file - deprecated
+# authentication-kubeconfig and authorization-kubeconfig
+#   kubeconfig file pointing at the 'core' kubernetes server with enough rights 
+#   to create tokenaccessreviews.authentication.k8s.io. 
+#   This is optional. If empty, all token requests are considered 
+#   to be anonymous and no client CA is looked up in the cluster.
+#  --authentication-kubeconfig=# kube_scheduler_config_file #
+#  --authorization-kubeconfig=# kube_scheduler_config_file #
+
+#  --bind-address=# get_host_ip() #
+#  --master=# kube_load_balancer_apiserver_url #
+
+# --kubeconfig is used to connect and certify request from kube-apiserver
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

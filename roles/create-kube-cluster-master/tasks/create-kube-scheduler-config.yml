@@ -1,0 +1,62 @@
+---
+
+# file: create-kube-scheduler-config.yml
+#
+
+# generate scheduler config file (set cluster, credential, context, and default context)
+# copy to ansible backup
+# copy to kube config dir
+
+# generate kube scheduler config file
+- name: generate scheduler config - set cluster
+  command: >
+    "{{ bin_path }}"/kubectl config set-cluster kubernetes
+      --certificate-authority="{{ kube_ca_file }}" 
+      --embed-certs=true 
+      --server="{{ kube_load_balancer_apiserver_url }}"
+      --kubeconfig="{{ kube_scheduler_config_file }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube scheduler config - set credential
+  command: >
+    "{{ bin_path }}"/kubectl config set-credentials system:kube-scheduler 
+      --client-certificate="{{ kube_scheduler_cert_file }}"
+      --embed-certs=true 
+      --client-key="{{ kube_scheduler_key_file }}" 
+      --kubeconfig="{{ kube_scheduler_config_file }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube scheduler config - set context
+  command: >
+    "{{ bin_path }}"/kubectl config set-context system:kube-scheduler@kubernetes
+      --cluster=kubernetes
+      --user=system:kube-scheduler
+      --kubeconfig="{{ kube_scheduler_config_file }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube scheduler config - set default context
+  command: >
+    "{{ bin_path }}"/kubectl config use-context system:kube-scheduler@kubernetes 
+      --kubeconfig="{{ kube_scheduler_config_file }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+# change kube config file attribute
+- name: change file attrib
+  file:
+    path: "{{ kube_scheduler_config_file }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+
+# copy kube config file to ansible backup directory
+- name: fetch kube controller-manager config file to ansible backup directory
+  fetch:
+    src: "{{ kube_scheduler_config_file }}"
+    dest: "{{ dep_path_backup_kube_config }}/"
+    flat: yes
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true

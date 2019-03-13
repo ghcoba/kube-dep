@@ -1,0 +1,13 @@
+to start calico node:
+
+# calicoctl node run --node-image=quay.io/calico/node:{{ calico_node_version_number }} --ip={{ hostvars[inventory_hostname]['host_ip_address'] }}
+
+( 
+  args:
+    --node-image=quay.io/calico/node:v3.1.4
+    --ip=10.0.0.104
+ 
+   where, ip use host ip
+
+)
+

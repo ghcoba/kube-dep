@@ -1,0 +1,55 @@
+bootstrap and roles:
+
+
+----------------------
+procedure of bootstrap:
+
+
+. create token yaml file (pre in master. update in worker node)
+
+. create secret direct to token file (in master routine)
+
+. create bootstrap kubeconfig, add bootstrap credential for system:bootstrapper:(toke_id)
+    whick direct connect to token 
+  (set in kubelet worker node)
+
+. create cluster rule for action of request bootstrap csr, renew client cert, renew server cert
+    (in master node)
+
+. create cluster rule binding user/group to bootstrap/renew cluster rol
+    (in master node)
+    (user name: system:bootstrapp, group: system:bootstrappers. apiserver assign node user name 
+       name/group to system:bootstrap/system:bootstrappers after pass token certificate )
+
+
+----------------
+role and binding:
+
+
+# kubelet nodes binding
+# use system role:  system:node  for group: system:nodes
+rbac-crb-kubelet-nodes.yaml.j2
+
+# bootstrap clusterrolebinding 
+# use system role:   system:node-bootstrappers, for system group:  system:bootstrappers
+rbac-crb-kubelet-bootstrap.yaml.j2
+
+# authorize apiser to access kubelet apis
+rbac-crb-kube-apiserver-bind-kubelet-api-access.yaml.j2
+
+---
+# auto approve csr 
+# (use system role system:certificates.k8s.io:certificatesigningrequests:nodeclient)
+rbac-crb-auto-approve-csr-for-bootstrappers.yaml.j2
+
+# node certificate renew 
+# (use system role: system:certificates.k8s.io:certificatesigningrequests:selfnodeclient) 
+rbac-crb-node-client-cert-renewal.yaml.j2
+
+# clusterrole - custome (role: approve-node-server-renewal-csr use resource: certificatesigningrequests/selfnodeserver)
+rbac-cr-approve-node-server-renewal-csr.yaml.j2
+
+# node server renew cert 
+# (use custome role: apprive-node-server-renewal-csr)
+rbac-crb-node-server-cert-renewal.yaml.j2
+

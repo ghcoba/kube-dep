@@ -1,0 +1,15 @@
+memo:
+
+1. considering cluster work node can be deployed independently for increamentally 
+     adding work nodes 
+   
+   work node components:
+     . docker
+     . cni and flannel network access 
+     . kube-proxy
+     . kubelet
+
+
+ 
+
+

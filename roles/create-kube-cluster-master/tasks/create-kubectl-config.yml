@@ -1,0 +1,105 @@
+---
+
+# file: create-kubectl-config.yml
+#
+# func:
+#   . create kubectl run-time enviroment settings - kubeconfig
+#   . (remar: cert need install by following tasks before kubectl client can exec )
+#
+
+# ATTENTION: 
+#   when deploy LB/HA on machine of apiserver machine, check VIP must listen on 
+#     port other than 6443 (e.g., 8443)
+#   rem: change port setting in --server="{{ kube_load_balancer_apiserver_url }}" 
+
+# to chek result after kubctl config setting after deploy:
+#
+# command line run  # kubectl config view
+# command line run output:
+# -----------------------
+# apiVersion: v1
+# clusters:
+# - cluster:
+#     certificate-authority-data: DATA+OMITTED
+#     server: https://10.0.0.101:6443
+#   name: kubernetes
+# contexts:
+# - context:
+#     cluster: kubernetes
+#     user: kubernetes-admin
+#   name: kubernetes-admin@kubernetes
+# current-context: kubernetes-admin@kubernetes
+# kind: Config
+# preferences: {}
+# users:
+# - name: kubernetes-admin
+#   user:
+#     client-certificate-data: REDACTED
+#    client-key-data: REDACTED
+# ------------------------
+
+
+# generate kube config file (set cluster, credential, context, and default context)
+#   and copy to kub home dir
+
+# generate kube config file for every master node
+- name: generate kub config - set cluster
+#  command: >
+#    "{{ bin_path }}"/kubectl config set-cluster kubernetes
+#      --certificate-authority="{{ kube_ca_file }}"
+#      --embed-certs=true
+#      --server="{{ kube_load_balancer_apiserver_url }}"
+#      --kubeconfig={{ kubectl_config_file }}
+  command: "{{ bin_path }}/kubectl {{ arg_str_cluster }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube config - set credential
+#  command: >
+#    "{{ bin_path }}"/kubectl config set-credentials kubernetes-admin
+#      --client-certificate="{{ kube_admin_cert_file }}"
+#      --embed-certs=true
+#      --client-key="{{ kube_admin_key_file }}"
+#      --kubeconfig={{ kubectl_config_file }}
+  command: "{{ bin_path }}/kubectl  {{ arg_str_credentials }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube config - set context
+#  command: >
+#    "{{ bin_path }}"/kubectl config set-context kubernetes-admin@kubernetes
+#      --cluster=kubernetes
+#      --user=kubernetes-admin
+#      --kubeconfig={{ kubectl_config_file }}
+  command: "{{ bin_path }}/kubectl  {{ arg_str_context }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube config - set default context
+#  command: >
+#    "{{ bin_path }}"/kubectl config use-context kubernetes-admin@kubernetes
+#      --kubeconfig={{ kubectl_config_file }}
+  command: "{{ bin_path }}/kubectl  {{ arg_str_defaultcontext }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+# change kube config file attribute
+- name: change file attrib
+  file:
+    path: "{{ kubectl_config_file }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+
+- name: cp kube config to home
+  command: cp "{{ kubectl_config_file }}" "{{ kubectl_client_config_file }}"
+#  args:
+
+# copy kubectl config file to ansible backup directory
+- name: fetch kube controller-manager config file to ansible backup directory
+  fetch:
+    src: "{{ kubectl_config_file }}"
+    dest: "{{ dep_path_backup_kube_config }}/"
+    flat: yes
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true

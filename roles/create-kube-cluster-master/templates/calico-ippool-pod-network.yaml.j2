@@ -1,0 +1,8 @@
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: ippool-pod-01
+spec:
+  cidr: {{ cluster_pod_cidr }}
+  ipipMode: Always
+  natOutgoing: true

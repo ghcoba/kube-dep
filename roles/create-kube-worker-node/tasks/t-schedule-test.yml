@@ -1,0 +1,7 @@
+---
+
+
+- name: exec schedule-test
+  import_tasks: test.yml
+  when:
+    - inventory_hostname in groups['kube-nodes']

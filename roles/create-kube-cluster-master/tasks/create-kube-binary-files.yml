@@ -1,0 +1,34 @@
+---
+
+# file: create-kube-binary-files.yml
+#
+# func:
+#   . copy/install kube binary files from ansible machine to kube master node
+#
+
+#   copy kube binary to kube master node
+- name: exec create-kube-binary-files
+  copy:
+    src: "{{ dep_path_local_bin_kube_server }}/{{ item }}"
+    dest: "{{ bin_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0750
+  with_items:
+    - kubectl
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - kubelet
+    - kube-proxy
+    - kubeadm
+    - apiextensions-apiserver
+    - cloud-controller-manager
+    - hyperkube
+    - mounter
+
+- name:
+  debug:
+    msg: "kubernetes binary version {{ kube_version }} is installed on {{ inventory_hostname }}."
+
+

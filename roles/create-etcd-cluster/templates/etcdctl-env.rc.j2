@@ -1,0 +1,25 @@
+{% macro initial_cluster() -%}
+{% for host in groups['etcd-nodes'] -%}
+   https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_client_port }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+# add /usr/local/bin
+PATH=$PATH:/usr/local/bin
+export PATH
+
+# added for etcdctl
+# 
+# ENV - enviromental variables for etcdctl - place in ~/.bash_profile
+# for etcd api v2  (# etcdctl ...)
+export ETCDCTL_ENDPOINTS={{ initial_cluster() }}
+export ETCDCTL_CA_FILE={{ etcd_ca_file }}
+export ETCDCTL_CERT_FILE={{ etcd_client_cert_file }}
+export ETCDCTL_KEY_FILE={{ etcd_client_key_file }}
+
+# for ETCDCTL_API=3 (# ETCDCTL_API=3 etcdctl ...)
+#export ETCDCTL_ENDPOINTS={{ initial_cluster() }}
+export ETCDCTL_CACERT={{ etcd_ca_file }}
+export ETCDCTL_CERT={{ etcd_client_cert_file }}
+export ETCDCTL_KEY={{ etcd_client_key_file }}

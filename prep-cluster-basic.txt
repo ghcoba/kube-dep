@@ -1,0 +1,9 @@
+# remark:
+# basic prep for cluster (masters, nodes, etcd, lb)
+#
+# prep items:
+#   . install epel-release
+#   . yum update
+#
+
+ansible all_nodes -m shell -a "yum install epel-release -y && yum update -y"

@@ -1,0 +1,20 @@
+---
+
+# file: deploy-nginx-test-pod.yml
+#
+
+# deploy a test 3 nginx test pods using yaml 
+
+# create nginx-test yaml 
+- name: create nginx test file ( yaml )
+  template:
+    src: nginx-test.yaml.j2
+    dest: "{{ kube_yaml_config_path }}/nginx-test.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create nginx test pods
+- name: create nginx test pods
+  command: "{{ bin_path }}/kubectl create -f {{ kube_yaml_config_path }}/nginx-test.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

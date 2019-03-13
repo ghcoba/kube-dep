@@ -1,0 +1,115 @@
+{% macro initial_lb() -%}
+{% for host in groups['load-balancer'] -%}
+  {{ hostvars[host]['load_balancer_machine_address'] }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+{% macro get_host_ip() -%}
+   {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+{%- endmacro -%}
+
+
+[Unit]
+Description=kubelet service - kubernetes worker node agent - service name: kubelet.service
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory={{ kubelet_data_path }}
+EnvironmentFile=-/etc/kubernetes/kubelet
+ExecStart={{ kubelet_bin_path }}/kubelet \
+        --logtostderr=true \
+        --v=3 \
+        \
+        --register-node=true \
+        --node-ip={{ get_host_ip() }} \
+        --pod-cidr={{ cluster_pod_cidr }} \
+        --allow-privileged=true \
+        --enable-debugging-handlers=true \
+        --pod-infra-container-image=gcr.io/google-containers/pause-amd64:3.0 \
+        --fail-swap-on=false \
+        --serialize-image-pulls=false \
+        \
+        --client-ca-file={{ kube_ca_file }} \
+        --bootstrap-kubeconfig={{ kubelet_bootstrap_config_file }} \
+        --cert-dir={{ kubelet_dynamic_cert_path }} \
+        \
+        --tls-cert-file={{ kubelet_cert_file }} \
+        --tls-private-key-file={{ kubelet_key_file }} \
+        --config={{ kubelet_newtype_config_file }} \
+        --kubeconfig={{ kubelet_config_file }} \
+        \
+        --anonymous-auth=false \
+        --authorization-mode=Webhook \
+        --authentication-token-webhook=true \
+        \
+        --cgroup-driver=cgroupfs \
+        \
+        --hairpin-mode=promiscuous-bridge \
+        \
+        --network-plugin=cni \
+        --cni-conf-dir={{ cni_config_path }} \
+        --cni-bin-dir={{ cni_bin_path }}
+
+
+#        --non-masquerade-cidr=0.0.0.0/0 \
+
+#        --feature-gates=RotateKubeletClientCertificate=true 
+#        --feature-gates=RotateKubeletServiceCertificate=false 
+#        --rotate-certificates 
+
+# --non-masquerade-cidr="10.0.0.0/8"
+#  --pod-cidr=# cluster_pod_cidr #  - only used for standalone mode 
+
+#  --healthz-port=# kubelet_healthz_port # - move to config file
+#  --healthz-bind-address=# get_host_ip() # - move to config file
+#  --tls-cert-file=  - move to config file
+#  --tls-private-key-file= - move to config file
+
+#        --cgroup-root=/systemd 
+#        --system-cgroups=/system/system.slice 
+#        --runtime-cgroups=/systemd/system.slice 
+#        --kubelet-cgroups=/systemd/system.slice 
+
+#        --network-plugin=cni 
+#        --cni-conf-dir=# cni_config_path #
+#        --cni-bin-dir=# cni_bin_path #
+
+
+#
+# remark:
+#   feature-gates:
+#     RotateKubeletClientCertificate, 
+#     RotateKubeletServiceCertificate
+#   settings are included in config file  
+#     - have been changed to false to disable rotate client and server cert renewal
+
+#        --node-labels=node-role.kubernetes.io/k8s-master=true 
+
+# check following options (if following not provided, will use --cert-dir to store bootstrap and renewal cert/key)
+#        --tls-cert-file=- kube_kubelet_node_server_cert_file -
+#        --tls-private-key-file=- kube_kubelet_node?_server_key_file  
+
+
+# --hostname-override=
+# --pod-infra-container-image："gcr.io/google_containers/pause-amd64:3.0
+# --pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/google-containers/pause-amd64:3.0
+# --pod-infra-container-image=registry.access.redhat.com/rhel7/pod-infrastructure:latest 
+
+# --address=# get_host_ip()  -> yaml config file
+# --serialize-image-pulls=false -> yaml config file
+# --client-ca-file=-# kube_ca_file - -> yaml config file
+# --cluster-dns=- cluster_dns_svc_ip -
+# --cluster-domain=# cluster_dns_domain  
+
+# check
+# --pod-manifest-path=- kube_pod_manifest_path  - move to config file
+
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,81 @@
+---
+
+# network definition of cluster
+#
+
+# contents:
+#   . pod network cidr
+#   . pod network cidr etcd storage directory
+#   . service cidr
+#
+#   . kubernetes service ip
+#   . dns service ip
+#   . dns service domain
+#
+
+# DOCKER network
+cluster_docker_cidr: "172.16.0.0/16"
+
+
+
+# POD network (POD network - CLUSTER_CIDR - route can reach through flanneld after deploy)
+# remark: 
+#   . data are also used to controlled the flannel network. 
+#   . flannel network using cluster_pod_cidr, pods using a subnet of a cluster_pod_cidr
+#   . kube-proxy will use this to determin in-cluster vs external traffic to cluster service ip
+#       and construct iptables or virtuall ip server(ipvs)
+#   . kube-controller-manager use this to allocate pods and ip of pods
+
+cluster_pod_cidr: "10.244.0.0/16"
+cluster_pod_net_first_ip: "10.244.0.1"
+
+
+
+# flannel etcd directory
+pod_network_etcd_prefix: "/kube/network"
+
+
+# pod network url setting - for flannel services
+kube_pod_network_url_prefix: "{{ pod_network_etcd_prefix }}"
+kube_pod_network_config_url: "{{ kube_pod_network_url_prefix }}/config"
+
+
+# flannel network interface (nic) - private network
+flannel_netwoking_nic: "ens32"
+
+
+
+# SERVICE network ( SERVICE_CIDR - route can reach through kube-proxy and ipvs after deploy) 
+#   (also named as cluster ip cidr - cluster ip -- cluster ip of service)
+#   . alll cluster service in ip range of cluster_service_cide,
+#   . the kubernetes service uses the first ip address of cluster_service_cide (x.x.x.1)
+#   . kube-apiserver use this to allocate cluster ip for service and determin ip range of service
+
+cluster_service_cidr: "10.96.0.0/16"
+
+
+# kubernetes service ip (it is the first ip addr of service network - SERVICE_CIDR )
+cluster_kubernetes_svc_ip: "10.96.0.1"
+
+# service port range (node port range)
+service_port_range: "30000-50000"
+# service port (nodeport) range for using in calico FELIX setting
+sevice_port_range_for_calico_felix: "30000:50000"
+
+# dns service ip (use second ip addr of service network - from SERVICE_CIDR )
+#   dns service - coredns service use a pre-defined cluster service ip here (x.x.x.2)
+cluster_dns_svc_ip: "10.96.0.2"
+
+# domain name that dns to serve
+cluster_dns_domain: "cluster.local"
+
+# upstream dns resolver for coredns
+upstream_dns_resolver: "10.0.0.2:53"
+
+
+# DOCKER proxy environment settings - for docker pull using http/https proxy
+#docker_http_proxy_env: ""
+docker_http_proxy_env: "HTTP_PROXY=http://10.0.0.9:30080/"
+#docker_https_proxy_env: ""
+docker_https_proxy_env: "HTTPS_PROXY=http://10.0.0.9:30080/"
+

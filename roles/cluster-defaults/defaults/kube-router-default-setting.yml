@@ -1,0 +1,110 @@
+---
+
+# file: kube-router-default-setting.yml
+#
+
+# kube-router data path - /var/lib/kube-router
+kuberouter_data_path: "{{ data_path }}/kube-router"
+
+# kube-router config path - /etc/kube-router
+kuberouter_config_path: "{{ config_path }}/kube-router"
+
+# kube-router config yamal path - /etc/kube-router/yaml
+kuberouter_config_yaml_path: "{{ kuberouter_config_path }}/yaml"
+
+# kube-route network conf file path - /etc/kube-router/cni-conf.json
+kuberouter_network_conf_file_path: "{{ kuberouter_config_path }}/cni-conf.json"
+
+# kube-router cni network config file path /etc/cni/net.d/10-kuberouter.conf
+kuberouter_cni_network_config_file_path: "{{ cni_config_path }}/10-kuberouter.conf"
+kuberouter_cni_network_config_list_file_path: "{{ cni_config_path }}/10-kuberouter.conflist"
+
+# kube-router kubeconfig file path - /var/lib/kube-router/kubeconfig
+#   which is the path on pod docker vol
+kuberouter_kubeconfig_file_path: "{{ kuberouter_data_path }}/kubeconfig"
+
+# kube-router log path
+kuberouter_log_path: "/var/log/kube-router"
+
+#  ######
+
+# kube-router cni plugin binary dep path
+kuberouter_cni_plugin_binary_dep_path: "{{ dep_path_local_bin }}/kube-router-bin-local"
+
+
+#  ######
+
+# for full mesh in one ASN or seperate between different ASNs (only full mesh in same ASN)
+# kube-router cluster ASN
+kuberouter_cluster_asn: 64512
+
+# kube-router Router Reflector clusterID (for server and client)
+#   . only client-server only peering with same router reflector clusterID
+#   . command to annotate server
+#       # kubectl annotate node <kube-node> "kube-router.io/rr.server=42"
+#   . command to annotate client
+#       # kubectl annotate node <kube-node> "kube-router.io/rr.client=42"
+kuberouter_router_reflector_cluster_id: 42
+
+# for peering outside the cluster
+#  - Global external GBP peers
+# ref:
+# --peer-router-ips="192.168.1.99,192.168.1.100"
+# --peer-router-asns=65000,65000
+#
+#  - Node Specific External BGP Peers
+#    Alternativley, each node can be configured with one or more node specific BGP peers. 
+#    Information regarding node specific BGP peer is read from node API object annotations:
+#      . kube-router.io/peer.ips
+#      . kube-router.io/peer.asns
+#    For e.g users can annotate node object with below commands
+#      # kubectl annotate node <kube-node> "kube-router.io/peer.ips=192.168.1.99,192.168.1.100"
+#      # kubectl annotate node <kube-node> "kube-router.io/peer.asns=65000,65000"
+#
+kuberouter_peer_router_ips: "10.0.0.101,10.0.0.102"
+#kuberouter_peer_router_asns: "65000,65000"
+kuberouter_peer_router_asns: 64513
+
+# kube-router log level (detailed debug info = 3)
+kuberouter_log_level: "3"
+
+# kube-router hairpin mode (true, false) - global for all services
+# can be set per-service by annotate service using:
+#   # kubectl annotate service my-service "kube-router.io/service.hairpin="  ???? true
+kuberouter_hairpin_mode: "true"
+
+# kube-router advertise cluster ip
+kuberouter_advertise_cluster_ip: "true"
+
+# kube-router advertise service external ip
+kuberouter_advertise_external_ip: "true"
+
+# kube-router enable overlay - using ipinip tunneling
+kuberouter_enable_overlay: "true"
+# kube-router host network
+kuberouter_host_network: "true"
+# kub-router host ipc
+kuberouter_host_ipc: "true"
+# kube-router host pid
+kuberouter_host_pid: "true"
+
+# kube-router masquerade-all
+kuberouter_masquerade_all: "true"
+
+# kube-router node full mesh
+kuberouter_node_full_mesh: "true"
+
+# kube-router enable pod egress
+kuberouter_enable_pod_egress: "true"
+
+# kube-router enable ibgp 
+kuberouter_enable_igbp: "true"
+
+# kube-router bgp graceful restart
+kuberouter_bgp_graceful_restart: "true"
+
+# kube-router gbp port
+kuberouter_bgp_port: 179
+
+# kube-router healthz port
+kuberouter_healthz_port: 20244

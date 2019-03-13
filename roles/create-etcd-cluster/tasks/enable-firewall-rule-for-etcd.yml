@@ -1,0 +1,19 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/enable-firewall-rule-for-etcd.yml
+
+# function:
+#   create firewall rule to enable etcd traffic
+#
+
+- name: change firewalll to enable port 2379 for all etcd cluster nodes
+  command: "firewall-cmd --zone=public --add-port=2379/tcp --permanent"
+
+- name: change firewalll to enable port 2380 for all etcd cluster nodes
+  command: "firewall-cmd --zone=public --add-port=2380/tcp --permanent"
+
+- name: change firewalll to enable port 4001 for all etcd cluster nodes
+  command: "firewall-cmd --zone=public --add-port=4001/tcp --permanent"
+
+- name: reload firewall to take effect for etcd cluster nodes
+  command: "firewall-cmd --reload"

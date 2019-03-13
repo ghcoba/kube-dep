@@ -1,0 +1,38 @@
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:authenticated", "nonResourcePath": "*", "readonly": true } }
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:unauthenticated", "nonResourcePath": "*", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"kubernetes-admin", "namespace": "*", "resource": "*", "apiGroup": "*" }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-controller-manager","namespace": "*", "resource": "*", "apiGroup": "*" }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:serviceaccount:default:default", "namespace":"*", "resource":"*", "apiGroup":"*"}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:serviceaccount:default:readonly-addon", "namespace":"*", "resource":"*", "apiGroup":"*", "readonly": true}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:serviceaccount:kube-system:default", "namespace":"*", "resource":"*", "apiGroup":"*"}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:serviceaccount:kube-system:calico-node", "namespace":"*", "resource":"*", "apiGroup":"*"}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:serviceaccount:kube-system:calico-kube-controllers", "namespace":"*", "resource":"*", "apiGroup":"*"}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:serviceaccount:kube-system:kube-router", "namespace":"*", "resource":"*", "apiGroup":"*"}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"kube-router", "namespace":"*", "resource":"*", "apiGroup":"*"}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"calico-kube-controllers", "namespace":"*", "resource":"*", "apiGroup":"*"}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"calico-node", "namespace":"*", "resource":"*", "apiGroup":"*"}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:serviceaccount:kube-system:readonly-addon", "namespace":"*", "resource":"*", "apiGroup":"*", "readonly": true}}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "services", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "endpoints", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "secrets", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "healthz", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "configmaps", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "persistentvolumes", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "persistentvolumeclaims", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "events" }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "nodes" }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"group":"system:nodes", "namespace": "*", "resource": "pods" }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "nodes", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "pods", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "persistentvolumeclaims", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "persistentvolumes", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "replicationcontrollers", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "services", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "replicasets",  "apiGroup": "*",  "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "endpoints" }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "bindings" }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-scheduler", "namespace": "*", "resource": "events" }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-proxy", "namespace": "*", "resource": "services", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-proxy", "namespace": "*", "resource": "endpoints", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-proxy", "namespace": "*", "resource": "nodes", "readonly": true }}
+{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:kube-proxy", "namespace": "*", "resource": "events" }}

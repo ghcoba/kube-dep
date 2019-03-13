@@ -1,0 +1,70 @@
+---
+
+# file: deploy-calico-networking-daemonset.yml
+#
+
+# func:
+#   deploy calico networking daemonset 
+#
+#   remark: 
+#     on worker node: calico is deployed using this routine
+#     on master node: daemonset will not deployed on master node. on master node, 
+#                       calico system  run in a docker container, a systemd service is used to start the docker. 
+#
+# process include:
+# . create calico manifest yaml file
+# . apply calico manifest yaml file to create calico networking daemonset
+# . ? create calico rbac
+#  
+# (remark: check kube controller setting of --cluster-cidr, --allocate-node-cidrs)
+#
+
+### 
+
+
+
+# deploy calico networking daemonset 
+
+# ref: command to gen cert values coded in base64
+#      # cat /etc/etcd/cert/etcd-client.pem | base64 | tr -d '\n'
+#
+
+### prepare etcd cert data (value coded in base64 and no newline char) for creating calico manifest (yaml) file
+
+- name: get etcd ca cert value (base64 coded)
+  shell: "/usr/bin/cat {{ kube_etcd_ca_file }} | /usr/bin/base64 | /usr/bin/tr -d '\n'"
+  register:  etcd_client_ca_value_base64
+
+- name: get etcd client cert value (base64 coded)
+  shell: "/usr/bin/cat {{ kube_etcd_cert_file }} | /usr/bin/base64 | /usr/bin/tr -d '\n'"
+  register:  etcd_client_cert_value_base64
+
+- name: get etcd ca cert value (base64 coded)
+  shell: "/usr/bin/cat {{ kube_etcd_key_file }} | /usr/bin/base64 | /usr/bin/tr -d '\n'"
+  register:  etcd_client_key_value_base64
+
+### create calico manifest daemonset yaml
+
+- name: create calico manifest ( yaml ) file
+  template:
+#    src: calico.yaml.v31.j2
+    src: calico.yaml.v35.j2
+    dest: "{{ kube_daemonset_path }}/calico.yaml"
+#  run_once: true
+#  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+### create calico daemonset
+
+- name: create calico daemonset
+  command: "{{ bin_path }}/kubectl create -f {{ kube_daemonset_path }}/calico.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+### create rbac for calico-node and calico-kube-controllers serviceaccount
+#   (already created in abac config file, also included in calico.yaml file)
+
+- name:
+  debug:
+    msg: "calico {{ calico_version }} daemonset deployed on cluster."
+     
+

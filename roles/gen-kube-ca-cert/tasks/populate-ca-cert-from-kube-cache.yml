@@ -1,0 +1,166 @@
+---
+
+# file: populate-ca-cert-from-kube-cache.yml
+
+# func:
+#   populate all cert files (already generated in kube cert cache directory - /etc/cert-cache/kubernetes)
+#     to its dedicated directory
+#
+#   all cert generated in kube cert cache directory include:
+#   . kube-admin
+#   . kube-apiserver (also include bootstrap token files)
+#   . kube-controller-manager
+#   . kube-scheduler
+#   . kube-proxy
+#
+
+- name: exec_populate_ca_cert_from_kube_cache
+  block:
+    - name: prompt exec_populate_ca_cert_from_kube_cache notified
+      debug: 
+        msg: "notified -> start populate ca cert from kube cache ..."
+
+#     
+#   . first fetch from remote to ansible temp directory and copy to remote
+#
+
+#   # fech all cert to ansible temp exchange dir
+    - name: fetch all cert files to ansible temp dir
+      fetch:
+        src: "{{ cert_cache_path_kubernetes }}/{{ item }}"
+        dest:  "{{ dep_path_tmp_exchange }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-admin-csr.json
+        - kube-admin.csr
+        - kube-admin.pem
+        - kube-admin-key.pem
+        - kube-apiserver-csr.json
+        - kube-apiserver.csr
+        - kube-apiserver.pem
+        - kube-apiserver-key.pem
+        - kube-apiserver-client-csr.json
+        - kube-apiserver-client.csr
+        - kube-apiserver-client.pem
+        - kube-apiserver-client-key.pem        
+        - token.csv
+        - tls-bootstrap-token.yaml
+        - kube-controller-manager-csr.json
+        - kube-controller-manager.csr
+        - kube-controller-manager.pem
+        - kube-controller-manager-key.pem
+        - kube-scheduler-csr.json
+        - kube-scheduler.csr
+        - kube-scheduler.pem
+        - kube-scheduler-key.pem
+        - kube-proxy-csr.json
+        - kube-proxy.csr
+        - kube-proxy.pem
+        - kube-proxy-key.pem
+        - kube-serviceaccount-csr.json
+        - kube-serviceaccount.csr
+        - kube-serviceaccount.pem
+        - kube-serviceaccount-key.pem
+ 
+
+    - name: copy kube-admin cert from kube cache to kube-admin cache directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_admin }}"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-admin-csr.json
+        - kube-admin.csr
+        - kube-admin.pem
+        - kube-admin-key.pem
+
+    - name: copy kube-apiserver cert from kube cache to kube-apiserver cache directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_apiserver }}"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - token.csv
+        - tls-bootstrap-token.yaml
+        - kube-apiserver-csr.json
+        - kube-apiserver.csr
+        - kube-apiserver.pem
+        - kube-apiserver-key.pem
+        - kube-apiserver-client-csr.json
+        - kube-apiserver-client.csr
+        - kube-apiserver-client.pem
+        - kube-apiserver-client-key.pem
+
+    - name: copy kube-controller-manager cert from kube cache to kube-controller-manager cache directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_controller_manager }}"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-controller-manager-csr.json
+        - kube-controller-manager.csr
+        - kube-controller-manager.pem
+        - kube-controller-manager-key.pem
+
+    - name: copy kube-scheduler cert from kube cache to kube-scheduler cache directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_scheduler }}"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-scheduler-csr.json
+        - kube-scheduler.csr
+        - kube-scheduler.pem
+        - kube-scheduler-key.pem
+
+    - name: copy kube-proxy cert from kube cache to kube-proxy cache directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_proxy }}"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-proxy-csr.json
+        - kube-proxy.csr
+        - kube-proxy.pem
+        - kube-proxy-key.pem
+
+    - name: copy kube-serviceaccount cert from kube cache to kube-serviceaccount cache directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_serviceaccount }}"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-serviceaccount-csr.json
+        - kube-serviceaccount.csr
+        - kube-serviceaccount.pem
+        - kube-serviceaccount-key.pem
+
+  rescue:
+    - debug:
+        msg: "issue in exec_populate_ca_cert_from_kube_cache"
+
+  always:
+    - debug:
+        msg: ". exit polulate-ca-cert-from_kube-cache.yml"

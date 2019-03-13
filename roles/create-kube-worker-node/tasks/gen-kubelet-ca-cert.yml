@@ -1,0 +1,206 @@
+---
+
+# file: roles/create-kube-worker-node/tasks/gen-kubelet-ca-ccert.yml
+#
+# function:
+
+# procedure description:
+#
+# . copy cfssl utility ( from node-0 of cluster masters)
+# . create work directory ( on remote /tmp/work-dir-gen-cert )
+# . copy ca cert, ca-config file ( from node-0 cert-cache )
+# . create kubelet cert 
+# . populate to work
+# . create backup on ansible machine 
+
+
+# --------------------------------------------------------------------------------------
+#
+
+- name: exec gen-kubelet-ca-cert
+  block:
+    - name:
+      debug:
+        msg: "notified -> preparing generating kubelet ca cert on {{ inventory_hostname  }}..."
+
+#   insert main procedure here ----------->
+
+#   create temp work directory
+    - name: create temp work directory
+      file:
+        path: /tmp/work-dir-gen-cert
+        owner: root
+        state: directory
+        recurse: yes
+        mode: 01777
+
+#   install cfssl utility
+    - name: install cfssl utility
+      copy:
+        src: "{{ dep_path_local_bin }}/cfssl-bin-local/cfssl/{{ item }}_linux-amd64"
+        dest: "{{ bin_path }}/{{ item }}"
+        owner: root
+        group: root
+        mode: 0754
+      with_items:
+        - cfssl-certinfo
+        - cfssljson
+        - cfssl
+        - cfssl-newkey
+        - cfssl-scan
+
+#   copy ca and ca-config
+#     ca-config.json
+    - name: fetch ca-config.json ( on node-0 of masters ) to ansible temp dir
+      fetch:
+        src: "{{ cert_cache_path_ca_config }}/{{ item }}"
+        dest:  "{{ dep_path_tmp_exchange }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+    - name: copy ca-config.json to tmp work dir
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: /tmp/work-dir-gen-cert/
+        mode: 0640
+      with_items:
+        - ca-config.json
+
+#   ca.pem, ca-key.pem
+    - name: fetch ca cert (on node-0 of cluster masters) to ansible temp dir
+      fetch:
+        src: "{{ cert_cache_path_ca }}/{{ item }}"
+        dest:  "{{ dep_path_tmp_exchange }}/"
+        flat: true
+      with_items:
+        - ca.pem
+        - ca-key.pem
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+    - name: copy ca cert to kube cache
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: /tmp/work-dir-gen-cert/
+        mode: 0640
+      with_items:
+        - ca.pem
+        - ca-key.pem
+
+#   create gen shell script
+    - name: copy shell script to /tmp/work-dir-gen-cert
+      copy:
+        src: ../files/gen-kubelet-ca-cert.sh
+        dest: /tmp/work-dir-gen-cert/.
+        owner: root
+        group: root
+        mode: 0750
+
+# NODE_IPS
+# NODE_DNS
+# LOAD_BALANCER_IP
+# APISERVER_SERVICE_IP
+# CLUSTER_DNS_IP
+
+#   run script to create kubelet cert in tmp work dire /tmp/work-dir-gen-cert
+#     create kubelet certs
+    - name: gen kubelet ca certs for kubelet services (listen on port 10250) and client
+      command:
+        "/tmp/work-dir-gen-cert/gen-kubelet-ca-cert.sh"
+      args:
+        creates: /tmp/work-dir-gen-cert/server.crt
+      environment:
+        NODE_IP_CURRENT: "{{ hostvars[inventory_hostname]['host_ip_address'] }}"
+        NODE_HOSTNAME_CURRENT: "{{ inventory_hostname }}"
+        CERT_DIR: /tmp/work-dir-gen-cert
+        NODE_IPS: "{% for host in groups['kube-masters'] %}{{ hostvars[host]['kube_masters_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+        NODE_DNS: "{{ groups['kube-masters']|join(',') }}"
+        LOAD_BALANCER_IP: "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+        APISERVER_SERVICE_CLUSTER_IP: "{{ cluster_kubernetes_svc_ip }}"
+        CLUSTER_DNS_IP: "{{ cluster_dns_svc_ip }}"
+        POD_NETWORK_START_IP: "{{ cluster_pod_net_first_ip }}"
+      register: gen_kubelet_script_result
+#        MASTER_CA_DIR: "{{ cert_cache_path_ca }}"
+#        MASTER_CA_CONFIG_DIR: "{{ cert_cache_path_ca_config }}"
+#       # cert group env - now use group root
+#        CERT_GROUP: root
+#      run_once: true
+#      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+    - debug:
+        msg: "exit gen kubelet cert. on {{ inventory_hostname }}, using node ip of {{ hostvars[inventory_hostname]['host_ip_address'] }}"
+
+#   end main procedure  ----------------<
+
+  rescue:
+    - debug:
+        msg: "issue occured in gen-kubelet-ca-cert"
+
+    - name: debug script result
+      local_action:
+        copy content="{{ gen_kubelet_script_result.stdout }}" dest="{{ dep_path_tmp_exchange }}/script-exec.log"
+    - name:
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/script-exec.log"
+        dest: "{{ cert_cache_path_kubernetes }}/"
+
+  always:
+
+    - debug:
+        msg: ". exit gen-kubelet-ca-cert.yml"    
+
+#############################################################
+# fectch back to ansible
+#
+# . kubelet.pem
+# . kubelet-key.pem
+# . kubelet.csr
+#
+# . kubelet-csr.json
+#
+# . ca.pem
+# . ca-key.pem
+# . ca-config.json
+
+- name: fetch kubelet ca cert to ansible temp dir
+  fetch:
+    src: "/tmp/work-dir-gen-cert/{{ item }}"
+    dest:  "{{ dep_path_tmp_exchange }}/{{ item }}.{{ inventory_hostname}}"
+    flat: true
+  with_items:
+    - ca.pem
+    - ca-key.pem
+    - ca-config.json
+    - kubelet-csr.json
+    - kubelet.pem
+    - kubelet-key.pem
+
+- name: fetch kubelet ca cert to ansible deploy backup dir
+  fetch:
+    src: "/tmp/work-dir-gen-cert/{{ item }}"
+    dest:  "{{ cert_backup_path_kubelet }}/{{ inventory_hostname }}/{{ item }}"
+    flat: true
+  with_items:
+    - ca.pem
+    - ca-key.pem
+    - ca-config.json
+    - kubelet-csr.json
+    - kubelet.pem
+    - kubelet-key.pem
+
+- name: copy kubelet ca cert to kube cert directory for worker node
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}.{{ inventory_hostname }}"
+    dest: "{{ kube_cert_path }}/{{ item }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - kubelet.pem
+    - kubelet-key.pem
+
+# post process
+# 
+# . delete tmp work directory and data
+#

@@ -1,0 +1,22 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/copy-bin-to-etcd-node.yml
+
+# func:
+#   copy etcd binary (etcd, etcdctl) from ansible deploy machine to etcd cluster nodes
+#
+
+- name: exec copy-bin-to-etcd-node
+  copy:
+    src: "{{ etcd_bin_local_path }}/{{ item }}"
+    dest: "{{ bin_path }}/"
+    owner: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"
+    mode: 0750
+  with_items:
+    - etcd
+    - etcdctl
+
+- name:
+  debug:
+    msg: "etcd binary version {{ etcd_version }} is installed on {{ inventory_hostname }}."

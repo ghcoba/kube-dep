@@ -1,0 +1,49 @@
+---
+
+# file: deploy-kubelet-service.yml
+#
+
+# func:
+#   deploy kube-proxy service
+#     . prepare kubelet environment (user, dir, cert,bin, config)
+#     . create config file
+#     . create service systemd file
+#     . (external routine to set firewall)
+#     . start service
+
+# 1.
+#   prepare enviroment
+#
+
+- name: create kubelet enviroment
+  import_tasks: create-kubelet-user-and-env.yml
+
+# 2.
+#   create config (json config file) for kubelet service
+- name: create config file for kubelet service systemd unit file
+  template:
+     src: kubelet.config.j2
+     dest: "{{ kube_newtype_config_path }}/kubelet.config"
+
+# 3.
+#   create kubelet service systemd file
+
+- name: create kubelet service systemd unit file
+  template:
+     src: kubelet.service.j2
+     dest: /etc/systemd/system/kubelet.service
+
+# 4.
+#   enable kubelet service
+
+# enable and start kube-proxy service
+- name: enable and start kubelet service
+  systemd:
+    name: kubelet
+    daemon_reload: yes
+    state: restarted
+    enabled: yes
+
+- name:
+  debug:
+    msg: "done deploy kubelet on {{ inventory_hostname }}."

@@ -1,0 +1,141 @@
+{% macro initial_cluster() -%}
+{% for host in groups['etcd-nodes'] -%}
+   https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_client_port }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+{% macro initial_lb() -%}
+{% for host in groups['load-balancer'] -%}
+  {{ hostvars[host]['load_balancer_machine_address'] }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+{% macro get_host_ip() -%}
+   {{ hostvars[inventory_hostname]['host_ip_address'] }}
+{%- endmacro -%}
+
+
+[Unit]
+Description=kubernetes apiserver service - kube-apiserver.service
+After=network.target
+# After=etcd.service
+
+[Service]
+User={{ kube_user }}
+PermissionsStartOnly=yes
+ExecStartPre=/usr/bin/mkdir -p /var/run/kubernetes
+ExecStartPre=/usr/bin/chown kube.kube /var/run/kubernetes
+
+EnvironmentFile=-/etc/kubernetes/apiserver
+
+ExecStart={{ bin_path }}/kube-apiserver \
+  --alsologtostderr=false \
+  --logtostderr=true \
+  --v=2 \
+  --log-dir={{ kube_log_path }} \
+  --log-file={{ kube_log_path }}/kube-apiserver.log \
+  \
+  --apiserver-count={{ apiserver_node_count }} \
+  --advertise-address={{ get_host_ip() }} \
+  --bind-address={{ kube_apiserver_secure_bind_address }} \
+  --secure-port={{ kube_apiserver_secure_port }} \
+  --insecure-bind-address={{ kube_apiserver_insecure_bind_address }} \
+  --insecure-port={{ kube_apiserver_insecure_port }} \
+  --service-cluster-ip-range={{ cluster_service_cidr }} \
+  --service-node-port-range={{ service_port_range }} \
+  \
+  --authorization-mode=Node,ABAC,RBAC \
+  --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota,NodeRestriction \
+  --feature-gates=TokenRequest=true \
+  --anonymous-auth=false \
+  --authorization-policy-file={{ kube_abac_config_path }}/abac-auth.json \
+  --allow-privileged=true \
+  --runtime-config=api/all \
+  \
+  --kubelet-certificate-authority={{ kube_ca_file }} \
+  --kubelet-client-certificate={{ kube_apiserver_client_cert_file }} \
+  --kubelet-client-key={{ kube_apiserver_client_key_file }} \
+  --kubelet-https=true \
+  \
+  --client-ca-file={{ kube_ca_file }} \
+  \
+  --tls-cert-file={{ kube_apiserver_cert_file }} \
+  --tls-private-key-file={{ kube_apiserver_key_file }} \
+  \
+  --enable-bootstrap-token-auth=false \
+  \
+  --service-account-key-file={{ kube_serviceaccount_cert_file }} \
+  \
+  --storage-backend=etcd3 \
+  --etcd-servers={{ initial_cluster() }} \
+  --etcd-cafile={{ kube_etcd_ca_file }} \
+  --etcd-certfile={{ kube_etcd_cert_file }} \
+  --etcd-keyfile={{ kube_etcd_key_file }} \
+  \
+  --event-ttl=1h \
+  \
+  --enable-swagger-ui=true \
+  \
+  --audit-policy-file={{ audit_policy_config_file }} \
+  --audit-log-maxage=7 \
+  --audit-log-maxbackup=3 \
+  --audit-log-maxsize=10 \
+  --audit-log-path={{ kube_log_path }}/audit.log
+
+# check following 4 optiones:
+
+#  --encryption-provider-config=#  encryption_config_file #
+
+#  --service-account-lookup=true 
+#  --authorization-mode=Node,ABAC,RBAC \
+#  --authorization-policy-file=/etc/kubernetes/abac-auth.jsonl 
+
+# rem:
+# --client-ca-file - must be same as --cluster-signing-cert-file in controller-manager
+#   (we use root ca - ca.pem). in controller-manager, we need also set --cluster-signing-key-file
+#   (use root private key ca-key.pem). this private signing key is used to sign the kubelete certificate.
+#   apiserver use --client-ca-file to certificate signed kubelet as a acceptable kubelet.
+# i.e, controller-manager use ca-key.pem to sign kubelet, apiserver use ca.pem to certificate the
+#   signed kubelet can pass the certification.
+
+#  --service-account-signing-key-file=# kube_serviceaccount_key_file #
+
+#  --audit-policy-file=# audit_policy_config_file #
+
+#  --runtime-config=api/all=true 
+
+#  --insecure-bind-address=# kube_apiserver_insecure_bind_address - deprecated
+#  --insecure-port=# kube_apiserver_insecure_port # - deprecated
+
+# --secure-port - secure port for listen using secure bind address
+# --insecure-port=0 - close listening on in-secure port 8080
+# --bind-address - can not be 127.0.0.1, or external can not connect with apiserver secure port 6443
+# --service-account-key-file  - need to be same as --service-account-private-key-file in controller-manager. we use kube apiserver key both
+# --service-account-key-file=# kube_apiserver_key_file #  
+#     // If unspecified, --tls-private-key-file is used. 
+#     // Must be specified when --service-account-signing-key is provided
+# --kubelet-client-certificate, --kubelet-client-key - if assigned, use https to connect with kubelet api. 
+#     need create rba for cert grou/user (here is 'kubernetes' in CN of cert file) to have access rights. or, system
+#     will prompt error of unauthorized
+# --secure-port, --bind-address - apiserver listen https on bind-address using secure-port
+# --client-ca-file - If set, any request presenting a client certificate signed by one of 
+#     the authorities in the client-ca-file is authenticated with an identity 
+#     corresponding to the CommonName of the client certificate
+# --service-account-key-file - used to verify ServiceAccount tokens. 
+#     If unspecified, --tls-private-key-file is used. 
+#     Must be specified when --service-account-signing-key is provided
+# --service-cluster-ip-range - cidr of service cluster (not pod of cluster)
+# --service-node-port-range - port range of service port
+
+#   --token-auth-file=# kube_cert_path #/token.csv - use for token.csv type bootstrp, not use for bootstrap token type auth
+
+
+Restart=on-failure
+RestartSec=5
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,126 @@
+-A IN_public_allow -p tcp -m tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 6443 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10251 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10252 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10259 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10257 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 8472 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 8081 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 8285 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 8080 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 443 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10250 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10256 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10249 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 9099 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 67 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 68 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 179 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 2379 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 2380 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 6666 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 6667 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 20244 -m conntrack --ctstate NEW -j ACCEPT
+
+---
+
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-N DOCKER
+-N DOCKER-ISOLATION-STAGE-1
+-N DOCKER-ISOLATION-STAGE-2
+-N DOCKER-USER
+-N FORWARD_IN_ZONES
+-N FORWARD_IN_ZONES_SOURCE
+-N FORWARD_OUT_ZONES
+-N FORWARD_OUT_ZONES_SOURCE
+-N FORWARD_direct
+-N FWDI_public
+-N FWDI_public_allow
+-N FWDI_public_deny
+-N FWDI_public_log
+-N FWDO_public
+-N FWDO_public_allow
+-N FWDO_public_deny
+-N FWDO_public_log
+-N INPUT_ZONES
+-N INPUT_ZONES_SOURCE
+-N INPUT_direct
+-N IN_public
+-N IN_public_allow
+-N IN_public_deny
+-N IN_public_log
+-N OUTPUT_direct
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -j INPUT_direct
+-A INPUT -j INPUT_ZONES_SOURCE
+-A INPUT -j INPUT_ZONES
+-A INPUT -m conntrack --ctstate INVALID -j DROP
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+-A FORWARD -j DOCKER-USER
+-A FORWARD -j DOCKER-ISOLATION-STAGE-1
+-A FORWARD -o docker0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A FORWARD -o docker0 -j DOCKER
+-A FORWARD -i docker0 ! -o docker0 -j ACCEPT
+-A FORWARD -i docker0 -o docker0 -j ACCEPT
+-A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A FORWARD -i lo -j ACCEPT
+-A FORWARD -j FORWARD_direct
+-A FORWARD -j FORWARD_IN_ZONES_SOURCE
+-A FORWARD -j FORWARD_IN_ZONES
+-A FORWARD -j FORWARD_OUT_ZONES_SOURCE
+-A FORWARD -j FORWARD_OUT_ZONES
+-A FORWARD -m conntrack --ctstate INVALID -j DROP
+-A FORWARD -j REJECT --reject-with icmp-host-prohibited
+-A OUTPUT -j OUTPUT_direct
+-A DOCKER-ISOLATION-STAGE-1 -j RETURN
+-A DOCKER-ISOLATION-STAGE-2 -j RETURN
+-A DOCKER-USER -j RETURN
+-A FORWARD_IN_ZONES -i ens32 -g FWDI_public
+-A FORWARD_IN_ZONES -g FWDI_public
+-A FORWARD_OUT_ZONES -o ens32 -g FWDO_public
+-A FORWARD_OUT_ZONES -g FWDO_public
+-A FWDI_public -j FWDI_public_log
+-A FWDI_public -j FWDI_public_deny
+-A FWDI_public -j FWDI_public_allow
+-A FWDI_public -p icmp -j ACCEPT
+-A FWDO_public -j FWDO_public_log
+-A FWDO_public -j FWDO_public_deny
+-A FWDO_public -j FWDO_public_allow
+-A FWDO_public_allow -m conntrack --ctstate NEW -j ACCEPT
+-A FWDO_public_allow -m conntrack --ctstate NEW -j ACCEPT
+-A INPUT_ZONES -i ens32 -g IN_public
+-A INPUT_ZONES -g IN_public
+-A IN_public -j IN_public_log
+-A IN_public -j IN_public_deny
+-A IN_public -j IN_public_allow
+-A IN_public -p icmp -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 6443 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10251 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10252 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10259 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10257 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 8472 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 8081 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 8285 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 8080 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 443 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10250 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10256 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 10249 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 9099 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 53 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 67 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p udp -m udp --dport 68 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 179 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 2379 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 2380 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 6666 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 6667 -m conntrack --ctstate NEW -j ACCEPT
+-A IN_public_allow -p tcp -m tcp --dport 20244 -m conntrack --ctstate NEW -j ACCEPT

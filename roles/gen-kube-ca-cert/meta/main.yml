@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: cluster-defaults
+run_once: true

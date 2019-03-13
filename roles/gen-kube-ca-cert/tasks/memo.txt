@@ -1,0 +1,24 @@
+about gen-kube-ca-cert role
+
+condition:
+  if /etc/cert-cache/kubernetes directory on node-0 of cluster master not exist
+     we will create kube ca/cert
+  else
+     do nothing ( previous ca/cert will remians without change )
+  
+  ( we need to delete above directory if we want to create kube ca/cert)
+
+
+gen-kube-ca-cert role will generate ca cert for following kubernetes modules:
+
+  1. kubectl admin account (client ca)
+  2. kub-apiserver
+  3. kube-controller-manager
+  4. kube-scheduler
+  5. kube-proxy ( for node, and/or masters ) (client ca)
+
+  note: 
+    1. kubelet will use bootstrap auto-authentication. will not generated ca cert for kubelet
+    2. flanneld need ca cert to access etcd cluster. flanneld client ca cert will be generated 
+       when we generating etcd ca cert.
+ 

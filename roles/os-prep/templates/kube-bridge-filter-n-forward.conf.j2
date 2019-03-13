@@ -1,0 +1,41 @@
+# file: /etc/sysctl.d/kube-bridge-filter-n-forward.conf
+#
+# rem:
+#    . for docker 1.13 up 
+#    . default docker setting disable bridge netfilter and port forward, and this will
+#        block pod network traffic acrose nodes. 
+#        so use this config to enable bridge netfilter and por forward
+
+# ATTENTION:
+# check if we need to add following setting to /usr/lib/sysctl.d/00-system.conf
+#
+
+# enanble netfilter on bridges
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+
+net.bridge.bridge-nf-call-arptables = 1
+
+# enable ip forward
+# use # sysctl -p                          - to exec
+# cat /proc/sys/net/ipv4/ip_forward        - to check (return "1" if setting effected)
+net.ipv4.ip_forward = 1
+#net.ipv6.ip_forward = 1
+net.ipv4.conf.all.forwarding = 1
+#net.ipv6.conf.all.forwarding = 1
+
+# non-local ip bind - for haproxy to bind to the kube-api VIP
+net.ipv4.ip_nonlocal_bind = 1 # needed for haproxy to bind to the kube-api VIP
+
+# set tcp keep alive parameter - to avoid client lost long connection using default parameters
+#   defaulttcp keepalive time is 7200 ( 2 hours )
+# need this setting when using ipvs - or client will be reset connection by server periodically in appr 900 seconds
+# ( default setting of ipvs: 
+#     # ipvsadm -l --timeout
+#       Timeout (tcp tcpfin udp): 900 120 300)
+# )
+net.ipv4.tcp_keepalive_time = 600
+net.ipv4.tcp_keepalive_intvl = 30
+net.ipv4.tcp_keepalive_probes = 10
+
+

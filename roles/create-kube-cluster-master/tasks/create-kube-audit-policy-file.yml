@@ -1,0 +1,31 @@
+---
+
+# file: create-kube-audit-policy-files.yml
+#
+#  func: create basic audit-policy config file for kube
+#
+
+# 1.
+# generate kube basic audit policy config file
+- name: generate kube audit poicy config file
+  template:
+    src: audit-policy.yaml.j2
+    dest: "{{ audit_policy_config_file }}"
+
+# change audit policy config file attribute
+- name: change file attrib
+  file:
+    path: "{{ audit_policy_config_file }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0660
+
+# backup audit policy config file to ansible machine
+- name: backup audit policy config file to ansible machine
+  fetch:
+    src: "{{ audit_policy_config_file }}"
+    dest: "{{ dep_path_backup_kube_config }}/"
+    flat: yes
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}" 
+

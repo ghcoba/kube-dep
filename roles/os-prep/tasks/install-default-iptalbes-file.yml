@@ -1,0 +1,24 @@
+---
+
+# file: install-default-iptalbes-file.yml
+
+#
+- name: 
+  template:
+    src: iptables-master-node-conf.j2
+    dest: /etc/sysconfig/iptables-master-node.backup
+- name:
+  template:
+    src: iptables-worker-node-conf.j2
+    dest: /etc/sysconfig/iptables-worker-node.backup
+
+- name:
+  template:
+    src: iptables-master-node-conf.j2
+    dest: /etc/sysconfig/iptables
+
+
+
+
+
+

@@ -1,0 +1,42 @@
+---
+
+# file: remove-create-etcd-cluster.yml
+#
+
+# func:
+#   general: remove generated create-etcd-cluster role procedure
+#     0. stop and disable etcd service
+#     1. remove remote /etc/etcd directory
+#     2. remove remote /var/lib/etcd data directory
+#
+
+
+# remove etcd service, etcd config dir and etcd data dir on etcd cluster
+- block:
+    - debug:
+        msg: "exec to stop etcd service of etcd cluster on machine {{ inventory_hostname }}."
+
+    - name: stop services 1 if exist
+      systemd:
+        name: etcd
+        daemon_reload: no
+        state: stopped
+        enabled: no
+
+    - name: remove kube and etcd config directory cluster master
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ etcd_cert_path }}/"
+        - "{{ etcd_config_path }}/"
+        - "{{ etcd_data_path }}/"
+
+
+    - debug: 
+        msg: "{{ etcd_config_path }}, {{etcd_data_path }} directories removed on {{ inventory_hostname }}."
+  when:
+    - inventory_hostname in groups['etcd-nodes']
+
+# end block
+

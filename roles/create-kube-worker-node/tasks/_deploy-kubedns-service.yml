@@ -1,0 +1,50 @@
+---
+
+# file: deploy-kubedns-service.yml
+#
+
+# deploy kube-dns service using yaml ( one pod + autoscaler )
+
+# create kube-dns yaml 
+- name: create kube-dns service file ( yaml )
+  template:
+    src: kube-dns.yaml.j2
+    dest: "{{ kube_config_path }}/kube-dns.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create  kube-dns autoscaler yaml
+- name: create kube-dns autoscaler file ( yaml )
+  template:
+    src: kube-dns-autoscaller.yml.j2
+    dest: "{{ kube_config_path }}/kube-dns-autoscaller.yml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create  kube-dns autoscaker rbac yaml
+- name: create kube-dns autoscaler rbac file ( yaml )
+  template:
+    src: kube-dns-autoscaller-service-account-rbac.yml.j2
+    dest: "{{ kube_config_path }}/kube-dns-autoscaller-service-account-rbac.yml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
+
+# create kube-dns autoscaler 
+- name: create kube-dns autoscaler
+  command: "{{ bin_path }}/kubectl create -f {{ kube_config_path }}/kube-dns-autoscaller.yml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create kube-dns autoscaler rbac
+- name: create kube-dns autoscaler rbac
+  command: "{{ bin_path }}/kubectl create -f {{ kube_config_path }}/kube-dns-autoscaller-service-account-rbac.yml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create coredns service
+- name: create coredns pod and service
+  command: "{{ bin_path }}/kubectl create -f {{ kube_config_path }}/kube-dns.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

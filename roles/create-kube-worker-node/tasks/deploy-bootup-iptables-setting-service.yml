@@ -1,0 +1,61 @@
+---
+
+# file: deploy-bootup-iptables-setting-service.yml
+#
+
+# func:
+#   deploy bootup-iptables-setting.service
+# proc:
+#   . create bootup-iptables-setting.timer file
+#   . create bootup-iptables-setting.service systemd file
+#   . create bootup-iptables-setting.sh script file
+#   . enable and start timer
+#   . start and enable bootup-iptables-setting.service
+#
+# rem:
+#   bootup-iptables-setting scrip exec:
+#     . flush iptables rules
+#     . erase iptables rules
+#     . re-create default iptables by restarting iptables.service
+#     . restart kube-proxy to re-create correct kube-proxy rules(iptables, ipvs)
+#
+
+# create time file
+- name: create bootup-iptables-setting timer file
+  template:
+    src: bootup-iptables-setting.timer.j2
+    dest: /etc/systemd/system/bootup-iptables-setting.timer
+
+# create systemd service file
+- name: create bootup-iptables-setting systemd service file
+  template:
+    src: bootup-iptables-setting.service.j2
+    dest: /etc/systemd/system/bootup-iptables-setting.service
+
+# create bootup iptables setting exec script file
+- name: create bootup-iptables-setting exec script file
+  copy: 
+    src: ../files/bootup-iptables-setting.sh
+    dest: /usr/local/bin/.
+    owner: root
+    group: root
+    mode: 0751
+
+# authorize and enable timer
+- name: authorize to start timer
+  command: systemctl start bootup-iptables-setting.timer
+# enable startup timer on boot
+- name: enable timer on bootup
+  command: systemctl enable bootup-iptables-setting.timer
+
+# enable and start bootup-iptables-setting systemd service
+- name: enable and start bootup-iptables-setting service
+  systemd:
+    name: bootup-iptables-setting.service
+    daemon_reload: yes
+    state: started
+    enabled: yes
+
+- name:
+  debug:
+    msg: "done deploy bootup-iptables-setting timer and service on {{ inventory_hostname }}."

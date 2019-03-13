@@ -1,0 +1,44 @@
+---
+
+# file: deploy-ipmasq-daemonset.yml
+#
+
+# deploy ip-masq agent daemonset using yaml ( agent + configmap, using kube-system namespace )
+
+# create ip-masq agent yaml 
+- name: create ip-masq agent yaml
+  template:
+    src: ip-masq-agent.yaml.j2
+    dest: "{{ kube_daemonset_path }}/ip-masq-agent.yaml"
+
+# create ip-masq-agent config directory
+- name: create ip-masq-agent config directory
+  file:
+    path: "{{ item }}"
+    recurse: yes
+    state: directory
+    mode: 0766
+    owner: root
+    group: root
+  with_items:
+    - "{{ kube_ipmasq_agent_config_path }}"
+
+# create ip-masq agent config file
+- name: create ip-masq agent config file
+  template:
+    src: ip-masq-agent.config.j2
+    dest: "{{ kube_ipmasq_agent_config_path }}/config"
+
+# create ip-masq agent configmap
+- name: create ip-masq agent configmap
+  command: "{{ bin_path }}/kubectl create configmap ip-masq-agent --from-file={{ kube_ipmasq_agent_config_path }}/config --namespace=kube-system"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create ip-masq agent daemonset
+####
+# NOT APPLAY NOW
+#- name: create ip-masq daemonset using yaml
+#  command: "{{ bin_path }}/kubectl create -f {{ kube_daemonset_path }}/ip-masq-agent.yaml"
+#  run_once: true
+#  delegate_to: "{{ groups['kube-masters'][0] }}"

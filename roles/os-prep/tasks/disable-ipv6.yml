@@ -1,0 +1,43 @@
+---
+
+# file: roles/os-disable-ipv6/tasks/disable-ipv6.yml
+#
+
+# disable ipv6 - need reboot
+#
+# 1. change /etc/default/grub to add ipv6.disable=1 in GRUB_CMDLINE_LINUX=" string
+#    ref: GRUB_CMDLINE_LINUX="ipv6.disable=1 crashkernel=auto rhgb quiet"
+# 2. regenerate a grub configuration file and overwrite existing on
+#    ref: grub2-mkconfig -o /boot/grub2/grub.cfg
+# 3. make sure /etc/ssh/sshd_config contains the line AddressFamily inet to avoid
+#      breaking ssh xforwarding if you are using the systemctl method
+#    ref: AddressFamily inet
+#
+# attention: need reboot the make disable ipv6 and change of sshd take effect
+#
+# to check: # ip addr | grep inet6
+#
+
+# disable ipv6 using grub config
+- name: config disable ipv6
+  block:
+    - name: change grub command line
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX='
+        line: 'GRUB_CMDLINE_LINUX="ipv6.disable=1 crashkernel=auto rd.lvm.lv=centos/root rd.lvm.lv=centos/swap rhgb quiet"'
+    - name: regenerate new grub config file
+      command: grub2-mkconfig -o /boot/grub2/grub.cfg
+    - name: add AddressFamily inet in sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#AddressFamily'
+        line: 'AddressFamily inet'
+  rescue:
+    - debug:
+        msg: 'will reboot'
+  always:
+    - debug:
+        msg: 'reboot target host to make disable-ipv6 take effect. check # ip addr | grep inet6 '
+#    - name: reboot to make disable-ipv6 take effect
+#      command: reboot    

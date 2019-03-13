@@ -1,0 +1,14 @@
+bash deploy.sh -i 10.96.0.10 -r "10.96.0.0/12" -s -t coredns.yaml.sed | kubectl apply -f -
+bash deploy.sh -i 10.254.0.2 -r "10.254.0.0/16" -s -t coredns.yaml.sed
+bash deploy.sh -i 10.254.0.2 -r "10.254.0.0/16" -s -t coredns.yaml.sed
+
+# SERVICE network ( SERVICE_CIDR - route can reach through kube-proxy and ipvs after deploy)
+cluster_service_cidr: "10.254.0.0/16"
+# service port range (node port range)
+service_port_range: "30000-50000"
+# kubernetes service ip (it is the first ip addr of service network - SERVICE_CIDR )
+cluster_kubernetes_svc_ip: "10.254.0.1"
+# dns service ip (use second ip addr of service network - from SERVICE_CIDR )
+cluster_dns_svc_ip: "10.254.0.2"
+
+bash deploy.sh -i {{ cluster_dns_svc_ip }} -r {{ cluster_service_cidr }} -s -t coredns.yaml.sed > coredns.yaml.j2

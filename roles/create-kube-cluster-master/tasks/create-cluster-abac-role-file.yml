@@ -1,0 +1,30 @@
+---
+
+# file: create-cluster-abac-role-file.yml
+#
+
+# func:
+#   . create cluster abac role file
+
+
+####################################################
+# create abac directory and files
+#
+
+- name: create abac config directory
+  file:
+    path: "{{ kube_abac_config_path }}"
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0765
+
+- name: create rbac config files
+  template:
+    src: "{{ item }}.j2" 
+    dest: "{{ kube_abac_config_path }}/{{ item }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0664
+  with_items:
+    - abac-auth.json

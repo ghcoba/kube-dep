@@ -1,0 +1,26 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/create-etcdctl-env-setting.yml
+
+# create environment setting for etcdctl client
+#
+
+# copy env file etcdctl-env.rc to /root/.etcdctl.rc, and add to /root/.bash_profile
+#
+
+- name: copy etcdctl-env.rc for etcdctl environment variables
+  template:
+    src: etcdctl-env.rc.j2
+    dest: /root/.etcdctl-env.rc
+
+- name: copy write-etcdctl-env.sh to /usr/local/bin
+  copy:
+    src: write-etcdctl-env.sh
+    dest: "{{ bin_path }}/write-etcdctl-env.sh"
+    owner: root
+    group: root
+    mode: 0755
+
+- name: write etctctl env - append etcdctl-env.rc to /root/.bash_profile
+  command: "{{ bin_path }}/write-etcdctl-env.sh"
+

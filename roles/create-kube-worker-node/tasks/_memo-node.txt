@@ -1,0 +1,90 @@
+about create-kube-cluster-node role
+
+implement by using create-work-node - to create every work node of kube cluster
+
+description of functions and procedures:
+
+  . dependencies roles
+      - cluster-defaults ( include global cluster default variables )
+      - etcd defaults ( include etcd default variables )
+      - ? os prep tasks ( attn: no reboot )
+  
+  . create user and group
+  . create directories ( bin, data, config, cert, ?cni, flannel, docker, etcd, kubectl )
+  . create etcd client directory ( bin, cert )
+  . create kube cert files (root ca, apiserver, kubelet bootstrapping auto auth token, controller-manager, scheduler )
+  . create etcd cert ( etcd root ca, client cert for etcdctl )
+
+  . copy deploy etcdctl client binary
+  . setting etcdctl environment
+
+  . copy deploy kubectl client binary
+  . setting kubectl client enviroment
+
+  . deploy cni
+
+  . deploy flannel (deploy flannel before docker)
+
+  . deploy docker
+      - binary
+      - flannel docker integration file
+      - docker service systemd unit file
+      - enable firewall rule for docker, flannel traffic
+      - enable/start docker service
+
+  . ? deploy nginx reverse proxy (docker based) to apiserver , let kube-proxy and kubelet listen to local proxy port. if api apiserver fail, kick it off for apiserver HA - high availability
+
+  . create kubeconfig files using kubectl
+      - kubelet bootstrapping kubeconfig file (if kubelet.kubeconfig not exist, will use bootstrapping method to create csr and send to apiserver, (when token pass auth, set user as system:bootstrap and group as system:bootstrappers ) api will then request controller-manger to generate ca/cert for kubelet and then acknologed ca/cert will write to kubelet.kubeconfig file)
+      - kube-proxy kubeconfig file
+
+  . create kubelet.config template file
+
+  . deploy kubelet service
+      - create kubelet parameter config file
+      - create controller-manager systemd unit file
+      - enable firewall rule for controller-manager (? 4194 cadvisor http ( promehteus metrics format), 10248 healthz http, 10250 https api service, ?? read-only 10255 http)
+      - binding rbac role for kubelet-bootstrap user (create clusterrolebinding to bind group system:bootstrappers with clusterrole system:node-bootstrapper )
+          ( kubectl create clusterrolebinding kubelet-bootstrap --clusterrole=system:node-bootstrapper --group=system:bootstrappers )
+      - create auto renwal cluster role binding (for creating ca/cert used in approve client, renew client, renew server)
+      - apply above created cluster role bindings
+      - enable/start controller-manager service
+
+  . deploy kube proxy service
+      - create kube proxy parameter config file
+      - create kube proxy systemd unit file
+      - enable firewall rule for kube proxy
+      - enable/start kube proxy service
+
+  . create enviroment settings for etcdctl command-line (need reboot or start new bash environment)
+      (to enable etcdctl client execution on master node)
+
+  . ? create ntp client for sync to cluster time server
+
+
+post proc:
+  . install coredns plugin
+  . install metrics server plugin
+  . install dashboard
+  . ? installl heapster ( influxdb, grafana )
+  . ? efk ( elasticsearch, fluentd, kibana )
+  . install amabassador
+  . install load balancer and virtual ip ha support
+  . ? nginx ingress
+
+
+todo:
+  . 
+
+
+
+---------
+
+remark:
+
+
+
+command line to check etcd using etcdctl:
+(following command line parameters works)
+
+# etcdctl --ca-file=/etc/etcd/cert/etcd-ca.pem --cert-file=/etc/etcd/cert/etcd-client.pem --key-file=/etc/etcd/cert/etcd-client-key.pem --endpoints=https://10.0.0.111:2379 cluster-health

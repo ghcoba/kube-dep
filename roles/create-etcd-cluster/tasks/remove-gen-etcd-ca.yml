@@ -1,0 +1,26 @@
+---
+
+# file: remove-gen-etcd-ca.yml
+#
+
+# func:
+#   general: remove generated ca cert procedure
+#     1. remove remote /etc/cert-cache/etcd directory
+#     2. remove remote /etc/cert-cache/flannel directory
+#
+
+
+# remove etcd cache dir on remote
+- name: remove etcd cache directory on remote
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ cert_cache_path_etcd }}"
+    - "{{ cert_cache_path_flanneld }}"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+- debug: msg="/etc/cert-cache/<etcd, flanneld> directories removed."
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

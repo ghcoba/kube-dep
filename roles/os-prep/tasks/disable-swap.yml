@@ -1,0 +1,39 @@
+---
+
+# file: roles/os-disable-swap/tasks/disable-swap.yml
+#
+
+# disable swap - need reboot
+# 
+# rem: 
+#     . for docker 1.13 up
+#     . docker 1.13 up need disable swap (when using default setting)
+#
+# 1. change /etc/fstab to comment swap settings
+#    ref: '# /dev/mapper/centos-swap swap                    swap    defaults        0 0'
+#
+# attention: need reboot the make disable swap take effect
+#
+# to check: # cat /etc/fstab
+#
+
+# disable swap using fstab setting
+- name: config disable swap
+  block:
+    - name: change fstab setting
+      lineinfile:
+        path: /etc/fstab
+        regexp: '^/dev/mapper/centos-swap'
+        line: '#/dev/mapper/centos-swap swap                    swap    defaults        0 0'
+    - name: reboot to make disable-swap take effect
+      command: reboot
+  rescue:
+    - debug:
+        msg: 'reboot target host to make disable-swap take effect. check # cat /etc/fstab for swap setting after reboot'
+
+  always:
+    - debug:
+        msg: 'reboot target host to make disable-swap take effect. check # cat /etc/fstab for swap setting after reboot'
+#    - name: reboot to make disable-swap take effect
+#      command: reboot
+    

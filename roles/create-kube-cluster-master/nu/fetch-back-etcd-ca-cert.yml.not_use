@@ -1,0 +1,83 @@
+---
+
+# file: fetch-back-etcd-ca-cert.yml
+#
+# func:
+#   1. fetch back following ca cert from etcd cache directory to ansible machine
+#      . etcd (root ca, etcd root ca, config, server, client, peer)
+#      . flanneld
+#
+
+- name: exec_fetch_back_etcd_ca_cert
+  block:
+    - name:
+      debug: 
+        msg: "notified -> start fetch back ca cert from etcd and flannel cache to ansible machine ..."
+
+#   insert procedure here
+
+#   # fech all cert to ansible temp exchange dir
+    - name: fetch all cert files of etcd cache dir to ansible kube backup dir
+      fetch:
+        src: "{{ cert_cache_path_etcd }}/{{ item }}"
+        dest: "{{ cert_backup_path_etcd }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca-csr.json
+        - ca.csr
+        - ca.pem
+        - ca-key.pem
+        - etcd-ca-config.json
+        - etcd-ca-csr.json
+        - etcd-ca.csr
+        - etcd-ca.pem
+        - etcd-ca-key.pem
+        - etcd-client-csr.json
+        - etcd-client.csr
+        - etcd-client.pem
+        - etcd-client-key.pem
+        - etcd-server-csr.json
+        - etcd-server.csr
+        - etcd-server.pem
+        - etcd-server-key.pem
+        - etcd-peer-csr.json
+        - etcd-peer.csr
+        - etcd-peer.pem
+        - etcd-peer-key.pem
+        - timestamp.log
+
+
+#     # fetch flanneld cert from remote cache to ansible flanneld backup directory
+    - name: fetch flanneld cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_flanneld }}/{{ item }}"
+        dest: "{{ cert_backup_path_flanneld }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - etcd-ca.pem
+        - etcd-ca-key.pem
+        - flanneld-csr.json
+        - flanneld.csr
+        - flanneld.pem
+        - flanneld-key.pem
+        - timestamp.log
+
+#   end procedure
+
+    - name: 
+      debug: 
+        msg: "exiting fetch_back_etcd_ca_cert"
+
+  rescue:
+    - debug:
+        msg: "issue occured"
+
+  always:
+    - debug:
+        msg: ". exit fetch-back-etcd-ca-cert.yml"
+
+

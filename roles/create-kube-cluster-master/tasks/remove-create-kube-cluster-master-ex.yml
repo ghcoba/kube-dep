@@ -1,0 +1,151 @@
+---
+
+# file: remove-create-kube-cluster-master-ex.yml
+#
+
+# func:
+#   general: remove generated create-kube-cluster-master procedure
+#     0. remove all rbac created
+#     1. remove remote /etc/kubernetes directory
+#     2. remove remote /etc/etcd directory
+#
+
+###############################################################
+
+# remove rbac role and binding created for cluster kubelet bootstrap
+
+- name: remove rbac role and binding created for kubelet bootstrap
+  import_tasks: remove-created-bootstrap-rbac-ex.yml
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+- name: remove rbac role and binding created for apiserver - kubelet
+  import_tasks: remove-created-apiserver-kubelet-rbac-ex.yml
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+##############################################################
+
+# remove kube config and etcd config dirs on cluster master
+- block:
+    - block:
+        - name: stop services 1 if exist
+          systemd:
+            name: kube-apiserver
+            daemon_reload: no
+            state: stopped
+            enabled: no
+      rescue:
+        - debug: 
+            msg: "ERROR: can not stop kube-apiserver service, or service not exist"    
+#     end block      
+
+    - block:
+        - name: stop services 2 if exist
+          systemd:
+            name: kube-controller-manager
+            daemon_reload: no
+            state: stopped
+            enabled: no
+      rescue:
+        - debug:
+            msg: "ERROR: can not stop kube-controller-manager service, or service not exist"
+#     end block
+
+    - block:
+        - name: stop services 3 if exist
+          systemd:
+            name: kube-scheduler
+            daemon_reload: no
+            state: stopped
+            enabled: no
+      rescue:
+        - debug:
+            msg: "ERROR: can not stop kube-scheduler service, or service not exist"
+#     end block
+
+    - block:
+        - name: stop services 4 if exist
+          systemd:
+            name: kube-proxy
+            daemon_reload: no
+            state: stopped
+            enabled: no
+      rescue:
+        - debug:
+            msg: "ERROR: can not stop kube-proxy service, or service not exist"
+#     end block
+
+
+    - block:
+        - name: stop services 5 if exist
+          systemd:
+            name: docker
+            daemon_reload: no
+            state: stopped
+            enabled: no
+      rescue:
+        - debug:
+            msg: "ERROR: can not stop docker service, or service not exist"
+#     end block
+
+    - block:
+        - name: stop services 6 if exist
+          systemd:
+            name: flannel
+            daemon_reload: no
+            state: stopped
+            enabled: no
+      rescue:
+        - debug:
+            msg: "ERROR: can not stop flannel service, or service not exist"
+#     end block
+
+#    - block:
+#        - name: stop services 7 if exist
+#          systemd:
+#            name: calico-node-container
+#            daemon_reload: no
+#            state: stopped
+#            enabled: no
+#      rescue:
+#        - debug:
+#            msg: "ERROR: can not stop flannel service, or service not exist"
+#     end block
+
+    - name: remove kube and etcd config and data directories cluster master
+      file:
+        path: "{{ item }}"
+        force: yes
+        state: absent
+      with_items:
+        - "{{ kube_config_path }}/cert/"
+        - "{{ kube_config_path }}/"
+        - "{{ etcd_config_path }}/"
+#        - "{{ docker_config_path }}/"
+        - "{{ cni_config_path }}/"
+        - "{{ etcd_data_path }}/"
+        - "{{ kube_data_path }}/"
+#        - "{{ docker_data_path }}/"
+        - "{{ cni_data_path }}/"        
+#        - "{{ flannel_cert_path }}/"
+#        - "{{ flannel_config_path }}/"
+        - "{{ calico_log_path }}/"
+        - "{{ calico_data_path }}/"
+        - "{{ calico_config_conf_path }}/"
+        - "{{ calico_config_path }}/"
+        - "{{ kuberouter_config_path }}/"
+        - "{{ kuberouter_data_path }}/"
+
+
+#    - name: rm directory forcely
+#      command: rm -rf "{{ kube_config_path }}/cert/" && rm -rf "{{ kube_config_path }}/"  && rm -rf "{{ etcd_config_path }}/"
+
+    - debug: 
+        msg: "{{ kube_config_path }}, {{etcd_config_path }} directories removed on {{ inventory_hostname }}."
+  when:
+    - inventory_hostname in groups['kube-masters']
+
+# end block
+
+

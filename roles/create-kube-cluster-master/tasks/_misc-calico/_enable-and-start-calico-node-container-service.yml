@@ -1,0 +1,12 @@
+---
+
+# file: enable-and-start-calico-node-container-service.yml
+#
+
+# enable calico node container service
+- name: enable and start calico-node-container service
+  systemd:
+    name: calico-node-container
+    daemon_reload: yes
+    state: restarted
+    enabled: yes

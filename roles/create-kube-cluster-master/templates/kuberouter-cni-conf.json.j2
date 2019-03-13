@@ -1,0 +1,24 @@
+    {
+       "cniVersion":"0.3.0",
+       "name":"mynet",
+       "plugins":[
+          {
+             "name":"kubernetes",
+             "type":"bridge",
+             "bridge":"kube-bridge",
+             "isDefaultGateway":true,
+             "hairpinMode":{{ kuberouter_hairpin_mode }},
+             "ipam":{
+                "type":"host-local"
+             }
+          },
+          {
+             "type":"portmap",
+             "capabilities":{
+                "snat":true,
+                "portMappings":true
+             }
+          }
+       ]
+    }
+

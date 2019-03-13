@@ -1,0 +1,20 @@
+about gen-etcd-ca-cert role
+
+condition:
+  if /etc/cert-cache/etcd  directory on node-0 of cluster masters not exist
+     we consider etcd ca/cert not exist and we will create
+  else
+     do nothing ( previous data if exist will remain without change)
+
+
+gen-etcd-ca-cert role will generate ca cert for following modules:
+
+  1. etcd ( use cluster master ca as etcd cluster root ca, etcd-server cert, etcd-client ca, etcd-peer ca )
+     ( will be deployed on etcd cluster. public ca will need for node need to access etcd server)
+  2. flanneld client ca ( will be deployed on cluster masters and cluster nodes)
+
+  rem:
+  1. flanneld need ca cert to access etcd cluster. flanneld client ca cert will be generated 
+       when we generating etcd ca cert.
+ 
+

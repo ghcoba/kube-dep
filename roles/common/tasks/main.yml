@@ -1,0 +1,7 @@
+---
+
+- name: create ansible temp directory
+  file:
+    path: "{{ ansible_temp_dir }}"
+    state: directory
+

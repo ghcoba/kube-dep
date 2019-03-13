@@ -1,0 +1,12 @@
+---
+
+# playbook - gen-etcd-ca-cert.yml
+#
+
+# only use this playbook for node-0 of cluster masters
+# attention: only for node-0 of cluster masters
+
+- hosts: node1
+  become: yes
+  roles:
+    - { role: gen-etcd-ca-cert }

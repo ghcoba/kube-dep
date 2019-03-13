@@ -1,0 +1,58 @@
+{% macro get_host_ip() -%}
+   {{ hostvars[inventory_hostname]['host_ip_address'] }}
+{%- endmacro -%}
+
+
+[Unit]
+Description=kube-proxy server - service name: kube-proxy.service
+After=network.target
+
+[Service]
+WorkingDirectory={{ kube_proxy_data_path }}
+EnvironmentFile=-{{ kube_config_path }}/kube-proxy
+ExecStart={{ bin_path }}/kube-proxy \
+        --logtostderr=true \
+        --v=2 \
+        --bind-address=0.0.0.0 \
+        --master={{ kube_load_balancer_apiserver_url }} \
+        --healthz-port={{ kube_proxy_healthz_port }} \
+        --kubeconfig={{ kube_proxy_config_file }} \
+        --metrics-port=10249 \
+        --cleanup-iptables=false \
+        --cleanup-ipvs=true \
+        --proxy-mode=ipvs \
+        --ipvs-min-sync-period=5s \
+        --ipvs-sync-period=30s \
+        --ipvs-scheduler=rr \
+        --iptables-sync-period=30s \
+        --iptables-min-sync-period=5s \
+        --feature-gates=ExperimentalCriticalPodAnnotation=true
+
+#  --masquerade-all                       - if set, will defrage to iptables mode 
+#  --cluster-cidr= # cluster_pod_cidr #   - if set, wiil degrade to iptables mode
+#  --masquerade-all   - if set, kube-proxy will degrade to iptables mode. ? can not use when using calico. it will interfence with calico networking) If using the pure iptables proxy, SNAT all traffic sent via Service cluster IPs (this not commonly needed)
+
+# use command line to check iptables : # iptables -S -t nat
+
+# --proxy-mode=iptables 
+
+# use # ipvsadm -L -n to check ipvs route
+# --proxy-mode=ipvs 
+# --ipvs-exclude-cidrs= , ,  - stringSlice -A comma-separated list of CIDR's which the ipvs proxier should not touch when cleaning up IPVS rules
+
+# --healthz-bind-address 0.0.0.0     Default: 0.0.0.0:10256
+# --metrics-bind-address 0.0.0.0     Default: 127.0.0.1:10249
+
+# --bind-address=# get_host_ip() # 
+
+# --master=# kube_proxy_load_balancer_apiserver_url #
+
+# --hostname-override=# get_host_ip() #
+     
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,41 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+#::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+# host of alllocal nodes
+
+# ansible depoloy node
+10.0.0.100 node0 node0.domain.local ansible
+
+# cluster master nodes
+10.0.0.101 node1 node1.domain.local kube-master1
+10.0.0.102 node2 node2.domain.local kube-master2
+
+#10.0.0.103 node3 node3.domain.local node3.local
+
+# cluster work nodes
+10.0.0.104 node4 node4.domain.local kube-node1
+10.0.0.105 node5 node5.domain.local kube-node2
+10.0.0.106 node6 node6.domain.local kube-node3
+
+#10.0.0.107 node7 node7.domain.local node7.local
+#10.0.0.108 node8 node8.domain.local node8.local
+#10.0.0.109 node9 node9.domain.local node9.local
+#10.0.0.110 node10 node10.domain.local node10.local
+
+# etcd cluster nodes
+10.0.0.111 node11 node11.domain.local etcd1
+10.0.0.112 node12 node12.domain.local etcd2
+10.0.0.113 node13 node13.domain.local etcd3
+
+#10.0.0.114 node14 node14.domain.local node14.local
+#10.0.0.115 node15 node15.domain.local node15.local
+#10.0.0.116 node16 node16.domain.local node16.local
+#10.0.0.117 node17 node17.domain.local node17.local
+
+# load balancer cluster nodes
+10.0.0.118 node18 node18.domain.local lb1
+10.0.0.119 node19 node19.domain.local lb2
+
+# load balancer of cluster - temp def before active load balancer cluster active
+#192.168.100.101 lb-node api lb-node.local api.local 
+10.0.0.101 lb-node api  lb-node.local api.local

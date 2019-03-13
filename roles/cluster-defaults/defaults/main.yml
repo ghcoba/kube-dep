@@ -1,0 +1,8 @@
+---
+
+# kubenertes cluster options
+#
+
+kube_version_base: 1.13.0
+
+

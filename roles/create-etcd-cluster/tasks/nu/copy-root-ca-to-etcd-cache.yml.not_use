@@ -1,0 +1,78 @@
+---
+
+# file: copy-root-ca-to-etcd-cache.yml
+
+- name: exec_copy_root_ca_to_etcd_cache
+  block:
+    - name: prompt exec_copy_root_ca_to_etcd_cache notified
+      debug: 
+        msg: "notified -> start copy root ca-config, ca-pem, ca-key.pem to remote etcd cache ..."
+
+#   copy ca-config.json from /etc/cert-cache/ca-config to /etc/cert-cache/etcd
+#   copy ca.pem, ca-key.pem in /etc/cert-cache/ca to /etc/cert-cache/etcd
+#     
+#   (rem: /etc/cert-cache/etcd dir is also used as work directory to generate etcd cert)
+#
+#   . first fetch from remote to ansible temp directory and copy to remote
+#
+
+#     ca-config.json
+    - name: fetch cluster master ca-config.json to ansible temp dir
+      fetch:
+        src: "{{ cert_cache_path_ca_config }}/{{ item }}"
+        dest:  "{{ dep_path_tmp_exchange }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+    - name: copy cluster master ca-config.json to kube cache
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_etcd }}/"
+      with_items:
+        - ca-config.json
+#   # also copy as etcd ca config and csr  
+    - name: copy cluster master ca-config.json as root ca-config of etcd cluster
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_etcd }}/etcd-{{ item }}"
+      with_items:
+        - ca-config.json
+
+#   ca.pem, ca-key.pem
+    - name: fetch cluster master ca cert to ansible temp dir
+      fetch:
+        src: "{{ cert_cache_path_ca }}/{{ item }}"
+        dest:  "{{ dep_path_tmp_exchange }}/"
+        flat: true
+      with_items:
+        - ca-csr.json
+        - ca.csr
+        - ca.pem
+        - ca-key.pem
+    - name: copy cluster master ca cert to etcd cache directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_etcd }}/"
+      with_items:
+        - ca-csr.json
+        - ca.csr
+        - ca.pem
+        - ca-key.pem
+#   # also copy mater root ca as etcd cluster root ca cert
+    - name: copy cluster master ca cert as etcd root ca cert
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_etcd }}/etcd-{{ item }}"
+      with_items:
+        - ca-csr.json
+        - ca.csr
+        - ca.pem
+        - ca-key.pem
+
+  rescue:
+    - debug:
+        msg: "issue in exec_copy_root_ca_to_etcd_cache"
+
+  always:
+    - debug:
+        msg: ". exit copy-root-ca-to-etcd-cache.yml"

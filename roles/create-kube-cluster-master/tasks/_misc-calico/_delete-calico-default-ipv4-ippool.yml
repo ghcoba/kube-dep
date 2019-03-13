@@ -1,0 +1,17 @@
+---
+
+# file: delete-calico-default-ipv4-ippool.yml
+#
+
+
+- block:
+
+# exec to delete calico default ipv4 ippool
+    - name: apply delete calico default ipv4 ippool
+      command: "{{ bin_path }}/calicoctl delete ippool {{ calico_default_ipv4_ippool_name }}"
+      register: delete_ippool_result
+
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting calico default ipv4 ippool"
+#     end block

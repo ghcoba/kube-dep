@@ -1,0 +1,342 @@
+---
+
+# file: create-calico-common-environment.yml
+#
+
+# func:
+#   create calico common environment ( on all node - master nodes and worker nodes)
+#
+# process include:
+# . create networkmanger config file (/etc/NetworkManager/conf.d/calico.conflist) to avoid networkmanager interfere calico networking
+# . install calicoctl bin to /usr/local/bin directory
+# . install calico cni plugin exec files (calico, calico-ipam) to cni binary directory (/opt/cni/bin - directory already created in cni deployment
+# . create calico config file /etc/cni/net.d/10-calico.conf
+# . install and import calico node container image (it is used in calico node container systemd service deployment$ )
+#
+
+### create networkmanager config file
+
+# create networkmanager config directory
+- name: create networkmanager config dicrectory
+  file:
+    path: "/etc/NetworkManager/conf.d"
+    state: directory
+    mode: 0764
+
+# create networkmanager config file to prevent network manager to touch calico network interfaces
+- name: create networkmanager config file
+  template:
+    src: ../../create-kube-cluster-master/templates/networkmanager-confd.calico.conf.j2
+    dest: "/etc/NetworkManager/conf.d/calico.conf"
+
+# create calico log, lib directory (/var/log/calico, /var/lib/calico)
+#   for calicoctl, calico, calico node daemonset, calico node container service
+
+# create calico log directory /var/log/calico
+- name: create calico log dicrectory
+  file:
+    path: "{{ calico_log_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+
+# create calico lib directory /var/lib/calico
+- name: create calico lib dicrectory
+  file:
+    path: "{{ calico_data_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+
+# create calico config directory (/etc/calico)
+- name: create calico config dicrectory
+  file:
+    path: "{{ calico_config_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+
+# create calico confd config directory (/etc/calico/confd)
+- name: create calico confd config dicrectory
+  file:
+    path: "{{ calico_config_path }}/confd"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+
+# create calico confd/conf.d config directory (/etc/calico/confd/conf.d)
+- name: create calico confd-confd config dicrectory
+  file:
+    path: "{{ calico_config_path }}/confd/conf.d"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+
+# create cni etcd tls cert paht (/etc/cni/net.d/calico-tls)
+- name: create cni config dicrectory
+  file:
+    path: "{{ calico_cni_tls_cert_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+
+# create calico config conf directory (/etc/calico/conf)
+- name: create cni config conf dicrectory
+  file:
+    path: "{{ calico_config_conf_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+
+# create calico config yaml directory (/etc/calico/yaml)
+- name: create calico config yaml dicrectory
+  file:
+    path: "{{ calico_config_yaml_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+
+# install calicoctl bin to /usr/local/bin directory
+#   copy calicoctl bin to /usr/local/bin on node
+- name: exec create calicoctl binary
+  copy:
+    src: "{{ calicoctl_bin_dep_path }}/{{ item }}"
+    dest: "{{ bin_path }}/"
+    owner: "root"
+    group: "root"
+    mode: 0751
+  with_items:
+    - calicoctl
+
+# for calico v3.5.2 file configuration, calico cni plug files will not install during deploy, it will created by install-cni pod
+#### install calico cni plugin exec files (calico, calico-ipam) to cni binary directory (/opt/cni/bin - directory already created in cni deployment
+##   copy calico cni plugin bin files to /opt/cni/bin on node
+#- name: exec create calico cni plugin binary
+#  copy:
+#    src: "{{ calico_cni_plugin_bin_dep_path }}/{{ item }}"
+#    dest: "{{ cni_bin_path }}/{{ item }}"
+#    owner: "{{ kube_user }}"
+#    group: "{{ kube_group }}"
+#    mode: 0751
+#  with_items:
+#    - calico
+#    - calico-ipam
+##  when: inventory_hostname in groups['kube-masters']
+
+# pull calico docker images to host
+### remark: as slow image pull, disable image pull during deploymeng
+###
+#- name: pull calico docker images to host
+#  command: /usr/bin/docker pull "{{ item }}"
+#  with_items:
+#    - "quay.io/calico/node:{{ calico_node_version_number }}"
+#    - "quay.io/calico/kube-controllers:{{ calico_kuber_controller_version_number }}"
+#    - "quay.io/calico/cni:{{ calico_cni_version_number }}"
+
+- name:
+  debug:
+    msg: >
+      - "please pull following calico images by manual for each host when needed\n"
+      - "  # docker pull quay.io/calico/node:{{ calico_node_version_number }}\n"
+      - "  # docker pull quay.io/calico/kube-controllers:{{ calico_kuber_controller_version_number }}\n"
+      - "  # docker pull quay.io/calico/cni:{{ calico_cni_version_number }}\n"
+
+###  create calico cni networking config file /etc/cni/net.d/10-calico.conflist
+
+# create cni config directory (/etc/cni/net.d)
+- name: create cni config dicrectory
+  file:
+    path: "{{ cni_config_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0664 
+    state: directory
+
+### create calico cni config file
+
+# for calico v3.5.2 file configuration, not create /etc/cni/net.d/10-calico.conflist (will create by install-cni pod)
+#- name: create calico cni config file
+#  template:
+#    src: ../../create-kube-cluster-master/templates/10-calico.conflist.j2
+#    dest: "{{ cni_config_path }}/10-calico.conflist"
+##  when: inventory_hostname in groups['kube-masters']
+#- name: set file attribute
+#  file:
+#    path: "{{ cni_config_path }}/10-calico.conflist"
+#    mode: 0664
+##  when: inventory_hostname in groups['kube-masters']
+
+### create calicoctl config file - for calicoctl etcd access
+#     (in /etc/calico/, file name - calicoctl.cfg )
+- name: create calicoctl config file
+  template:
+    src: ../../create-kube-cluster-master/templates/calicoctl.cfg.j2
+    dest: "{{ calico_config_path }}/calicoctl.cfg"
+- name: set file attrib
+  file: 
+    path: "{{ calico_config_path }}/calicoctl.cfg"
+    mode: 0664
+
+### create calico kubeconfig file - var name: calico_kubeconfig_file position: /etc/calico/calico.kubeconfig
+#   # fech /etc/kubernetes/kubectl.kubeconfig to ansible temp exchange dir
+- name: fetch kubectl.kubeconfig files to ansible temp dir
+  fetch:
+    src: "{{ kubectl_config_file }}"
+    dest:  "{{ dep_path_tmp_exchange }}/kubectl.kubeconfig"
+    flat: true
+- name: copy kubectl.kubeconfig from ansible temp exchange to calico config directory
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/kubectl.kubeconfig"
+    dest: "{{ calico_kubeconfig_file }}"
+- name: set file attrib
+  file:
+    path: "{{ calico_kubeconfig_file }}"
+    mode: 0664
+#    owner: "{{ kube_user }}"
+#    group: "{{ kube_group }}"
+
+# for calico v3.5.2 file configuration, do not create cni calico.kubeconfig file, it will be created by install-cni pod
+#- name: copy kubectl.kubeconfig from ansible temp exchange to calico config directory
+#  copy:
+#    src: "{{ dep_path_tmp_exchange }}/kubectl.kubeconfig"
+#    dest: "{{ calico_cni_kubeconfig_file }}"
+#- name: set file attrib
+#  file:
+#    path: "{{ calico_cni_kubeconfig_file }}"
+#    mode: 0664
+
+### create calico etcd tls cert files - from /etc/etcd/cert/* -> /etc/calico/calico-tls/
+# create calico etcd tls cert directory
+- name: create calico tls cert config dicrectory
+  file:
+    path: "{{ calico_etcd_tls_cert_path }}"
+    owner: "root"
+    group: "root"
+    mode: 0664
+    state: directory
+#   # fech /etc/etcd/cert/* to ansible temp exchange dir
+- name: fetch etcd client cert files to ansible temp dir
+  fetch:
+    src: "{{ etcd_cert_path }}/{{ item }}"
+    dest:  "{{ dep_path_tmp_exchange }}/{{ item }}"
+    flat: true
+  with_items:
+    - etcd-ca.pem
+    - etcd-client.pem
+    - etcd-client-key.pem
+- name: copy etcd ca file from ansible temp exchange to calico config tls directory
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/etcd-ca.pem"
+    dest: "{{ calico_tls_ca_file }}"
+- name: copy etcd client cert file from ansible temp exchange to calico config tls directory
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/etcd-client.pem"
+    dest: "{{ calico_tls_cert_file }}"
+- name: copy etcd client key file from ansible temp exchange to calico config tls directory
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/etcd-client-key.pem"
+    dest: "{{ calico_tls_key_file }}"
+- name: set file attrib
+  file:
+    path: "{{ item }}"
+    mode: 0664
+#    owner: "{{ kube_user }}"
+#    group: "{{ kube_group }}"
+  with_items:
+    - "{{ calico_tls_ca_file }}"
+    - "{{ calico_tls_cert_file }}"
+    - "{{ calico_tls_key_file }}"
+# create cni etcd tls cert file
+
+# for calico v3.5.2 file configuration, not create cni etcd file during deploy, it will created by install-cni pod 
+#- name: copy etcd ca file from ansible temp exchange to cni tls cert directory (/etc/cni/net.d/calico-tls)
+#  copy:
+#    src: "{{ dep_path_tmp_exchange }}/etcd-ca.pem"
+#    dest: "{{ calico_cni_tls_ca_file }}"
+#- name: copy etcd client cert file from ansible temp exchange to calico config tls directory
+#  copy:
+#    src: "{{ dep_path_tmp_exchange }}/etcd-client.pem"
+#    dest: "{{ calico_cni_tls_cert_file }}"
+#- name: copy etcd client key file from ansible temp exchange to calico config tls directory
+#  copy:
+#    src: "{{ dep_path_tmp_exchange }}/etcd-client-key.pem"
+#    dest: "{{ calico_cni_tls_key_file }}"
+#- name: set file attrib
+#  file:
+#    path: "{{ item }}"
+#    mode: 0664
+##    owner: "{{ kube_user }}"
+##    group: "{{ kube_group }}"
+#  with_items:
+#    - "{{ calico_cni_tls_ca_file }}"
+#    - "{{ calico_cni_tls_cert_file }}"
+#    - "{{ calico_cni_tls_key_file }}"
+
+## add service account bac to abac file
+#  (REMARK: already added to ABAC control file - calico-kube-controller, calico-node sa roles)
+#  (system:serviceaccount:kube-system:calico-node and system:serviceaccount:kube-system:calico-kube-controller  to access api * namespace * or kube-system, pod *, svs *)
+##
+
+### create calico node service environment variables file /etc/calico/conf/calico.conf
+- name: create calico node service env conf file
+  template:
+    src: ../../create-kube-cluster-master/templates/calico-conf.calico.conf.j2
+    dest: "{{ calico_config_conf_path }}/calico.conf"
+- name: set file attrib
+  file:
+    path: "{{ calico_config_conf_path }}/calico.conf"
+    mode: 0664
+
+- name:
+  debug:
+    msg: "calico {{ calico_version }} environment deployed on {{ inventory_hostname }}."
+
+
+### install and import calico node container image (it is used in calico node container systemd s$
+
+# copy calico node docker image file to node 
+#- name: copy calico node docker image file to node
+#  copy:
+#    src: "{{ calico_docker_image_dep_path }}/{{ item }}"
+#    dest: "{{ kube_image_path }}/{{ item }}"
+#    owner: "{{ kube_user }}"
+#    group: "{{ kube_group }}"
+#    mode: 0760
+#  with_items:
+#    - calico-cni.tar
+#    - calico-kube-controllers.tar
+#    - calico-node.tar
+##    - calico-typha.tar
+
+# compress .tar image file to tar.gz file (image import need tar.gz format)
+#- name: compress docker images 
+#  command: gzip -9 {{ item }}
+#  with_items:
+#    - calico-cni.tar
+#    - calico-kube-controllers.tar
+#    - calico-node.tar
+##    - calico-typha.tar
+#  args:
+#    chdir: "{{ kube_image_path }}"
+
+
+# import docker images
+#   calico/node:v3.5.1
+#   calico/cni:v3.5.1
+#   calico/kube-controllers:v3.5.1
+#
+#- name: import calico/node:vx.x.x  - 3.5.1
+#  shell: |
+#    cat calico-cni.tar.gz | docker import - calico/cni:{{ calico_node_version_number }}
+#    cat calico-kube-controllers.tar.gz | docker import - calico/kube-controllers:{{ calico_kuber_controller_version_number }}
+#    cat calico-node.tar.gz | docker import - calico/node:{{ calico_cni_version_number }}
+#  args:
+#    chdir: "{{ kube_image_path }}"

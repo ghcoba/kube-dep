@@ -1,0 +1,39 @@
+{% macro initial_cluster() -%}
+{% for host in groups['etcd-nodes'] -%}
+   https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_client_port }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+{
+      "name": "k8s-pod-network",
+      "cniVersion": "0.3.0",
+      "plugins": [
+        {
+          "type": "calico",
+          "log_level": "debug",
+          "etcd_endpoints": "{{ initial_cluster() }}",
+          "etcd_key_file": "{{ calico_cni_tls_key_file }}",
+          "etcd_cert_file": "{{ calico_cni_tls_cert_file }}",
+          "etcd_ca_cert_file": "{{ calico_cni_tls_ca_file }}",
+          "mtu": {{ calico_veth_mtu }},
+          "ipam": {
+              "type": "calico-ipam",
+              "assign_ipv4": "true",
+              "assign_ipv6": "false",
+              "ipv4_pools": ["{{ cluster_pod_cidr }}"]
+          },
+          "policy": {
+              "type": "k8s"
+          },
+          "kubernetes": {
+              "kubeconfig": "{{ calico_cni_kubeconfig_file }}"
+          }
+        },
+        {
+          "type": "portmap",
+          "snat": true,
+          "capabilities": {"portMappings": true}
+        }
+      ]
+}

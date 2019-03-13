@@ -1,0 +1,60 @@
+---
+
+# file: populate-ca-cert-from-etcd-cache.yml
+
+# func:
+#   all ca cert files remain in etcd cache directory
+#   copy flanneld ca cert and config to flanneld cache directory
+#
+
+- name: exec_populate_ca_cert_from_etcd_cache
+  block:
+    - name: prompt exec_populate_ca_cert_from_etcd_cache notified
+      debug: 
+        msg: "notified -> start populate ca cert from etcd cache ..."
+
+#     
+#   . first fetch from remote to ansible temp directory and copy to remote
+#
+
+#   # fech all cert to ansible temp exchange dir
+    - name: fetch all cert files to ansible temp dir
+      fetch:
+        src: "{{ cert_cache_path_etcd }}/{{ item }}"
+        dest:  "{{ dep_path_tmp_exchange }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - etcd-ca.pem
+        - etcd-ca-key.pem
+        - flanneld-csr.json
+        - flanneld.csr
+        - flanneld.pem
+        - flanneld-key.pem
+        - timestamp.log
+
+    - name: copy flanneld ca cert and config to flanneld cache directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_flanneld }}"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - etcd-ca.pem
+        - etcd-ca-key.pem
+        - flanneld-csr.json
+        - flanneld.csr
+        - flanneld.pem
+        - flanneld-key.pem
+        - timestamp.log
+
+  rescue:
+    - debug:
+        msg: "issue in exec_populate_ca_cert_from_etcd_cache"
+
+  always:
+    - debug:
+        msg: ". exit polulate-ca-cert-from_kube-cache.yml (copy flanneld to its cache dir)"

@@ -1,0 +1,14 @@
+{% macro initial_cluster() -%}
+{% for host in groups['etcd-nodes'] -%}
+  https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_client_port }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+FLANNELD_ARGS="-etcd-cafile={{ etcd_ca_file }} \
+  -etcd-certfile={{ etcd_client_cert_file }} \
+  -etcd-keyfile={{ etcd_client_key_file }} \
+  -etcd-endpoints={{ initial_cluster() }} \
+  -etcd-prefix={{ kube_pod_network_url_prefix }} \
+  -iface={{ flannel_netwoking_nic }} \
+  -ip-masq=true"

@@ -1,0 +1,81 @@
+---
+
+# file: create-kube-docker-binary.yml
+@
+
+# func:
+#   create docker binary on node
+#
+# tasks:
+#   . add docker centos repository
+#   . create docker config directory
+#   . network install lib binary (libtool-ltdl, libseccomp, container-selinux)
+#   . local install docker dependencies ( containerd.io, docker-ce-cli)
+#   . local install docker-ce
+#
+
+- name: ensure docker config directory
+  file:
+    path: "{{ docker_config_path }}"
+    state: directory
+
+# assume epel-release repository installed
+
+- name: add docker ce repo
+  shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+#  register: docker_yum_repo
+
+#- name: make yum cache fast
+#  shell: yum makecache fast
+#  when: docker_yum_repo.changed
+
+# install basic system files (many need by docker and applications)
+- name: ensure basic required packages for docker and applications
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+
+- name: ensure library required packages for docker
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - libtool-ltdl
+    - libseccomp
+    - container-selinux
+
+# copy docker ce binary node
+- name: copy docker local binary file to node
+  copy:
+    src: "{{ dep_path_local_bin_docker }}/{{ item }}"
+    dest: "{{ docker_config_path }}/{{ item }} "
+  with_items:
+    - "containerd.io-{{ containerd_io_version }}.x86_64.rpm"
+    - "docker-ce-cli-{{ docker_cli_version }}.x86_64.rpm"
+    - "docker-ce-{{ docker_version }}.x86_64.rpm"
+
+# install docker-ce local binary using yum 
+- name: install docker-ce local binary on node
+  yum:
+    name: "{{ docker_config_path }}/{{ item }} "
+    state: present
+  with_items:
+    - "containerd.io-{{ containerd_io_version }}.x86_64.rpm"
+    - "docker-ce-cli-{{ docker_cli_version }}.x86_64.rpm"
+    - "docker-ce-{{ docker_version }}.x86_64.rpm"
+
+# remove local binary
+- name: remove docker-ce local binary on node
+  file:
+    path: "{{ docker_config_path }}/{{ item }}"
+    state: absent
+  with_items:
+    - "containerd.io-{{ containerd_io_version }}.x86_64.rpm"
+    - "docker-ce-cli-{{ docker_cli_version }}.x86_64.rpm"
+    - "docker-ce-{{ docker_version }}.x86_64.rpm"

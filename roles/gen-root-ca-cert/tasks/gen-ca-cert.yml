@@ -1,0 +1,112 @@
+---
+
+# file: gen-ca-cert.yml
+#
+
+# func:
+#  1. generated root ca cert from ca-csr.json using cfssl utility
+#
+# result:
+#   when finished, generated ca, cert file will stored in /etc/cert-cache/ca
+#
+#
+# input:
+#   1. /etc/cert-cache/ca-config/ca-config.json
+# output:
+#   1. /etc/cert-cache/ca/*.*
+#
+# utility use:
+#   1. /usr/local/bin/cfssl, cfssljson
+#   2. shell script to run cfssl/cfssljson
+# prev proc:
+#   1. /usr/local/bin/cfssl, cfssljson bin created, +x rights
+#   2. /etc/cert-cache, /etc/cert-cache/ca-config, /etc/cert-cache/ca dir created
+#   3. ca-config.json, ca-csr.json have been copied to /etc/cert-cache/ca-config dir
+# post proc:
+#   1. copy back ca, cert files to ansible deploy site for backup (include ca-config, ca-csr file)
+# 
+
+- name: exec_gen_ca_cert
+  block: 
+    - name:
+      debug: 
+        msg: "notified -> start generating root ca cert ..."
+
+#   inset main procedure here --------------->
+
+#   copy ca-config.json, ca-csr.json from /etc/cert-cache/ca-config to 
+#     /etc/cert-cache/ca dir
+
+    - name: fetch config files to ansbile
+      fetch:
+        src: "{{ cert_cache_path_ca_config }}/{{ item }}"
+#       ./.tmp  - for not adding source directory path
+#       ./.tmp/ - for dupulicate add source directory path
+        dest: "{{ dep_path_tmp_exchange }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca-csr.json
+    - name: copy fetched config files to ca dir
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_ca }}"
+      with_items:
+        - ca-config.json
+        - ca-csr.json
+#      run_once: true
+#      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+#   copy shell script to /etc/cert-cache/ca dir
+    - name: copy gen root ca script
+      copy: 
+        src: gen-ca-cert.sh
+        dest: "{{ cert_cache_path_ca }}"
+        owner: root
+        group: root
+        mode: "0500"
+
+#   generate root ca, cert using shell script
+    - name: generate root ca, cert on node-0 of cluster master
+      command:
+        "{{ cert_cache_path_ca }}/gen-ca-cert.sh"
+      args:
+        creates: "{{ cert_cache_path_ca }}/server.crt"
+      environment:
+#        NODE_IPS: "{% for host in groups['cluster'] %}{{ hostvars[host]['cluster_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+#        NODE_DNS: "{{ groups['cluster']|join(',') }}"
+        CERT_DIR: "{{ cert_cache_path_ca }}"
+        CERT_GROUP: root
+#        USE_LOCAL_BIN: "{%- if ansible_use_local_package == true -%}{{ 'yes' }}{%- endif -%} "
+
+#   end main procedure  ----------------<
+
+#
+    - name: prompt exec state
+      debug: 
+        msg: "exiting gen_ca_cert."
+#      changed_when: True
+#      notify: exec_fetch_back_root_ca
+
+  rescue:
+    - debug:
+        msg: "issue occured"
+
+  always:
+
+#     create timestamp log file
+#
+    - name: create time stamp record
+      command: date
+      register: date_command
+    - name: log time stamp record
+      local_action:
+        copy content="{{ date_command.stdout }}" dest="{{ dep_path_tmp_exchange }}/timestamp.log"
+    - name: push record on local to remote
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/timestamp.log"
+        dest: "{{ cert_cache_path_ca }}"
+#
+    - debug:
+        msg: ". exit gen-ca-cert.yml"
+

@@ -1,0 +1,36 @@
+---
+
+# file: remove-created-apiserver-kubelet-rbac-ex.yml
+#
+
+# remove all created rbac role and binding in deployment
+
+- block:
+    - name: check rbac crb system - kubelet-nodes
+      command: "{{ bin_path }}/kubectl delete clusterrolebinding system:kubelet"
+      register: rbac_kubelet-nodes_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting kubelet-nodes clusterrolebinding"
+#     end block
+
+
+- block:
+    - name: check rbac crb system - kubelet-user
+      command: "{{ bin_path }}/kubectl delete clusterrolebinding system:kubelet-user"
+      register: rbac_kubelet-user_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting kubelet-user clusterrolebinding"
+#     end block
+
+
+- block:
+    - name: check rbac crb apiserver access kubelet api
+      command: "{{ bin_path }}/kubectl delete clusterrolebinding system:kube-apiserver-to-kubelet-api-access"
+      register: rbac_apis_get_result
+  rescue:
+        - debug:
+            msg: "ERROR: fail deleting apiserver access kubelet api clusterrolebinding"
+#     end block
+

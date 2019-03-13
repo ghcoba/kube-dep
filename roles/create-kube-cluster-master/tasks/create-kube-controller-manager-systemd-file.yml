@@ -1,0 +1,16 @@
+---
+
+# file: create-kube-controller-manager-systemd-file.yml
+#
+
+#### generate kubernetes systemd service files for:
+#    1. apiserver service
+#  * 2. controller-manager service
+#    3. scheduler service
+#
+  
+- name: exec create-kube-controller-manager-systemd-file
+  template:
+    src: controller-manager.service.j2
+    dest: /etc/systemd/system/kube-controller-manager.service
+    

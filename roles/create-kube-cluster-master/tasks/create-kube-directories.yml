@@ -1,0 +1,56 @@
+---
+
+# file: create-kube-directories.yml
+#
+
+# remark:
+#   this routine will be called by:
+#     . create-kube-cluster-master
+#     . create-kube-worker-node
+#
+
+# func:
+#
+#   ( remark: hoeme directory and data directory for kube user was created 
+#       when creating kube user/group previously)
+#
+#   . create kube config directory (main kube directory /etc/kubernetes/)
+#   . create kube cert directory (dir at /etc/kubernetes/cert/)
+#   . create kube manifests directory for static pods (/etc/kubernetes/manifests)
+#   . create kube log directory (/var/log/kubernetes/)
+
+# create kube config directory (/etc/kubernetes/)
+- name: create and ensure kube config directory exists
+  file:
+    path: "{{ kube_config_path }}"
+    recurse: yes
+    state: directory
+    mode: 0760
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+
+#
+#   . create kube cert directory (dir at /etc/kubernetes/cert/)
+#   . create kube manifests directory for static pods (/etc/kubernetes/manifests)
+#   . create kube log directory (/var/log/kubernetes/)
+ 
+- name: create kube cert, manifests, log directories
+  file:
+    path: "{{ item }}"
+    recurse: yes
+    state: directory
+    mode: 0760
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  with_items:
+    - "{{ kube_rbac_config_path }}"
+    - "{{ kube_abac_config_path }}"
+    - "{{ kube_cert_path }}"
+    - "{{ kube_yaml_config_path }}"
+    - "{{ kube_daemonset_path }}"
+    - "{{ kube_image_path }}"
+    - "{{ kube_pod_manifest_path }}"
+    - "{{ kube_log_path }}"
+    - "{{ kube_newtype_config_path }}"
+    - "{{ kube_cluster_addon_path }}"
+    - "{{ kube_ipmasq_agent_config_path }}"

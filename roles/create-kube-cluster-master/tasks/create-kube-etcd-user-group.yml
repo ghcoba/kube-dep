@@ -1,0 +1,38 @@
+---
+
+# file: roles/create-kube-cluster-master/tasks/create-kube-etcd-user-group.yml
+
+# remark: can apply to etcd cluster, or apply to other node if required
+# remark: this routine will be called in create-kube-cluster-master and
+#           create-kube-worker-node
+#
+# func:
+#   . create etcd group
+#   . create etcd user
+#   . create etcd data directory (home directory of etcd user)
+#   (remark: kube etcd config directory (/etc/etcd/) and other settings will be created in
+#      client setting task )
+#
+
+- name: create etcd group on defined node
+  group:
+    name: "{{ etcd_group }}"
+    state: present
+
+- name: create system etcd user on defined node
+  user:
+    name: "{{ etcd_user }}"
+    comment: "etcd user"
+    shell: /sbin/nologin
+    home: "{{ etcd_data_path }}"
+    system: yes
+    groups: "{{ etcd_group }}" 
+    state: present
+
+- name: ensure etcd_data_path directory exist
+  file:
+    path: "{{ etcd_data_path }}"
+    recurse: yes
+    state: directory
+    owner: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"

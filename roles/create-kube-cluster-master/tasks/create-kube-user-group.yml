@@ -1,0 +1,48 @@
+---
+
+# file: create-kube-user-group.yml
+#
+
+# remark:
+#   this routine will be called by:
+#     . create-kube-cluster-master
+#     . create-kube-worker-node
+#
+
+# func:
+#   . create kube group
+#   . create kube user
+#   . add kube user to etcd group
+#   . create kube home directory
+#   . create kube data directory
+#
+# prv:
+#   . need etcd group exist
+#
+
+- name: create system kube group
+  group:
+    name: "{{ kube_group }}"
+    state: present
+
+- name: create system kube user
+  user:
+    name: "{{ kube_user }}"
+    comment: "kube user"
+    shell: /sbin/nologin
+    state: present
+    system: yes
+    home: "{{ kube_home_path }}"
+#   ATTENTION: also add kube user to etcd group, to enable kube user has rights to access etcd certs
+    groups: "{{ kube_group }}, {{ etcd_group}}"
+
+- name: create kube home directory and data directory
+  file:
+    path: "{{ item }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+  with_items:
+    - "{{ kube_home_path }}"
+    - "{{ kube_data_path }}"

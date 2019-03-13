@@ -1,0 +1,37 @@
+
+------------------------------
+api server :
+
+cluster sign cert 
+  - for cluster scope sign and certification 
+  use root ca / cert
+
+service account cert
+  - use apiserver cert to certificat request from controller manager
+  use apiserver cert (and pass apiserver private key on controller manager)
+
+client cert
+  - use apiserver cert for client certification
+
+tls cert
+  - use apiserver cert
+
+-------------------------------
+
+controller manager:
+
+cluster sign cert
+  - for cluster scope sign and certification
+  use root ca / cert
+
+service account cert
+  - use apiserver cert private key to sign token and send to apiserver.
+    controller-manage send signed token to apiserver, apiserver use apiserver pub cert to
+    certficate
+  - root ca is included in token
+
+client cert
+  - use controller-manager cert for client authentication and authorization
+
+
+

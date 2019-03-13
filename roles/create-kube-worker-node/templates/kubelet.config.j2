@@ -1,0 +1,48 @@
+{% macro initial_lb() -%}
+{% for host in groups['load-balancer'] -%}
+  {{ hostvars[host]['load_balancer_machine_address'] }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+{% macro get_host_ip() -%}
+   {{ hostvars[inventory_hostname]['host_ip_address'] }}
+{%- endmacro -%}
+
+
+{
+  "kind": "KubeletConfiguration",
+  "apiVersion": "kubelet.config.k8s.io/v1beta1",
+  "authentication": {
+    "x509": {
+      "clientCAFile": "{{ kube_ca_file }}"
+    },
+    "webhook": {
+      "enabled": true,
+      "cacheTTL": "2m0s"
+    },
+    "anonymous": {
+      "enabled": false
+    }
+  },
+  "authorization": {
+    "mode": "Webhook",
+    "webhook": {
+      "cacheAuthorizedTTL": "5m0s",
+      "cacheUnauthorizedTTL": "30s"
+    }
+  },
+  "staticPodPath": "{{ kube_pod_manifest_path }}",
+  "cgroupsPerQOS": true,
+  "cgroupRoot": "",
+  "maxPods": 80,
+  "kubeReserved": {
+  },
+  "resolverConfig": "/etc/resolv.conf",
+  "featureGates": {
+    "RotateKubeletClientCertificate": false,
+    "RotateKubeletServerCertificate": false
+  },
+  "clusterDomain": "{{ cluster_dns_domain }}",
+  "clusterDNS": ["{{ cluster_dns_svc_ip }}"]
+}

@@ -1,0 +1,20 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/create-etcd-dir.yml
+
+# (rem: can apply to etcd cluster, or apply to other node if required)
+
+# create etcd directory
+#   . /etc/etcd
+#   . /etc/etcd/cert
+
+# create /etc/etcd/cert
+- name: create etcd_cert_path directory exist
+  file:
+    path: "{{ etcd_cert_path }}"
+    recurse: yes
+    state: directory
+    owner: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"
+
+

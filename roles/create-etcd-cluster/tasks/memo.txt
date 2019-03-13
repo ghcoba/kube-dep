@@ -1,0 +1,36 @@
+about create-etcd-cluster role
+
+implement by using create-etcd-node -
+
+  . check environment (if /etc/etcd not exist, exec following procedure. or skip )
+  
+  . create etcd user
+  . create /etc/etcd directory
+  . create etcd cert (copy cert from node-0 of cluster masters)
+  . create etcd binary
+  . create etcd systemd unit file
+  . enable firewall rules for etcd traffic (2379/2380/4001-tcp traffic)
+  . set ntp server and client for etcd cluster
+  . enable etcd service and start service
+  . create enviroment settings for etcdctl command-line (need reboot or start new bash environment)
+
+
+todo:
+  . ntp server and client setting for etcd cluster not yet finished.
+
+
+
+---------
+
+remark:
+  1. nodes with etcdctl, ubectl, flanneld will need access rights for etcd.
+      this role will create and setting etcd cluster only.
+      other nodes need access rights to etcd will have to proceeed in its roles seperatly.
+  2. 
+
+
+
+command line to check etcd using etcdctl:
+(following command line parameters works)
+
+# etcdctl --ca-file=/etc/etcd/cert/etcd-ca.pem --cert-file=/etc/etcd/cert/etcd-client.pem --key-file=/etc/etcd/cert/etcd-client-key.pem --endpoints=https://10.0.0.111:2379 cluster-health

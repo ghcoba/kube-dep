@@ -1,0 +1,40 @@
+---
+
+# file: roles/os-enable-ipvs/tasks/enable-ipvs.yml
+#
+
+# . create /etc/sysconfig/modules/ipvs.modules for loading ipvs related modules on boot
+# . reboot to enable ipvs modules
+#  
+# modprobe -- ip_vs
+# modprobe -- ip_vs_rr
+# modprobe -- ip_vs_wrr
+# modprobe -- ip_vs_sh
+# modprobe -- nf_conntrack_ipv4
+#
+# attention: run to take effect temporarly, reboot will auto local ipvs module
+# 
+# to check:
+#   # bash /etc/sysconfig/modules/ipvs.modules 
+#   # lsmod | grep -e ip_vs -e nf_conntrack_ipv4
+# 
+
+# create file for loading ipvs modules on boot
+#
+- name: block - create file to load ipvs modules on boot 
+
+  block:
+    - name: create load file for ipvs modules
+      template:
+        src: ipvs.modules.j2
+        dest: /etc/sysconfig/modules/ipvs.modules
+        mode: '755'
+
+#    # exec
+#    - name: exec ipvs.modules
+#      command: bash  /etc/sysconfig/modules/ipvs.modules
+
+  always:
+    - name: etc sysconfig modules - ipvs.modules file created
+      debug:
+        msg: ' /etc/sysconfig/modules/ipvs.modules created. to check # bash /etc/sysconfig/modules/ipvs.modules  and  # lsmod | grep -e ip_vs -e nf_conntrack_ipv4 '

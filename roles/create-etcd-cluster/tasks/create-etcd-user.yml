@@ -1,0 +1,30 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/create-etcd-user.yml
+
+# (rem: can apply to etcd cluster, or apply to other node if required)
+
+- name: create etcd group on defined node
+  group:
+    name: "{{ etcd_group }}"
+    state: present
+
+- name: create system etcd user on defined node
+  user:
+    name: "{{ etcd_user }}"
+    comment: "etcd user"
+    shell: /sbin/nologin
+    home: "{{ etcd_data_path }}"
+    system: yes
+    groups: "{{ etcd_group }}" 
+    state: present
+
+- name: ensure etcd_data_path directory exist
+  file:
+    path: "{{ etcd_data_path }}"
+    recurse: yes
+    state: directory
+    owner: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"
+
+

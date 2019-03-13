@@ -1,0 +1,18 @@
+---
+
+# file: install-network-utility.yml
+
+# install network utilities
+#
+- name: install network utility
+  yum:
+    name:
+      - iproute
+      - net-tools
+      - bind-utils
+      - iptables
+    state: latest
+
+
+
+

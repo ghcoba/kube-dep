@@ -1,0 +1,34 @@
+tcpdump -n -v "dst host 10.96.233.125"
+
+route add -net 
+
+
+access api:
+# KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+# curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT/api/v1/namespaces/default/pods
+
+---------
+
+http://dockone.io/article/1186
+
+https://sookocheff.com/post/kubernetes/understanding-kubernetes-networking-model/
+
+https://blog.csdn.net/watermelonbig/article/details/80879218
+
+https://kubernetes.io/docs/setup/scratch/#network
+
+https://kubernetes.io/docs/concepts/cluster-administration/networking/
+
+https://icicimov.github.io/blog/kubernetes/Kubernetes-cluster-step-by-step-Part6/
+
+https://www.ibm.com/support/knowledgecenter/en/SSMNED_5.0.0/com.ibm.apic.install.doc/tapic_install_Kubernetes.html
+
+
+
+https://getpocket.com/a/read/2254905316
+
+https://getpocket.com/a/read/1896718255
+
+https://blog.csdn.net/cloudvtech/article/details/79942121
+
+

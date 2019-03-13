@@ -1,0 +1,37 @@
+{% macro initial_cluster() -%}
+{% for host in groups['etcd-nodes'] -%}
+  https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_client_port }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+[Unit]
+Description=flannel service - flanneld overlay address network agent - name: flannel.service
+Documentation=https://github.com/coreos
+After=network.target
+After=network-online.target
+Wants=network-online.target
+Before=docker.service
+
+[Service]
+Type=notify
+EnvironmentFile={{ flannel_config_path }}/flanneld.config
+ExecStartPre={{ flannel_bin_path }}/remove-docker0.sh
+ExecStart={{ flannel_bin_path }}/flanneld \
+                 -etcd-cafile={{ etcd_ca_file }} \
+                 -etcd-certfile={{ etcd_client_cert_file }} \
+                 -etcd-keyfile={{ etcd_client_key_file }} \
+                 -etcd-endpoints={{ initial_cluster() }} \
+                 -etcd-prefix={{ kube_pod_network_url_prefix }} \
+                 -subnet-file={{ flannel_subenet_env_file }} \
+                 -iface={{ flannel_netwoking_nic }} \
+                 -ip-masq=true
+
+# use -f flannel_env file, -k key_name_to_gen -d docker_env_file_to_gen -c (for commbined value of keys)
+
+ExecStartPost={{ flannel_bin_path }}/mk-docker-opts.sh -f {{ flannel_subenet_env_file }} -k DOCKER_NETWORK_OPTIONS -d {{ flannel_docker_config_file }} -c 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+RequiredBy=docker.service

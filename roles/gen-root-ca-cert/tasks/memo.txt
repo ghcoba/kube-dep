@@ -1,0 +1,15 @@
+root ca-config, ca:
+
+when 
+    /etc/cert-cache  
+    directory on master node-0 
+      is not exist, we consider cluster root ca is not exist, 
+      and we will create root ca for cluster.
+
+otherwise
+     do nothing
+
+
+
+to re-deploy root ca, we need delete above directory.
+ 

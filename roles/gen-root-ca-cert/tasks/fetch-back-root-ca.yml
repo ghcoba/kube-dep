@@ -1,0 +1,56 @@
+---
+
+# file: fetch-back-root-ca.yml
+#
+# func:
+#   1. fetch ca-config, ca-csr, ca, cert and copy back to ansible site
+#
+
+- name: exec_fetch_back_root_ca
+  block:
+    - name:
+      debug: 
+        msg: "notified -> start fetch ca-config, ca-csr, ca, cert files back ..."
+
+#   insert procedure here
+
+#   copy back ca config files
+    - name: backup ca-config, ca-scr, timestamp files to ansible
+      fetch:
+        src: "{{ cert_cache_path_ca_config }}/{{ item }}"
+        dest: "{{ cert_backup_path_ca_config }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca-csr.json
+        - timestamp.log
+
+#   copy back cert files
+    - name: backup ca, cert, timestamp files to ansible
+      fetch:
+        src: "{{ cert_cache_path_ca }}/{{ item }}"
+        dest: "{{ cert_backup_path_ca }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca-csr.json
+        - ca.csr
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log      
+
+#   end procedure
+
+    - name: prompt exec next
+      debug: 
+        msg: "exiting fetch_back_root_ca"
+#      changed_when: True
+#      notify: exec_fetch_back_root_ca
+  rescue:
+    - debug:
+        msg: "issue occured"
+  always:
+    - debug:
+        msg: ". exit fetch-back-root-ca.yml"
+
+

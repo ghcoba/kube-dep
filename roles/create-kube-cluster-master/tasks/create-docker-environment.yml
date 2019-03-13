@@ -1,0 +1,119 @@
+---
+
+# file: create-docker-enviroment.yml
+#
+
+# remark:
+#   this routine can by called by:
+#      . create-kube-cluster-master and
+#      . create-kube-worker-node
+#
+
+- name: create docker config directory
+  file:
+    path: "{{ docker_config_path }}"
+    state: directory
+
+- name: create docker data directory
+  file:
+    path: "{{ docker_data_path }}"
+    state: directory
+
+- name: ensure required packages for docker
+  yum:
+    name: ['yum-utils', 'device-mapper-persistent-data', 'lvm2']
+    state: present
+
+- name: add docker ce repo
+  shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+#  register: docker_yum_repo
+
+#- name: make yum cache fast
+#  shell: yum makecache fast
+#  when: docker_yum_repo.changed
+
+# install libary dependancies for docker
+- name: ensure required packages for docker
+  yum:
+    name: ['libtool-ltdl', 'libseccomp', 'container-selinux', 'conntrack']
+    state: present
+
+# install binary local packages
+# 1. 
+- name: copy to node
+  copy:
+    src: "{{dep_path_local_bin_docker }}/{{ containerd_io_rpm_filename }}"
+    dest: /tmp/.
+- name: install local docker package to node using yum
+  yum:
+    name: "/tmp/{{ containerd_io_rpm_filename }}"
+    state: present
+- name: remvove tmp package
+  file:
+    path: "/tmp/{{ containerd_io_rpm_filename }}"
+    state: absent
+
+- name: copy to node
+  copy:
+    src: "{{dep_path_local_bin_docker }}/{{ docker_cd_cli_rpm_filename }}"
+    dest: /tmp/.
+- name: install local docker package to node using yum
+  yum:
+    name: "/tmp/{{ docker_cd_cli_rpm_filename }}"
+    state: present
+- name: remvove tmp package
+  file:
+    path: "/tmp/{{ docker_cd_cli_rpm_filename }}"
+    state: absent
+
+- name: copy to node
+  copy:
+    src: "{{dep_path_local_bin_docker }}/{{ docker_ce_rpm_filename }}"
+    dest: /tmp/.
+- name: install local docker package to node using yum
+  yum:
+    name: "/tmp/{{ docker_ce_rpm_filename }}"
+    state: present
+- name: remvove tmp package
+  file:
+    path: "/tmp/{{ docker_ce_rpm_filename }}"
+    state: absent
+
+- name: remove service file /usr/lib/systemd/system/docker.service
+  file:
+    path: "/usr/lib/systemd/system/docker.service"
+    state: absent
+- name: remove docker.socket service file /usr/lib/systemd/system/docker.socket
+  file:
+    path: "/usr/lib/systemd/system/docker.socket"
+    state: absent
+
+- name: create docker systemd unit file
+  template:
+    src: ../../create-kube-cluster-master/templates/docker.service.j2
+    dest: /etc/systemd/system/docker.service
+- name: create docker.socket systemd unit file
+  template:
+    src: ../../create-kube-cluster-master/templates/docker.socket.j2
+    dest: /etc/systemd/system/docker.socket
+
+- name: create docker systemd drop in unit file directory for http-proxy
+  file:
+    path: "/etc/systemd/system/docker.service.d"
+    state: directory
+
+# to set enviroment option for http proxy used by docker pull
+- name: create docker systemd drop-in unit file for http-proxy
+  template:
+    src: ../../create-kube-cluster-master/templates/http-proxy.conf.j2
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+
+# create daemon.json in /etc/docker for docker settings
+#  -  to set data-root (data directory of docker)
+#  -  to set mirror registry for local image pull (using 163, aliyun, etc)
+- name: create daemon.json for docker in directory /etc/docker
+  template:
+    src: ../../create-kube-cluster-master/templates/docker-daemon.json.j2
+    dest: "{{ docker_config_path }}/daemon.json"

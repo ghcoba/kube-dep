@@ -1,0 +1,37 @@
+---
+
+# definition of kube system user and user group
+#
+
+# users
+#
+# kube (kubernetes) user
+kube_user: kube
+kube_proxy_user: kube-proxy
+kubelet_user: kubelet
+
+# etcd user
+etcd_user: etcd
+
+# flannel user
+flannel_user: root
+
+
+# user groups
+#
+# kube (kubernetes) user group
+kube_group: kube
+
+kube_proxy_group: kube-proxy
+kube_proxy_cert_group: kube-proxy
+
+kubelet_group: kubelet
+kubelet_cert_group: kubelet
+
+# etcd user group
+etcd_group: etcd
+
+# flannel user group
+flannel_group: root
+flannel_cert_group: root
+

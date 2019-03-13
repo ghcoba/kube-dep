@@ -1,0 +1,99 @@
+---
+
+# file: schedule-gen-root-ca.yml
+#
+
+# func:
+#   1. check cache directory on remote
+#   2. create cach directory and then schedule generating root ca, if cache dir not exist
+#
+# scheduled proc:
+#   . copy root ca-config and ca-csr json files to node-0 of master cluster
+#   . generate root ca cert using cfssl utility
+#   . fetch all config/ca/cert files and copy back to ansible deploy site
+#  ref:
+#   . check /etc/cert-cache/ca-config/directory exist
+#   . copy ca-config.json and ca-csr.json to remote cache if not exist
+#
+
+# create temp exchange directory on ansible site
+#  for exchange files between ansible and remote during gen ca cert 
+#  and exec other tasks in all roles
+#  (directory: ./.tmp )
+- name: create temp exchange directory on ansible machine
+  local_action:
+    command mkdir -p {{ dep_path_tmp_exchange }} warn=False
+# delegate to 127.0.0.1 - to apply on ansible deploy machine
+  run_once: true
+  delegate_to: 127.0.0.1
+
+# check ca-config dir exist
+- name: check ca-config directory exist
+  stat:
+    path: "{{ cert_cache_path_ca_config }}"
+  register: ca_config_exist_result
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+#- debug:
+#    msg: "{{ ca_config_exist_result }}"
+
+# prompt check result
+- name: prompt ca-config directory exist result - not exist
+  debug:
+    msg: "ca-config directory not exist. will continue to generate root ca cert..."
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  when: ca_config_exist_result.stat.exists == false
+# prompt check result
+- name: prompt ca-config directory exist result - exist
+  debug:
+    msg: "ca-config directory already exist. will exit generating root ca cert."
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  when: ca_config_exist_result.stat.exists == true
+
+# create cache directory for ca-config and ca (for generated) if cache dir not exist
+- name: create ca-config and root ca directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    force: yes
+    mode: 01755
+    owner: root
+    group: root
+  with_items:
+    - "{{ cert_cache_path_ca_config }}"
+    - "{{ cert_cache_path_ca }}"
+  register: ca_config_dir_create_result
+# notify handlers to start ca cert generating procedure
+#  notify: ca_cache_dir_created
+#  notify: EXEC_GEN_ROOT_CA
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  when: ca_config_exist_result.stat.exists == false
+
+#- debug:
+#    msg: "{{ ca_config_dir_create_result }}"
+
+# schedule to copy config files, generate root ca cert and then backup root ca cert
+#   from cache diretory on remote machine to ansible machine
+
+- name: exec copy ca-config, ca-csr file to remote cache
+  import_tasks: copy-ca-cfg.yml
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  when: ca_config_exist_result.stat.exists == false
+
+- name: exec generate root ca cert
+  import_tasks: gen-ca-cert.yml
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  when: ca_config_exist_result.stat.exists == false
+
+- name: exec fetch root ca cert files from cache and back copy to ansible deploy site
+  import_tasks: fetch-back-root-ca.yml
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  when: ca_config_exist_result.stat.exists == false
+  

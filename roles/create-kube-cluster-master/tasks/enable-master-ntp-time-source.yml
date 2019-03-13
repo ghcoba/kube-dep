@@ -1,0 +1,14 @@
+---
+
+# file: enable-master-ntp-time-source.yml
+# 
+# func:
+#   . setup ntp client to sync to exteral public time service
+#   . setup ntp server to make node-0 of kube cluster masters act as master time sync source 
+#       of cluster masters, cluster work nodes, etcd cluster nodes
+#
+#   (remark: other nodes act as ntp client, using all cluster masters as servers; all cluster
+#              masters other than node-0 use node-0 as server and also act as server for work
+#              nodes and etcd nodes)
+#
+

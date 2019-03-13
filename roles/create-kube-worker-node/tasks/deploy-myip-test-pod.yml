@@ -1,0 +1,20 @@
+---
+
+# file: deploy-myip-test-pod.yml
+#
+
+# deploy a test 3 myip test pods using yaml 
+
+# create myip yaml 
+- name: create myip test file ( yaml )
+  template:
+    src: myip.yaml.j2
+    dest: "{{ kube_yaml_config_path }}/myip.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create myip test pods
+- name: create myip test pods
+  command: "{{ bin_path }}/kubectl create -f {{ kube_yaml_config_path }}/myip.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

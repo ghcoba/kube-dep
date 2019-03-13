@@ -1,0 +1,53 @@
+---
+
+# file: remove-gen-root-ca.yml
+#
+
+# func:
+#   general: remove generated ca cert procedure
+#   1. remove ansible ./.tmp directory   
+#   2. remove remote /etc/cert-cache/ca-config directory
+#   3. remove remote /etc/cert-cache/ca directory
+#   4. remove remote /usr/local/bin/(cfssl utility files)
+#
+
+# remove temp exchange directory on ansible site
+#  (directory: ./.tmp )
+- name: remove temp exchange directory on ansible site
+  local_action:
+    command rm -rf {{ dep_path_tmp_exchange }} warn=False
+# delegate to 127.0.0.1 - to apply on ansible deploy machine
+  run_once: true
+  delegate_to: 127.0.0.1
+
+- debug: msg=" ansible ./.tmp directory removed."
+
+
+# remove ca-config cache dir on remote
+- name: remove ca-config ca cache directory on remote
+  file:
+    path: "{{ cert_cache_path }}/{{ item }}"
+    state: absent
+  with_items:
+    - ca-config
+    - ca
+#   - ""
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+- debug: msg="/etc/cert-cache/ca-config, /etc/cert-cache/ca directory removed."
+
+- name: remove cfssl utility bin
+  file:
+    path: "{{ bin_path }}/{{ item }}"
+    state: absent
+  with_items:
+    - cfssl
+    - cfssljson
+    - cfssl-certinfo
+    - cfssl-newkey
+    - cfssl-scan
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+- debug: msg="/usr/local/bin/(cfssl*) utility removed"

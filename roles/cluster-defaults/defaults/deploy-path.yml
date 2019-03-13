@@ -1,0 +1,84 @@
+---
+
+# file: roles/cluster-defaults/defaults/deploy-path.yml
+
+# definition of directory to store files for deployment on ansible deploy site 
+#
+
+
+# --------------------
+# data path for deployment on ansible deploy site
+
+# local data path for deployment
+dep_data_path: "dep-data"
+
+# path for local binary/image files (on ansible deploy site)
+dep_path_local_bin: "{{ dep_data_path }}/bin-local"
+
+#######################################################################################
+# version number of application binary/package and binary path on ansible machine for 
+#   binary deploy
+#
+
+# ########## kubernetes server
+# kubernetes version number
+#kube_version: 1.13.2
+kube_version: 1.13.4
+
+# kubernetes server local bianry storage path
+dep_path_local_bin_kube_server: "{{ dep_path_local_bin }}/kubernetes-server-bin-local/kubernetes/server/bin"
+
+# ref - binary url on internet
+# https://dl.k8s.io/v1.13.2/kubernetes-server-linux-amd64.tar.gz
+
+########### kubernetes node
+#kube_node_version: 1.13.2
+kube_node_version: 1.13.4
+dep_path_local_bin_kube_node: "{{ dep_path_local_bin }}/kubernetes-node-bin-local/kubernetes/node/bin"
+
+
+########## docker
+dep_path_local_bin_docker: "{{ dep_path_local_bin }}/docker-ce-bin-local"
+
+# file path of binary package packages to install
+
+# docker containerd.io version
+containerd_io_version: 1.2.2-3.el7
+# containerd.io-1.2.2-3.el7.x86_64.rpm
+containerd_io_rpm_filename: "containerd.io-{{ containerd_io_version }}.x86_64.rpm"
+
+# docker-ce-cli version
+docker_cli_version: 18.09.1-3.el7
+# docker-ce-cli-18.09.1-3.el7.x86_64.rpm
+docker_cd_cli_rpm_filename: "docker-ce-cli-{{ docker_cli_version }}.x86_64.rpm"
+
+docker_version: 18.09.1-3.el7
+# docker-ce-18.09.1-3.el7.x86_64.rpm
+docker_ce_rpm_filename: "docker-ce-{{ docker_version }}.x86_64.rpm"
+
+
+########## CNI plugin
+# cni version number
+cni_version: 0.7.4
+
+dep_path_local_bin_cni: "{{ dep_path_local_bin }}/cni-bin-local/cni/bin"
+
+
+########## flannel service plugin
+# flannel version number
+flannel_version: v0.10.0
+
+dep_path_local_bin_flannel: "{{ dep_path_local_bin }}/flannel-bin-local/flannel"
+
+
+###############################################################################
+# path for cert backup
+dep_path_backup_cert: "{{ dep_data_path }}/cert-local"
+
+###############################################################################
+# path for kube config backup
+dep_path_backup_kube_config: "{{dep_data_path }}/kube-config-local"
+
+##############################################################################
+# local temp exchange directory
+dep_path_tmp_exchange: "./.tmp"

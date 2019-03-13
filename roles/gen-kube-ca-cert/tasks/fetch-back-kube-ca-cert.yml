@@ -1,0 +1,179 @@
+---
+
+# file: fetch-back-kube-ca-caert.yml
+#
+# func:
+#   1. fetch back following ca cert from kube cache directory to ansible machine
+#      . kube-admin
+#      . kube-apiserver
+#      . kube-controller-manager
+#      . kube-scheduler
+#      . kube-proxy 
+#      . kube-serviceaccount
+#
+
+- name: exec_fetch_back_kube_ca_cert
+  block:
+    - name:
+      debug: 
+        msg: "notified -> start fetch back ca cert from kube cache to ansible machine ..."
+
+#   insert procedure here
+
+#   # fech all cert to ansible temp exchange dir
+    - name: fetch all cert files of kube cache dir to ansible kube backup dir
+      fetch:
+        src: "{{ cert_cache_path_kubernetes }}/{{ item }}"
+        dest: "{{ cert_backup_path_kubernetes }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-admin-csr.json
+        - kube-admin.csr
+        - kube-admin.pem
+        - kube-admin-key.pem
+        - token.csv
+        - tls-bootstrap-token.yaml
+        - kube-apiserver-csr.json
+        - kube-apiserver.csr
+        - kube-apiserver.pem
+        - kube-apiserver-key.pem
+        - kube-apiserver-client-csr.json
+        - kube-apiserver-client.csr
+        - kube-apiserver-client.pem
+        - kube-apiserver-client-key.pem
+        - kube-controller-manager-csr.json
+        - kube-controller-manager.csr
+        - kube-controller-manager.pem
+        - kube-controller-manager-key.pem
+        - kube-scheduler-csr.json
+        - kube-scheduler.csr
+        - kube-scheduler.pem
+        - kube-scheduler-key.pem
+        - kube-proxy-csr.json
+        - kube-proxy.csr
+        - kube-proxy.pem
+        - kube-proxy-key.pem
+        - kube-serviceaccount-csr.json
+        - kube-serviceaccount.csr
+        - kube-serviceaccount.pem
+        - kube-serviceaccount-key.pem
+
+#     # fetch kube-admin cert from remote cache to ansible kube-admin backup directory
+    - name: fetch kube-admin cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_admin }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_admin }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-admin-csr.json
+        - kube-admin.csr
+        - kube-admin.pem
+        - kube-admin-key.pem
+
+#     # fetch kube-apiserver cert from remote cache to ansible kube-apiserver backup directory
+    - name: fetch kube-apiserver cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_apiserver }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_apiserver }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - token.csv
+        - tls-bootstrap-token.yaml
+        - kube-apiserver-csr.json
+        - kube-apiserver.csr
+        - kube-apiserver.pem
+        - kube-apiserver-key.pem
+        - kube-apiserver-client-csr.json
+        - kube-apiserver-client.csr
+        - kube-apiserver-client.pem
+        - kube-apiserver-client-key.pem
+
+#     # fetch kube-controller-manager cert from remote cache to ansible kube-controller-manager backup directory
+    - name: fetch kube-controller-manager cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_controller_manager }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_controller_manager }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-controller-manager-csr.json
+        - kube-controller-manager.csr
+        - kube-controller-manager.pem
+        - kube-controller-manager-key.pem
+
+#     # fetch kube-scheduler cert from remote cache to ansible kube-scheduler backup directory
+    - name: fetch kube-scheduler cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_scheduler }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_scheduler }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-scheduler-csr.json
+        - kube-scheduler.csr
+        - kube-scheduler.pem
+        - kube-scheduler-key.pem
+
+#     # fetch kube-proxy cert from remote cache to ansible kube-proxy backup directory
+    - name: fetch kube-proxy cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_proxy }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_proxy }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-proxy-csr.json
+        - kube-proxy.csr
+        - kube-proxy.pem
+        - kube-proxy-key.pem
+
+#     # fetch kube-sa cert from remote cache to ansible kube-sa backup directory
+    - name: fetch kube-sa cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_serviceaccount }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_serviceaccount }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-serviceaccount-csr.json
+        - kube-serviceaccount.csr
+        - kube-serviceaccount.pem
+        - kube-serviceaccount-key.pem
+
+#   end procedure
+
+    - name: 
+      debug: 
+        msg: "exiting fetch_back_kube_ca_cert"
+
+  rescue:
+    - debug:
+        msg: "issue occured"
+
+  always:
+    - debug:
+        msg: ". exit fetch-back-kube-ca-cert.yml"

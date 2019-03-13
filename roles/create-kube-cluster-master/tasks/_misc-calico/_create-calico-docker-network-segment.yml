@@ -1,0 +1,17 @@
+---
+
+# file: create-calico-docker-network-segment.yml
+#
+
+# create docker network segment in calico network (close IP-in-IP for docker network)
+
+# create calico yaml file for create  docker network segment in calico network
+- name: create calico yaml file for docker network segment
+  template:
+    src: "../../create-kube-cluster-master/templates/calico-create-docker-network-segment.yaml.j2"
+    dest: "{{ calico_config_yaml_path }}/calico-create-docker-network-segment.yaml"
+
+# exec to apply docker network segment creating in calico network
+- name: apply docker network segment creating in calico network
+  command: "{{ bin_path }}/calicoctl apply -f {{ calico_config_yaml_path }}/calico-create-docker-network-segment.yaml"
+

@@ -1,0 +1,23 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/create-etcd-unit-file.yml
+
+# create etcd service systemd unit file
+#
+
+- name: create etcd configuration file for etcd service systemd unit file
+  template:
+    src: etcd.conf.j2
+    dest: "{{ etcd_config_path }}/etcd.conf"
+    owner: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"
+    mode: 0540
+
+- name: exec create-etcd-unit-file - create etcd service systemd unit file
+  template:
+    src: etcd.service.j2
+    dest: /etc/systemd/system/etcd.service
+
+
+
+

@@ -1,0 +1,267 @@
+---
+
+# file: roles/create-kube-cluster-master/tasks/schedule-create-master-node.yml
+#
+
+# func:
+#
+# function and procedures:
+#
+#  pre-proc:
+#  . dependencies roles
+#      - cluster-defaults ( include global cluster default variables )
+#      - os prep tasks ( attn: no reboot )
+#
+#  procedure:
+#
+#  . (include etcd variables -  defaults of etcd role, included in main.yml task of this role)
+#
+#  . create user and group
+#  . create directories ( bin, data, config, cert )
+#  . create etcd client directory ( bin, cert )
+#  . create kube cert files (root ca, apiserver, kubelet bootstrapping auto auth token, controller-manager, scheduler )
+#  . create etcd cert ( etcd root ca, client cert for etcdctl )
+#
+#  . copy/install binary files ( kubectl, apiserver, controller-manager, scheduler)
+#
+#  . copy etcd client binary file ( etcdctl )
+#
+#  . ? need flannel network on master node ??? (no. flannel only need to deploy on kube-proxy node)
+#
+#  . deploy apiserver service
+#      - (kubelet bootstrapping auth token file)
+#      - create apiserver parameter config file
+#      - create apiserver systemd unit file
+#      - enable firewall rule for apiserver
+#      - enable/start apiserver service
+#
+#      - kube system rbac role binding using kubectl - authorize apiserver call kubelet API
+#        ( # kubectl create clusterrolebinding kube-apiserver:kubelet-apis --clusterrole=system:kubelet-api-admin --user kubernetes )
+#
+#  . deploy controller-manager service
+#      - create controller-manager parameter config file
+#      - create controller-manager systemd unit file
+#      - enable firewall rule for controller-manager
+#      - enable/start controller-manager service
+#
+#  . deploy scheduler service
+#      - create scheduler parameter config file
+#      - create scheduler parameter systemd unit file
+#      - enable firewall rule for scheduler
+#      - enable/start controller-manager service
+#
+#  . create enviroment settings for etcdctl command-line (need reboot or start new bash environment)
+#      (to enable etcdctl client execution on master node)
+#
+#  . setup and enable ntp server for etcd cluster time sync source, enable ntp client for time sync
+#      with external time sync server
+#
+
+########################################################################################
+
+- name: traceing - start schedule-create-master-node
+  debug:
+    msg: "check tracing - starting schedule-create-master-node"
+
+# 0.0
+# check environmental status
+#######################################
+
+# check kubernetes directory (/etc/kubernetes) exist
+- name: check kubernetes directory exist
+  stat:
+    path: "{{ kube_config_path }}"
+  register: kube_config_path_exist_result
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
+# skip following block if exist condition true
+#   (using when condition for following block)
+
+###########
+###########
+# set skip false when etcd config or certdirectory not exist
+- block:
+
+# 0.
+    - name: exec condition promp
+      debug:
+        msg: "{{ kube_config_path }} directory existence is {{ kube_config_path_exist_result.stat.exists }}, schedule starting to create kube master node on {{ inventory_hostname }}"
+    
+# 1.
+#   create etcd user and group (as etcd client on kuber masters), also create etcd user 
+#     home directory (use etcd data dir path (/var/lib/etcd/) as home dir path)
+#     (etcd server store etcd db only, client machine do not store etcd db)
+    - name: exec create-kube-etcd-user-group
+      import_tasks: create-kube-etcd-user-group.yml
+# 2.
+#   create kube user and group, create kube user home directory ($HOME/.kube/) and 
+#     data directory (/var/lib/kube/), and also add kube user to etcd group
+    - name: exec create-kube-user-group
+      import_tasks: create-kube-user-group.yml
+# 3.
+#   create kube directories ( /etc/kubernetes ):
+#     kube config directory (/etc/kubenetes/)
+#     kube cert directory (/etc/kubernetes/cert/)
+#     kube manifests directory for static pods (/etc/kubernetes/manifests/)
+#     kube log directory (/var/log/kubernetes/) 
+    - name: create kube directory
+      import_tasks: create-kube-directories.yml
+# 4.
+#   create etcdctl client and enviroment ( /etc/etcd ... )
+#     . create etcd config and cert directory
+#     . copy etcd-ca and client cert
+#     . copy etcdctl binary
+#     . setting etcdctl client environment
+    - name: create kube etcd client system and enviroment om kube master
+      import_tasks: create-kube-etcd-client.yml
+# 5.
+    - name: create kube cert files ( /etc/kubernetes/cert )
+      import_tasks: create-kube-master-node-cert-files.yml
+# 6. 
+    - name: create kubernetes binary files
+      import_tasks: create-kube-binary-files.yml
+# 7.
+    - name: create kubectl config enviroment
+      import_tasks: create-kubectl-config.yml
+# 8.
+# FIREWALL SETTING IS REPLACED BY APPLYING IN SYSTEM LEVEL USING IPTABLES.SERVICE
+#    - name: eanble firewall rules for kubernetes
+#      import_tasks: enable-firewall-rule-for-kube.yml
+# 9.
+    - name: deploy kube-apiserver service
+      import_tasks: deploy-kube-apiserver-service.yml
+# 10.
+    - name: deploy kube-controller-manager service
+      import_tasks: deploy-kube-controller-manager-service.yml
+# 11.
+    - name: deploy kube-scheduler service
+      import_tasks: deploy-kube-scheduler-service.yml
+#######
+# using kube-router networking and also using kube-router as service proxy 
+#   (kube-proxy environment will be created, but kube-proxy is not enanbled and not started)
+#   (deploy-kube-proxy-service.yml will create kube-proxy environment and also start kube-proxy service)
+# 12.
+#   deploy kube-proxy service on master node
+    - name: deploy kube-proxy service environment (not enable, not start)
+      import_tasks: deploy-kube-proxy-service-environment.yml
+#      import_tasks: deploy-kube-proxy-service.yml
+
+# 20.
+# not use - flannel need write flannel network setting in etcd. not use flannel now
+#    - name: create pod network config key in etcd (for flannel network)
+#      import_tasks: create-kube-pod-network-config-record.yml 
+#      run_once: true
+#      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# 30.
+#     cni environment include cni directories (/etc/cni, /etc/cni/net.d, /var/lib/cni etc) and
+#       basic cni plugins (host-local, bridge is needed for kube-router)
+    - name: create cni enviroment
+      import_tasks: create-cni-environment.yml
+# 31. 
+# not use - not use flannel now - replaced by kube-router
+#    - name: create flannel environment
+#      import_tasks: create-flannel-environment.yml
+#     do not enable and start flannel service - we change into using calico networking to replace flannel
+#    - name: start flannel service on master node
+#      import_tasks: enable-and-start-flannel-service.yml
+
+# 40.
+    - name: create docker environment
+      import_tasks: create-docker-environment.yml
+# 41.
+#     enable and start docker on masters - need docker to create calico node container on master node
+    - name: start docker service on master node
+      import_tasks: enable-and-start-docker-service.yml
+
+# 50.
+#   created calico common environment
+    - name: created calico networking common environment
+      import_tasks: create-calico-common-environment.yml
+# 51.
+#   deploy calico networking daemonset on worker node using node#0 of master
+    - name: deploy calico daemonset - one time only
+      import_tasks: deploy-calico-networking-daemonset.yml
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+# 52.
+#   create calico ippool for cluster pod network
+    - name: create calico ippool for kube cluster pod network
+      import_tasks: tasks/apply-calico-pod-network-ippool.yml
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# 60.
+#   created kube-router common environment - environment need for kube-router daemonset or 
+#     kube-router systemd service
+#   (create directories needed by kube-router, kube-router client, network configuration
+#      for kube-router, kubeconfig file for kube-router need to access kube apiserver)
+#    - name: created kube-router networking common environment
+#      import_tasks: create-kube-router-common-environment.yml
+# 61.
+#   deploy kube-router networking daemonset on worker node using node#0 of master
+#     kube-router networking daemonset install a pod on every worker node. kube-router pod do -
+#     1. a busybox sub-pod to copy/create network configuration setting, 2. selectable daemon for
+#     ipvs/lvs for pod cluster networking, kube service proxy, firewall and networking police 
+#    - name: deploy kube-router daemonset - one time only
+#      import_tasks: deploy-kube-router-networking-daemonset.yml
+#      run_once: true
+#      delegate_to: "{{ groups['kube-masters'][0] }}"
+# 62.
+#   - not yet finished ( so not actually exected on masters now)
+#   deploy kube-router systemd service on master node
+#   func: deploy service and enable and start service. service will create and run a kube-router container
+#    - name: deploy kube-router service on master node
+#      import_tasks: deploy-kube-router-service.yml
+#      when: inventory_hostname in groups['kube-masters']
+
+# 70.
+#   CREATE ENVIROMENT, NOT APPLAY NOW
+#   deploy ip-masq agent daemonset
+    - name: deploy ip-masq agent daemonset
+      import_tasks: deploy-ipmasq-daemonset.yml
+
+# 80.
+    - name: exec master node post process
+      import_tasks: create-cluster-post-process.yml
+# 81.
+    - name: enable ntp server and client on node-0 of masters to act as time sync source
+      import_tasks: enable-master-ntp-time-source.yml      
+
+# 90.
+#    - name: eanble firewall rules for kubernetes
+#      import_tasks: enable-firewall-rule-for-kube.yml
+
+# A0.
+    - name: create kubernetes addon env and addon-manager file
+      import_tasks: create-cluster-addons-manager-file.yml
+
+# B0.
+#    - name: take final process
+#      import_tasks: take-final-process.yml
+
+# C-.
+#   create default iptables rule file for iptables service (in /etc/sysconfig/iptables file)
+    - name: create default iptables rule for iptables service
+      import_tasks: create-default-iptables-file-master-node.yml
+
+    - name: prompt kube cluster master deploy
+      debug:
+        msg: "exit deploy kube cluster masters."
+
+# - condition of block:
+#     when for block (exec block when condition true - need create kube cluster master node)
+  when: ( kube_config_path_exist_result.stat.exists == false )
+
+##########
+##########
+
+# continue do nothing
+#   (
+- name: prompt kube cluster masters deploy 
+  debug:
+    msg: "EXIT deploy kube cluster masters. {{ kube_config_path }} exist, skip deploying kube cluster master node on {{ inventory_hostname }}."
+  when:  ( kube_config_path_exist_result.stat.exists == true )
+#   )

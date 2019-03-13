@@ -1,0 +1,23 @@
+{% macro initial_cluster() -%}
+{% for host in groups['etcd-nodes'] -%}
+   https://{{ hostvars[host]['etcd_machine_address'] }}:{{ etcd_client_port }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+CALICO_NODENAME="{{ inventory_hostname }}"
+ETCD_ENDPOINTS="{{ initial_cluster() }}"
+ETCD_CA_CERT_FILE="{{ calico_tls_ca_file }}"
+ETCD_CERT_FILE="{{ calico_tls_cert_file }}"
+ETCD_KEY_FILE="{{ calico_tls_key_file }}"
+KUBECONFIG_FILEPATH="{{ calico_kubeconfig_file }}"
+CALICO_IP="{{ hostvars[inventory_hostname]['host_ip_address'] }}"
+CALICO_IP6=""
+CALICO_AS="{{  calico_AS_number }}"
+CALICO_LIBNETWORK_ENABLED=true
+CALICO_NETWORKING_BACKEND=bird
+FELIX_IP6SUPPORT=false
+FELIX_DEFAULTENDPOINTTOHOSTACTION=ACCEPT
+FELIX_LOGSERVERITYSCREEN=debug
+FELIX_IPTABLESMARKMASK={{ calico_felix_iptables_mark_mask }}
+FELIX_KUBENODEPORTRANGES={{ calico_felix_kube_nodeport_ranges }}

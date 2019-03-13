@@ -1,0 +1,103 @@
+---
+
+# file: roles/cluster-defaults/tasks/main.yml
+#
+
+# rem:
+# 1. this routine is used to include all system level defaults(variables) defined
+#      in roles/cluster-default/defaults/*.yml
+#
+# 2. those variables can be accessed by/in other playbooks/roles/tasks by including
+#      specific .yml file(s), or including this role as dependencies item
+#
+# 3. use: include specific .yml file or include this file for all .yml files have included
+#      in this file, or include as a role item of dependencies 
+
+# prompt to check main.yml and its contents
+- name: configure kubenertes default vars
+  debug:
+    msg: "check roles/cluster-defaults/defaults/main.yml"
+  tags:
+    - always
+  run_once: true
+
+# items to include ------------------------------------------------------
+#
+
+# 1. user.yml
+- name: INCLUDE VAR user.yml - system user and user group for kubernetes
+  include_vars:
+    file: defaults/user.yml
+  run_once: true
+
+# 2. path.yml
+- name: INCLUDE VAR path.yml - system dir path and config path
+  include_vars:
+    file: defaults/path.yml
+  run_once: true
+
+# 3. deploy-path.yml
+- name: INCLUDE VAR deploy-path.yml - deploy data path
+  include_vars:
+    file: defaults/deploy-path.yml
+  run_once: true
+
+# 4. cert-cache-path.yml
+- name: INCLUDE VAR cert-cache-path.yml - cert cache path 
+  include_vars:
+    file: defaults/cert-cache-path.yml
+  run_once: true
+
+# 5. cert-backup-path.yml
+- name: INCLUDE VAR cert-backup-path.yml - cert backup path
+  include_vars:
+    file: defaults/cert-backup-path.yml
+  run_once: true
+
+# 6. network.yml
+- name: INCLUDE VAR network.yml - system network settings
+  include_vars:
+    file: defaults/network.yml
+  run_once: true
+
+# 7. kube-core-service-network.yml
+# kube core service network settings
+- name: INCLUDE VAR kube-core-service-network.yml
+  include_vars:
+    file: defaults/kube-core-service-network.yml
+  run_once: true
+
+# 8. https-proxy.yml
+# docker https proxy settings
+- name: INCLUDE VAR docker-https-proxy.yml
+  include_vars:
+    file: defaults/docker-https-proxy.yml
+  run_once: true
+
+# 9. encryption-key.yml
+# encrypt key for kubelet bootstrap authentication
+- name: INCLUDE VAR encryption-key.yml - encrypt key for bootstrap auth
+  include_vars:
+    file: defaults/encryption-key.yml
+  run_once: true
+
+#10. tls-bootstrap-token.yml
+# tls bootstrapping token key - for kublet bootstrap authentication
+- name: INCLUDE VAR tls-bootstrap-token.yml - bootstrap auth
+  include_vars:
+    file: defaults/tls-bootstrap-token.yml
+  run_once: true
+
+#11. calico-default-setting.yml 
+# calico setting for calico networking
+- name: INCLUDE VAR calico-default-setting.yml - calico
+  include_vars:
+    file: defaults/calico-default-setting.yml
+  run_once: true
+
+#12. kube-router-default-setting.yml
+# kube-router setting for kube-router networking
+- name: INCLUDE VAR kube-router-default-setting.yml - calico
+  include_vars:
+    file: defaults/kube-router-default-setting.yml
+  run_once: true

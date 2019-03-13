@@ -1,0 +1,158 @@
+{% macro initial_lb() -%}
+{%- for host in groups['load-balancer'] -%}
+  {{ hostvars[host]['load_balancer_machine_address'] }}
+  {%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+{% macro get_host_ip() -%}
+   {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+{%- endmacro -%}
+
+
+[Unit]
+Description=kubernetes controller-manager service - kube-controller-manager.service
+After=network.target
+After=kube-apiserver.service
+
+[Service]
+User=root
+EnvironmentFile=-/etc/kubernetes/controller-manager
+
+ExecStart={{ bin_path }}/kube-controller-manager \
+  --alsologtostderr=false \
+  --logtostderr=true \
+  --v=2 \
+  --log-dir={{ kube_log_path }} \
+  --log-file={{ kube_log_path }}/kube-controller-manager.log \
+  \
+  --cluster-name=kubernetes \
+  --leader-elect=true \
+  \
+  --bind-address={{ kube_controller_manager_bind_address }} \
+  --secure-port={{ kube_controller_manager_secure_port }} \
+  --master={{ kube_load_balancer_apiserver_url }} \
+  \
+  --allocate-node-cidrs=true \
+  --cluster-cidr={{ cluster_pod_cidr }} \
+  --service-cluster-ip-range={{ cluster_service_cidr }} \
+  \
+  --controllers=*,bootstrapsigner,tokencleaner \
+  \
+  --client-ca-file={{ kube_ca_file }} \
+  \
+  --cluster-signing-cert-file={{ kube_ca_file }} \
+  --cluster-signing-key-file={{ kube_ca_key_file }} \
+  \
+  --root-ca-file={{ kube_ca_file }} \
+  --service-account-private-key-file={{ kube_serviceaccount_key_file }} \
+  --use-service-account-credentials=true \
+  \
+  --authentication-kubeconfig={{ kube_controller_manager_config_file }} \
+  --authorization-kubeconfig={{ kube_controller_manager_config_file }} \
+  --authorization-always-allow-paths=/healthz,/metrics \
+  \
+  --tls-cert-file={{ kube_controller_manager_cert_file }} \
+  --tls-private-key-file={{ kube_controller_manager_key_file }} \
+  \
+  --requestheader-client-ca-file={{ kube_ca_file }} \
+  \
+  --kubeconfig={{ kube_controller_manager_config_file }} \
+  \
+  --enable-garbage-collector=true \
+  --terminated-pod-gc-threshold=50 \
+  --node-monitor-grace-period=40s \
+  --node-monitor-period=5s \
+  --pod-eviction-timeout=5m0s
+
+# bootstrap disabled - related options removed
+#  --feature-gates=RotateKubeletServerCertificate=true 
+#  --experimental-cluster-signing-duration=87600h0m0s \
+
+#
+#  --node-cidr-mask-size=24 \
+
+# rem: using flowing lien to disable insecure port
+#  --port=0 
+# (if insecure port disable, # kubectl get cs will display un-health as apiserser
+#    use http://127.0.0.1:10252 to check component status.
+#  but, cluster is health. check using:
+#    # curl https://10.0.0.101:10259/healthz -k
+#    # curl https://10.0.0.101:10257/healthz -k
+#    # curl https://10.0.0.101:10259/metrics -k
+#    # curl https://10.0.0.101:10257/metrics -k
+#)
+
+# --cluster-sign-cert-file - must be same as --client-cert-file in apiserver
+#   (we use root ca - ca.pem). 
+#   . it is used to sign a certificate generated from csr
+#
+#   in controller-manager, we need also set --cluster-signing-key-file pair.
+#   (use root private key ca-key.pem). 
+# --cluster-sign-key-file - this private signing key is used to sign the kubelete certificate
+#   apiserver use its --client-ca-file to certificate signed kubelet certificate.
+#   . it is used to sign a certificate generated from csr ( also see -cluster-sign-cert-file)
+#
+# i.e, controller-manager use ca-key.pem to sign kubelet, apiserver use ca.pem to certificate the
+#   signed kubelet can pass the certification.
+# 
+# While the apiserver receives the requests for certificates from the kubelet and 
+#   authenticates those requests, the controller-manager is responsible for issuing 
+#   actual signed certificates.
+#
+# (in bootstrap certification process: 1. apiserver send bootstrap csr to request controller manager to sign kubelet
+#  token or certificate. 2. controller-manager sign the kubelet certificate using above sign setting,
+#  and return to apiserver. 3. apiserver return signed certificate to kubelet. 4. kubelet store this as its certificate. 
+#  5. kubelet contact apiserver use its certificate 6. apiserver use ca.pem to approve kublet's certificate
+#  )
+
+# --tls-cert-file - for use as server certification to other
+# --requestheader-client-ca-file - used this to check head certification
+# --root-ca-file - if set, the root ca cert will be included in service account token
+# --service-account-private-key-file - used for key to sign service account token
+
+#  --horizontal-pod-autoscaler-use-rest-clients=true 
+#  --horizontal-pod-autoscaler-sync-period=10s 
+
+# --kubeconfig=# kube_controller_manager_config_file # 
+
+# --use-service-account-credentials  # If true, use individual service account credentials 
+#                 for each controller
+
+# --tls-...-file - use this ca/cert to signd https connection of metrics through https
+#    If HTTPS serving is enabled, and --tls-cert-file and --tls-private-key-file 
+#      are not provided, a self-signed certificate and key are generated for the 
+#      public address and saved to the directory specified by --cert-dir 
+#    Do not need server ca to check client ca/cert for output healthz/metrics data through https,
+#      and, tls-ca-file is not needed and deprecated
+# --use-service-account-credentials - If true, use individual service account credentials 
+#      for each controller
+# --service-account-private-key-file - private key used to sign service account tokens
+#     need to be complete paired with --service-account-key-file defined in
+#     apiserver. we use apiserver cert key and apiserver private key.
+# --allocate-node-cidrs - when true, need add cluster pod cidr and service cidr
+# --cluster-cidr - define cluster pod cidr
+# --service-cluster-ip-range - define service cluster cidr
+# --feature-gates=RotateKubeletServerCertificate=true - enable kubelet cert auto renew
+# --controllers=*,bootstrapsigner,tokencleaner  - enable controller of bootstrap signer 
+#                  and auto cleaner
+# --horizontal-pod-autoscaler-use-rest-clients=true - pod auto scale related
+# --horizontal-pod-autoscaler-sync-period=10s - pod auto scale related
+
+# right of controller-manager service:
+#   . create secret, serviceaccount resources
+#   rem: rights of all controllers is defined in ClusterRole system:controller:xxx
+#
+#   need add --use-service-account-credentials=true parameter when controller-manager startup,
+#     and then main controller can create ServiceAccount xxx-controller for all other controllers
+#
+#   ClusterRoleBinding system:controller:xxx will authorize ClusterRole system:controller:xxx rights
+#     to xxx-controller ServiceAccount service account
+
+Restart=on-failure
+Type=simple
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

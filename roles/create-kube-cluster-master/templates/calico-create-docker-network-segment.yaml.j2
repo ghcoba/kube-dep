@@ -1,0 +1,8 @@
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: ippool-docker-01
+spec:
+  cidr: {{ cluster_docker_cidr }}
+  ipipMode: Never
+  natOutgoing: true

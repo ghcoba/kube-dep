@@ -1,0 +1,7 @@
+# networkmanager will interference calico network, using this file to avoid networkmanager
+# to access interface created by calico
+
+# file: /etc/NetworkManager/conf.d/calico.conf
+
+[keyfile]
+unmanaged-devices=interface-name:cali*;interface-name:tunl*

@@ -1,0 +1,111 @@
+---
+
+# file: create-kube-etcd-client.yml
+#
+
+# remark:
+#   this routine will be called in:
+#     . create-kube-cluster-master
+#     . create-kube-worker-node
+#
+
+# func:
+#   . create etcd config directories ( /etc/etcd, /etc/etcd/cert )
+#   . copy etcd cert for etcd client ( etcd ca, etcd client cert )
+#   . copy etctctl client binary
+#   . create run time environment settings form etcdctl client
+#
+
+# create etcd directory
+#   . /etc/etcd
+#   . /etc/etcd/cert
+
+# 1.
+# create /etc/etcd/cert directory
+- name: create kube etcd_cert_path directory
+  file:
+    path: "{{ etcd_cert_path }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0764
+
+# 2.
+# copy ca/cert to master node for etcdctl client
+# fetch etcd cert from node-0 of cluster masters to ansible temp exchange directory
+#   using delegate_to node-0
+
+# fech all cert to ansible temp exchange dir
+- name: fetch etcd-ca and etcd client cert files to temp exchange
+  fetch:
+    src: "{{ cert_cache_path_etcd }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+#    - ca.pem
+#    - ca-key.pem
+    - etcd-ca.pem
+#    - etcd-ca-key.pem
+    - etcd-client.pem
+    - etcd-client-key.pem
+#    - etcd-server.pem
+#    - etcd-server-key.pem
+#    - etcd-peer.pem
+#    - etcd-peer-key.pem
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy all etcd-ca and etcd client cert from ansible temp exchange directory to node
+- name: copy etcd-ca and client cert for etcdctl client
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ etcd_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0664
+  with_items:
+#    - ca.pem
+#    - ca-key.pem
+    - etcd-ca.pem
+#    - etcd-ca-key.pem
+    - etcd-client.pem
+    - etcd-client-key.pem
+#    - etcd-server.pem
+#    - etcd-server-key.pem
+#    - etcd-peer.pem
+#    - etcd-peer-key.pem
+
+# 3.
+#   copy etcdctl client binary to node
+- name: exec copy etcd client binary to node
+  copy:
+    src: "{{ dep_path_local_bin }}/etcd-bin-local/etcd-v{{ etcd_version }}-linux-amd64/{{ item }}"
+    dest: "{{ bin_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0755
+  with_items:
+#    - etcd
+    - etcdctl
+
+# 4.
+#   create environment setting for etcdctl client
+# copy env file etcdctl-env.rc to /root/.etcdctl.rc, and add to /root/.bash_profile
+#
+
+- name: copy etcdctl-env.rc for etcdctl environment
+  template:
+    src: etcdctl-env.rc.j2
+    dest: /root/.etcdctl-env.rc
+
+- name: copy write-etcdctl-env.sh to /usr/local/bin
+  copy:
+    src: write-etcdctl-env.sh
+    dest: "{{ bin_path }}/write-etcdctl-env.sh"
+    owner: root
+    group: root
+    mode: 0755
+
+- name: write etctctl env - append etcdctl-env.rc to /root/.bash_profile
+  command: "{{ bin_path }}/write-etcdctl-env.sh"
+

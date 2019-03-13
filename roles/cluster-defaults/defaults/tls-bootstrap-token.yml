@@ -1,0 +1,29 @@
+---
+
+# file: tls-bootstrap-token.yml
+#
+
+##############################################
+# for token.csv method
+
+# using following command line to create token key
+#   # head -c 16 /dev/urandom | od -An -t x | tr -d ' '
+
+# tls bootstrap token for apiserver to cetificate kubelet bootstrapping csr request
+#
+tls_bootstrap_token_key: dc94fc79f6fa85213d242a9dd55f5441
+
+
+##############################################
+# for token (token_id.token_secret - 6.16) method
+
+# token id
+# to generate: # echo "$(head -c 6 /dev/urandom | md5sum | head -c 6)"
+tls_bootstrap_token_id: 4fd874
+
+# token secret
+# to generate: # echo "$(head -c 16 /dev/urandom | md5sum | head -c 16)"
+tls_bootstrap_token_secret: bfc3248a3a6201d2
+
+# token (6.16 format)
+tls_bootstrap_token: "{{ tls_bootstrap_token_id }}.{{ tls_bootstrap_token_secret }}"

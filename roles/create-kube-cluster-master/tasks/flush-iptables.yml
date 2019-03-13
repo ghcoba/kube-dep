@@ -1,0 +1,8 @@
+---
+
+# file: flush-iptables.yml
+
+# before apply firewall rules, flush iptable first
+
+- name: flush iptables
+  command: iptables -F

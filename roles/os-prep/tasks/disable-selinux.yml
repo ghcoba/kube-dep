@@ -1,0 +1,41 @@
+---
+
+# file: roles/os-disable-selinux/tasks/disable-selinux.yml
+#
+
+# disable selinux - need reboot
+#
+# 1. change /etc/selinux/config
+#    selinux subsystem is configured using /etc/selinux/config
+#   
+#    default master setting of selinux is, 
+#    # SELINUX= can take one of these three values:
+#    #     enforcing - SELinux security policy is enforced.
+#    #     permissive - SELinux prints warnings instead of enforcing.
+#    #     disabled - No SELinux policy is loaded.
+#    SELINUX=enforcing
+# 
+#    change into, 
+#    SELINUX=disabled
+#
+# attention: need reboot the make disable ipv6 and change of sshd take effect
+#
+# to check: # sestatus
+#
+
+# disable selinux ( change selinux setting from enforcing into disabled )
+- name: config disable selinux
+  block:
+    - name: change SELINUX setting line
+      lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: 'SELINUX=disabled'
+  rescue:
+    - debug:
+        msg: 'will reboot'
+  always:
+    - debug:
+        msg: 'reboot target host to make disable-selinux take effect. check # sestatus '
+#    - name: reboot to make disable-selinux take effect
+#      command: reboot    

@@ -1,0 +1,54 @@
+---
+
+# file: roles/os-prep/tasks/set-nf-n-forward.yml
+#
+
+# . set enable bridge netfilter
+# . set eanble port forward
+# . set tcp-keepalive parameters
+#
+# . create config file /etc/sysctl.d/kube-bridge-filter-n-forward.conf
+#
+# rem: default setting of docker 1.14 up has disabled bridge netfilter and port forward,
+#        which will cause one container can not communicate with another through pod network
+
+# main settings:
+#   . net.bridge.bridge-nf-call-ip6tables = 1 # bridge L2 packet netfilter for ipv6
+#   . net.bridge.bridge-nf-call-iptables = 1  # (and ip v4) 
+#   . net.ipv4.ip_forward = 1                 # ip forward
+#   . net.ipv4.tcp_keepalive_time = 600       # default 7200(2 hours), set it to avoid short or
+#                                                 client with unmatched para default para will
+#                                                 lost tcp long connection
+#   . net.ipv4.tcp_keepalive_intvl = 30
+#   . net.ipv4.tcp_keepalive_probes = 10
+#
+#
+# attention: no need reboot to make settings take effect
+# 
+# to run:
+#   # modprobe br_netfilter
+#   # sysctl -p /etc/sysctl.d/kube-bridge-filter-n-forward.conf
+#
+
+# create conf of bridge filter and port forward and exec config settings
+#
+- name: block - create bridge l2 packe net filter, port forwar. exec
+
+  block:
+    - name: create config file - bridge l2 packet filter, port forward
+      template:
+        src: kube-bridge-filter-n-forward.conf.j2
+        dest: /etc/sysctl.d/kube-bridge-filter-n-forward.conf
+
+    # exec enable bridge l2 packet filter
+    - name: exec enable bridge l2 packet filter
+      command: modprobe br_netfilter
+
+    # exec enable config - kube-bridge-filter-n-forward.conf
+    - name: exec enable bridge l2 packet filter and port forward config
+      command: sysctl -p /etc/sysctl.d/kube-bridge-filter-n-forward.conf
+
+  always:
+    - name: bridge-l2-packet-nf and port forward config enabled
+      debug:
+        msg: ' /etc/sysctl.d/kube-bridge-filter-nforward.conf enabled. check: # modprobe -c | grep br_netfilter , and # sysctl -a | grep bridge  # sysctl -a | grep ip_forward '

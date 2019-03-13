@@ -1,0 +1,4 @@
+---
+
+# host_ip_address: "{{ ansible_default_ipv4.address }}"
+ntp_master_machine_address: "{{ host_ip_address }}"

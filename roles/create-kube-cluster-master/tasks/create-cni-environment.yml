@@ -1,0 +1,47 @@
+---
+
+# file: create-cni-environment.yml
+#
+
+# func:
+#   create cni directory and install cni binary using local binary
+#
+# tasks:
+#   . create cni config directory, binary directory, data directory
+#   . install cni binary
+#
+
+- name: create cni directory (config, data, binary)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0771
+    recurse: yes
+  with_items:
+    - "{{ cni_config_path }}"
+    - "{{ cni_data_path }}"
+    - "{{ cni_bin_path }}"
+
+- name: copy cni binary
+  copy:
+    src: "{{ dep_path_local_bin_cni }}/{{ item }}"
+    dest: "{{ cni_bin_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0755
+  with_items:
+    - bridge
+    - dhcp
+    - flannel
+    - host-device
+    - host-local
+    - ipvlan
+    - loopback
+    - macvlan
+    - portmap
+    - ptp
+    - sample
+    - tuning
+    - vlan

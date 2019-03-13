@@ -1,0 +1,55 @@
+---
+
+# file: copy-root-ca-to-cache.yml
+
+- name: exec_copy_root_ca_to_cache
+  block:
+    - name: prompt exec_copy_root_ca_to_cache notified
+      debug: 
+        msg: "notified -> start copy root ca-config, ca-pem, ca-key.pem to remote cache ..."
+
+#   copy ca-config.json from /etc/cert-cache/ca-config to /etc/cert-cache/kubernetes
+#   copy ca.pem, ca-key.pem in /etc/cert-cache/ca to /etc/cert-cache/kubernertes
+#     
+#   . first fetch from remote to ansible temp directory and copy to remote
+#
+
+#     ca-config.json
+    - name: fetch ca-config.json to ansible temp dir
+      fetch:
+        src: "{{ cert_cache_path_ca_config }}/{{ item }}"
+        dest:  "{{ dep_path_tmp_exchange }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+    - name: copy ca-config.json to kube cache
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kubernetes }}"
+      with_items:
+        - ca-config.json
+
+#   ca.pem, ca-key.pem
+    - name: fetch ca cert to ansible temp dir
+      fetch:
+        src: "{{ cert_cache_path_ca }}/{{ item }}"
+        dest:  "{{ dep_path_tmp_exchange }}/"
+        flat: true
+      with_items:
+        - ca.pem
+        - ca-key.pem
+    - name: copy ca cert to kube cache
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kubernetes }}"
+      with_items:
+        - ca.pem
+        - ca-key.pem
+
+  rescue:
+    - debug:
+        msg: "issue in exec_copy_root_ca_to_cache (to kube cache))"
+
+  always:
+    - debug:
+        msg: ". exit copy-root-ca-to-cache.yml (to kube cache))"

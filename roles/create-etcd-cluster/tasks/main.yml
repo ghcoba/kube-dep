@@ -1,0 +1,9 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/main.yml
+
+- name: exec schedule-create-etcd-node
+  import_tasks: schedule-create-etcd-node.yml
+  when:
+    - inventory_hostname in groups['etcd-nodes']
+

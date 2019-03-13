@@ -1,0 +1,14 @@
+---
+
+# file: enable-and-start-docker-service.yml
+
+- debug:
+    msg: "Starting DOCKER service on node - {{ inventory_hostname }} ..."
+
+# enable and start docker service
+- name: enable and start docker service
+  systemd:
+    name: docker
+    daemon_reload: yes
+    state: restarted
+    enabled: yes

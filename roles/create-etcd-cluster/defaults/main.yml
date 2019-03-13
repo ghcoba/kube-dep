@@ -1,0 +1,33 @@
+---
+
+# etcd version number
+etcd_version: 3.3.10
+
+etcd_bin_local_path: "{{ dep_path_local_bin }}/etcd-bin-local/etcd-v{{ etcd_version }}-linux-amd64"
+
+# etcd user name and group
+# (defined in cluster- default role defaults user.yml, to be included by this role )
+#etcd_user: etcd
+#etcd_group: etcd
+
+# etcd client and peer cert authentication setting
+etcd_client_cert_auth: "true"
+etcd_peer_client_cert_auth: "true"
+
+######################### etcd initial cluster state. ###################################
+# ############  ATTENTION:  TAKE CARE SETTING WHEN CLUSTER UNHEALTHY AND NEED MAINTAINACE
+etcd_initial_cluster_state: new
+
+# etcd initial cluster token
+etcd_initial_cluster_token: etcd-k8s-cluster-0
+
+# etcd client and peer port for communication
+etcd_client_port: 2379
+etcd_peer_port: 2380
+
+# etcd cluster urls
+etcd_initial_advertise_peer_urls: "https://{{ etcd_machine_address }}:{{ etcd_peer_port }}"
+etcd_listen_peer_urls: "https://{{ etcd_machine_address }}:{{ etcd_peer_port }}"
+
+etcd_advertise_client_urls: "https://{{ etcd_machine_address }}:{{ etcd_client_port }}"
+etcd_listen_client_urls: "https://{{ etcd_machine_address }}:{{ etcd_client_port }},https://127.0.0.1:{{ etcd_client_port }}"

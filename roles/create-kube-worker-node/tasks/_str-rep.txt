@@ -1,0 +1,25 @@
+[root@node0 defaults]# var=source
+[root@node0 defaults]# echo var
+var
+[root@node0 defaults]# echo $var
+source
+[root@node0 defaults]# var = 127.0.0.1:16
+-bash: var: command not found
+[root@node0 defaults]# var=127.0.0.1:16
+[root@node0 defaults]# echo var
+var
+[root@node0 defaults]# echo $var
+127.0.0.1:16
+[root@node0 defaults]# bip="--bip=$var"
+[root@node0 defaults]# echo bip
+bip
+[root@node0 defaults]# echo $bip
+--bip=127.0.0.1:16
+[root@node0 defaults]# echo ${bip}
+--bip=127.0.0.1:16
+[root@node0 defaults]# echo $(bip)
+-bash: bip: command not found
+
+[root@node0 defaults]# echo ${bip}
+--bip=127.0.0.1:16
+

@@ -1,0 +1,9 @@
+[Unit]
+Description=run bootup-iptables-setting in 60 seconds after bootup  - timer name: bootup-iptables-setting.timer
+
+[Timer]
+OnBootSec=60 sec
+Unit=bootup-iptables-setting.service
+
+[Install]
+WantedBy=basic.target

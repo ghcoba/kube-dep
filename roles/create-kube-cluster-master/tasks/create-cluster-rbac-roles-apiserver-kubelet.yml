@@ -1,0 +1,90 @@
+---
+
+# file: create-cluster-rbac-roles-apiserver-kubelet.yml
+#
+
+################################################################
+# 0.0
+#   type: cluster role binding
+#   func: binding user kube-apiserver with kublet api access
+
+#   binding name: system:kube-apiserver-to-kubelet-api-access
+#   role: system:kubelet-api-access
+#   user: kube-apiserver
+#   file name: rbac-crb-kube-apiserver-bind-kubelet-api-access.yaml.j2
+
+
+- block:
+    - name: generate rbac apiserver access kubelet api clusterrolebinding
+      command: "{{ bin_path }}/kubectl create -f {{ kube_rbac_config_path }}/rbac-crb-kube-apiserver-bind-kubelet-api-access.yaml"
+      register: apis_write_rbac_result
+
+  rescue:
+    - debug: 
+        msg: >
+          - "error occured during write rbac role. "
+          - "ERROR: {{ apis_write_rbac_result.stderr_lines }}"
+
+  always:
+    - debug: 
+        msg: >
+          - "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding system:kube-apiserver-to-kubelet-api-access"
+          - "will continue ..."
+
+
+
+####################################################################
+# 2. 
+#   type: cluster role binding
+#   func: create group system:nodes  with  cluser role system:node for kubelet
+#
+#   binding name: system:kubelet
+#   role: system:node
+#   group: system:node
+#   file name: rbac-crb-system-kubelet.yaml.j2
+
+- block:
+    - name: generate rbac system:kubelet clusterrolebinding
+      command: "{{ bin_path }}/kubectl create -f {{ kube_rbac_config_path }}/rbac-crb-system-kubelet.yaml"
+      register: kubelet_write_rbac_result
+
+  rescue:
+    - debug:
+        msg: >
+          - "error occured during write rbac role binding. "
+          - "ERROR: {{ kubelet_write_rbac_result.stderr_lines }}"
+
+  always:
+    - debug:
+        msg: >
+          - "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding system:kubelet"
+          - "will continue ..."
+
+#####################################################################
+# 3. 
+#   type: cluster role binding
+#   func: bind user system:kubelet to role system:node for kubelet
+#   
+#   binding name: system:kubelet-user
+#   role: system:node
+#   user: system:kubelet
+#   file name: rbac-crb-system-kubelet-user.yaml.j2
+ 
+- block:
+    - name: generate rbac system:kubelet-user clusterrole binding
+      command: "{{ bin_path }}/kubectl create -f {{ kube_rbac_config_path }}/rbac-crb-system-kubelet-user.yaml"
+      register: sysu_write_rbac_result
+
+  rescue:
+    - debug:
+        msg: >
+          - "error occured during write rbac role. "
+          - "ERROR: {{ sysu_write_rbac_result.stderr_lines }}"
+
+  always:
+    - debug:
+        msg: >
+          - "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding system:kubelet-user"
+          - "will continue ..."
+
+#####################################################################

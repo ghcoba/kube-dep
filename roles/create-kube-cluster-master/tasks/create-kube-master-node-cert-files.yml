@@ -1,0 +1,225 @@
+---
+
+# file: create-kube-master-node-cert-files.yml
+#
+#  func: copy cert files for kube from cert-cache
+#
+
+# copy ca/cert to master node for kube masters from cert cach directory
+
+# 1.
+#   kube root ca cert
+# fech kube root ca/cert to ansible temp exchange dir
+- name: fetch root ca cert from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_ca }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - ca.pem
+    - ca-key.pem
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy kube root ca cert from ansible temp exchange directory to kube cluster master
+- name: copy root ca cert files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - ca.pem
+    - ca-key.pem
+
+# 2.
+#   kube admin cert key
+# fech kube admin cert key to ansible temp exchange dir
+- name: fetch kube admin cert key from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_admin }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - kube-admin.pem
+    - kube-admin-key.pem
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy kube admin cert key from ansible temp exchange directory to kube cluster master
+- name: copy kube admin cert key files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - kube-admin.pem
+    - kube-admin-key.pem
+
+# 3.
+#   kube apiserver cert key and boot-strap token file
+# fech kube apiserver cert key to ansible temp exchange dir
+#   and also include boot-strap token file for apiserver to authenticate boot-strap
+#   csr request from kubelet
+- name: fetch kube apiserver cert key from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_apiserver }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - token.csv
+    - tls-bootstrap-token.yaml
+    - kube-apiserver.pem
+    - kube-apiserver-key.pem
+    - kube-apiserver-client.pem
+    - kube-apiserver-client-key.pem
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy kube apiserver cert key from ansible temp exchange directory to kube cluster master
+- name: copy kube apiserver cert key files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - token.csv
+    - tls-bootstrap-token.yaml
+    - kube-apiserver.pem
+    - kube-apiserver-key.pem
+    - kube-apiserver-client.pem
+    - kube-apiserver-client-key.pem
+
+# 4.
+#   kube controller-manager cert key
+# fech kube controller-manager cert key to ansible temp exchange dir
+- name: fetch kube controller-manager cert key to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_controller_manager }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - kube-controller-manager.pem
+    - kube-controller-manager-key.pem
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy kube controller-manager cert key from ansible temp exchange directory to kube cluster master
+- name: copy kube controller-manager cert key files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - kube-controller-manager.pem
+    - kube-controller-manager-key.pem
+
+# 5.
+#   kube scheduler cert key
+# fech kube scheduler cert key to ansible temp exchange dir
+- name: fetch kube scheduler cert key from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_scheduler }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - kube-scheduler.pem
+    - kube-scheduler-key.pem
+    - timestamp.log
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy kube scheduler cert key from ansible temp exchange directory to kube cluster master
+- name: copy kube scheduler cert key files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - kube-scheduler.pem
+    - kube-scheduler-key.pem
+    - timestamp.log
+
+# 6.
+#   kube proxy cert key
+# fech kube proxy cert key to ansible temp exchange dir
+- name: fetch kube proxy cert key from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_proxy }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - kube-proxy.pem
+    - kube-proxy-key.pem
+    - timestamp.log
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy kube proxy cert key from ansible temp exchange directory to kube cluster master
+- name: copy kube proxy cert key files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - kube-proxy.pem
+    - kube-proxy-key.pem
+    - timestamp.log
+
+# 7.
+#   kube service account cert key
+# fech kube sa cert key to ansible temp exchange dir
+- name: fetch kube sa cert key from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_serviceaccount }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - kube-serviceaccount.pem
+    - kube-serviceaccount-key.pem
+    - timestamp.log
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# copy kube serviceaccount cert key from ansible temp exchange directory to kube cluster master
+- name: copy kube sa service account cert key files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - kube-serviceaccount.pem
+    - kube-serviceaccount-key.pem
+    - timestamp.log
+
+# 8.
+# kube encryption config file
+# generate kube encryption config file
+- name: generate kube encryption config file - include encryption key
+  template:
+    src: encryption-config.yaml.j2
+    dest: "{{ encryption_config_file }}"
+
+# change audit policy config file attribute
+- name: change file attrib
+  file:
+    path: "{{ encryption_config_file }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+
+# backup encryption config file to ansible machine
+- name: backup encryptionconfig file to ansible machine
+  fetch:
+    src: "{{ encryption_config_file }}"
+    dest: "{{ dep_path_backup_kube_config }}/"
+    flat: yes
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}" 
+

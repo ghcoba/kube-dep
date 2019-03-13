@@ -1,0 +1,20 @@
+---
+
+# file: deploy-busybox-pod.yml
+#
+
+# deploy a test bystbox pod using yaml 
+
+# create busybox yaml 
+- name: create busybox file ( yaml )
+  template:
+    src: busybox.yaml.j2
+    dest: "{{ kube_yaml_config_path }}/busybox.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create busybox pod
+- name: create busybox pod
+  command: "{{ bin_path }}/kubectl create -f {{ kube_yaml_config_path }}/busybox.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

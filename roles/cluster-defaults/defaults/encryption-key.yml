@@ -1,0 +1,22 @@
+---
+
+# file: roles/cluster-defaults/defaults/encryption-key.yml
+#
+
+# definition of encryption key for kube communication
+#
+
+# using following comand to create encryption key:
+#   command line: # head -c 32 /dev/urandom | base64
+#
+
+# encryption key used for encryption-config.yaml for kubernetes
+encryption_key_32_base64: "KM0buBAmL+9vRjGGihsDJRDTMJ775RednMLmCps7oII="
+
+# encryption key used for encryption-config.yaml for kubernetes 
+#   replace previous kube version token.csv
+#
+# using following command line to create token key
+#   # head -c 16 /dev/urandom | od -An -t x | tr -d ' '
+#
+encryption_key_16: "dc94fc79f6fa85213d242a9dd55f5441"

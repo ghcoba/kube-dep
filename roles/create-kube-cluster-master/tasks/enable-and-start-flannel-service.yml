@@ -1,0 +1,14 @@
+---
+
+# file: enable-and-start-flannel-service.yml
+
+- debug:
+    msg: "Starting FLANNEL service on worker node - {{ inventory_hostname }} ..."
+
+# enable and start flannel service
+- name: enable and start flannel service
+  systemd:
+    name: flannel
+    daemon_reload: yes
+    state: restarted
+    enabled: yes

@@ -1,0 +1,48 @@
+---
+
+# file: roles/cluster-defaults/defaults/cert-cache-path.yml
+
+# definition of directory to store cert files created ( as cache for deployment ) on master node-0
+
+# --------------------
+# cert cache path (on node-0 of master cluster)
+#
+
+# cert cache path (main directory of cert cache)
+cert_cache_path: "/etc/cert-cache"
+
+# path for ca-config
+cert_cache_path_ca_config: "{{ cert_cache_path }}/ca-config"
+
+# path for root ca
+cert_cache_path_ca: "{{ cert_cache_path }}/ca"
+
+# path for admin ( admin account of kubectl client)
+cert_cache_path_kube_admin: "{{ cert_cache_path }}/kube-admin"
+
+# path for etcd cluster
+cert_cache_path_etcd: "{{ cert_cache_path }}/etcd"
+
+# path for flannel daemon
+cert_cache_path_flanneld: "{{ cert_cache_path }}/flanneld"
+
+# path for kubernetes cert
+cert_cache_path_kubernetes: "{{ cert_cache_path }}/kubernetes"
+
+# path for kube apiserver cert
+cert_cache_path_kube_apiserver: "{{ cert_cache_path }}/kube-apiserver"
+
+# path for kube controller-manager cert
+cert_cache_path_kube_controller_manager: "{{ cert_cache_path }}/kube-controller-manager"
+
+# path for kube scheduler cert
+cert_cache_path_kube_scheduler: "{{ cert_cache_path }}/kube-scheduler"
+
+# path for kube proxy cert
+cert_cache_path_kube_proxy: "{{ cert_cache_path }}/kube-proxy"
+
+# path for kube serviceaccount cert ( sa - service account )
+cert_cache_path_kube_serviceaccount: "{{ cert_cache_path }}/kube-serviceaccount"
+
+# not use -- (we use bootstrap auto authentication for kubelet) 
+# cert_cache_path_kubelet: "{{ cert_cache_path }}/kubelet"

@@ -1,0 +1,96 @@
+---
+
+# file: create-kube-proxy-user-and-env.yml
+#
+
+# func:
+#   . create kube-proxy user and group
+#   . create kube-proxy directories
+#   . create kube-proxy cert files
+#   . create kube-proxy config file
+
+# 1.
+#   create kube-proxy user and group
+
+- name: create system kube-proxy group
+  group:
+    name: "{{ kube_proxy_group }}"
+    state: present
+
+- name: create system kube-proxy user
+  user:
+    name: "{{ kube_proxy_user }}"
+    comment: "kube-proxy user"
+    shell: /sbin/nologin
+    state: present
+    system: yes
+    home: "{{ kube_proxy_data_path }}"
+    groups: "{{ kube_proxy_group }}"
+
+# 2.
+#   create kube-proxy data directory
+
+- name: create and ensure kube_proxy_data_path exists
+  file:
+    path: "{{ kube_proxy_data_path }}"
+    recurse: yes
+    state: directory
+    owner: "{{ kube_proxy_user }}"
+    group: "{{ kube_proxy_group }}"
+
+# 3.
+#   create kuber-proxy cert
+#   - already created by delply scheule routine
+
+# 4.
+#   create and install binary
+#   - already created by deploy schedule routine
+
+# 5. 
+#   create kube-proxy kubeconfig file
+#
+
+# generate kube-proxy kubeconfig file 
+#   (set cluster, credential, context, and default context)
+#
+
+# generate kube-proxy config file for every master node
+- name: generate kube-proxy config - set cluster
+#  command: >
+#    "{{ kube_bin_dir }}"/kubectl config set-cluster kubernetes
+#      --certificate-authority="{{ kube_ca_file }}"
+#      --embed-certs=true
+#      --server="{{ kube_kube_proxy_apiserver_url }}"
+#      --kubeconfig=kube-proxy.conf
+  command: "{{ bin_path }}/kubectl {{ arg_str_kube_proxy_cluster }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube-proxy config - set credential
+#  command: >
+#    "{{ kube_bin_dir }}"/kubectl config set-credentials system:kube-proxy
+#      --client-certificate="{{ kube_kube_proxy_cert_file }}"
+#      --embed-certs=true
+#      --client-key="{{ kube_kube_proxy_key_file }}"
+#      --kubeconfig=kube-proxy-conf
+  command: "{{ bin_path }}/kubectl  {{ arg_str_kube_proxy_credentials }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube-proxy config - set context
+#  command: >
+#    "{{ kube_bin_dir }}"/kubectl config set-context system:kube-proxy@kubernetes
+#      --cluster=kubernetes
+#      --user=system:kube-proxy
+#      --kubeconfig=kube-proxy.conf
+  command: "{{ bin_path }}/kubectl  {{ arg_str_kube_proxy_context }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube-proxy config - set default context
+#  command: >
+#    "{{ kube_bin_dir }}"/kubectl config use-context system:kube-proxy@kubernetes
+#      --kubeconfig=kube-proxy.conf
+  command: "{{ bin_path }}/kubectl  {{ arg_str_kube_proxy_defaultcontext }}"
+  args:
+    chdir: "{{ kube_config_path }}/"

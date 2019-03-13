@@ -1,0 +1,129 @@
+---
+
+# file: roles/gen-kube-ca-cert/tasks/gen-etcd-ca-ccert.yml
+#
+# function:
+#   . use /etc/cert-cache/etcd as work dir to create following ca cert:
+#     . etcd ca cert (etcd-ca: etcd root ca - same as master root ca.)
+#     . etcd server ca cert (etcd-server: etcd server ca)
+#     . etcd client ca cert (etcd-client: etcd client ca)
+#     . etcd peer ca cert (etcd-peer: etcd peer ca)
+#     . flanneld client ca cert (flanneld: flanneld client ca)
+# 
+# prev env:
+#   . /etc/cert-cache exist
+#   . /etc/cert-cache/ca-config dir and ca-config.json exist
+#   . /etc/cert-cache/ca dir and its ca.pem, ca-key.pem exist
+#   . /etc/cert-cache/etcd (kube cache) dir exist
+#   . /etc/cert-cache/falnneld dir exist
+#
+#   . (ansible temp exchange dir (./.tmp ) on ansible machine exist )
+#
+#   . /usr/local/bin/<cfssl utility bin files> exist 
+#
+#   . ca-config.json has been copied to kube cache dir (/etc/cert-cache/etcd dir)
+#   . ca.pem, ca-key.pem have been copied to etcd cache dir
+#
+#   . (rem: *-csr.json for etcd-ca, etcd-server, etcd-client, etcd-peer, flanneld 
+#             are created by using this shell script)
+# post proc:
+#   . all generated ca cert ands its configuration will be populated to its specific dir 
+#       from etcd cache dir
+#
+
+# --------------------------------------------------------------------------------------
+#
+
+- name: exec_gen_etcd_ca_cert
+  block:
+    - name:
+      debug:
+        msg: "notified -> start generating etcd ca cert ..."
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
+
+#   insert main procedure here ----------->
+
+    - name: copy shell script to /etc/cert-cache/etcd
+      copy:
+        src: gen-etcd-ca-cert.sh
+        dest: "{{ cert_cache_path_etcd }}"
+        owner: root
+        group: root
+        mode: "0500"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+#   run script to create etcd cert in etcd cache directory of first kube master node
+#     create ca certs for etcd root/server/client/peer ca and flanneld client ca.  
+    - name: gen etcd ca certs kubernetes services
+      command:
+        "{{ cert_cache_path_etcd }}/gen-etcd-ca-cert.sh"
+      args:
+        creates: "{{ cert_cache_path_etcd }}/server.crt"
+      environment:
+        NODE_IPS: "{% for host in groups['etcd-nodes'] %}{{ hostvars[host]['etcd_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+        NODE_DNS: "{{ groups['etcd-nodes']|join(',') }}"
+        CERT_DIR: "{{ cert_cache_path_etcd }}"
+        MASTER_CA_DIR: "{{ cert_cache_path_ca }}"
+        MASTER_CA_CONFIG_DIR: "{{ cert_cache_path_ca_config }}"
+#       CERT_GROUP: "{{ etcd_cert_group }}"
+        CERT_GROUP: root
+      register: gen_etcd_script_result
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+#   end main procedure  ----------------<
+
+
+#
+    - name: prompt exec state
+      debug:
+        msg: "exiting gen_etcd_ca_cert."
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+  rescue:
+    - debug:
+        msg: "issue occured in gen_etcd_ca_cert"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+    - name: debug script result
+      local_action:
+        copy content="{{ gen_etcd_script_result.stdout }}" dest="{{ dep_path_tmp_exchange }}/script-exec.log"
+    - name:
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/script-exec.log"
+        dest: "{{ cert_cache_path_etcd }}"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
+  always:
+
+#     create timestamp log file
+#
+    - name: create time stamp record
+      command: date
+      register: date_command
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+    - name: log time stamp record
+      local_action:
+        copy content="{{ date_command.stdout }}" dest="{{ dep_path_tmp_exchange }}/timestamp.log"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+    - name: push record on local to remote
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/timestamp.log"
+        dest: "{{ cert_cache_path_etcd }}"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+#
+    - debug:
+        msg: ". exit gen-etcd-ca-cert.yml"    
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"

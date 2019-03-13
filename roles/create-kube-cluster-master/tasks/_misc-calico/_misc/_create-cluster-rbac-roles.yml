@@ -1,0 +1,341 @@
+---
+
+# file: create-cluster-rbac-roles.yml
+#
+
+# func:
+#   . create cluster role for master and worker node cluster
+#   . create cluster role binding for master and worker node cluster
+#   . create bootstrap/client cert renewal/ server cert renewal clusterrole and clusterrolebindings
+
+
+###################################################
+# create cluster role and binding for cluster
+
+# 1.
+#
+# kubelet nodes binding
+# use system role:  system:node  
+# for group: system:nodes
+#
+# file: rbac-crb-kubelet-nodes.yaml.j2
+# crb: kubelet-nodes
+# cr: (system:node)
+# group: (system:nodes)
+
+# generate kube rbac clusterrolebinding ( store in etcd ) for kubelet-node
+
+- block:
+    - name: check rbac crb kubelet-nodes
+      command: "{{ bin_path }}/kubectl get clusterrolebinding kubelet-nodes"
+      register: rbac_kubelet_nodes_get_result
+
+  rescue:
+    - debug: 
+        msg:
+          - "error occured during check rbac rule existence. "
+          - "ERROR: {{ rbac_kubelet_nodes_get_result.stderr_lines }}"
+          - "it seems rbac clusterrolebinding kubelet-nodes not exist. "
+          - "continue to create rbac kublet-nodes cluster role binding ..."
+
+    - name: generate rbac kubelet-nodes clusterrolebinding
+      command: "{{ bin_path }}/kubectl apply -f {{ kube_rbac_config_path }}/rbac-crb-kubelet-nodes.yaml"
+      register: rbac_kubelet_nodes_get_result_a
+
+    - debug:
+        msg: 
+          - "{{ rbac_kubelet_nodes_get_result_a }}"
+          - "exit from rbac role creating. check rbac role existence again ..."
+
+    - name: check rbac crb kubelet-nodes again
+      command: "{{ bin_path }}/kubectl get clusterrolebinding kubelet-nodes"
+      register: rbac_kubelet_nodes_get_result
+
+  always:
+    - debug:
+        msg: "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding kubelet-nodes"
+
+    - debug:
+        msg: "will continue ..."
+
+##########################################
+
+# 2.
+#
+# bootstrap clusterrolebinding
+# use system role:   system:node-bootstrappers, for system group:  system:bootstrappers
+#
+# file: rbac-crb-kubelet-bootstrap.yaml.j2
+# crb: kubelet-bootstrap
+# cr: (system:node-bootstrapper)
+# group: (system:bootstrappers)
+#
+# generate kube rbac clusterrolebinding ( store in etcd ) for kubelet-bootstrap
+
+- block:
+    - name: check rbac crb kubelet-bootstrap
+      command: "{{ bin_path }}/kubectl get clusterrolebinding kubelet-bootstrap"
+      register: rbac_kubelet_bootstrap_get_result
+
+  rescue:
+    - debug: 
+        msg:
+          - "error occured during check rbac rule existence."
+          - "ERROR: {{ rbac_kubelet_bootstrap_get_result.stderr_lines }}"
+          - "it seems rbac clusterrolebinding kubelet-bootstrap not exist."
+          - "continue to create rbac kubelet-bootstrap cluster role binding ..."
+
+    - name: generate rbac kubelet-bootstrap clusterrolebinding
+      command: "{{ bin_path }}/kubectl apply -f {{ kube_rbac_config_path }}/rbac-crb-kubelet-bootstrap.yaml"
+      register: rbac_kubelet_bootstrap_get_result_a
+
+    - debug:
+        msg: 
+          - "{{ rbac_kubelet_bootstrap_get_result_a.stdout }}"
+          - "exit from rbac role creating. check rbac role existence again ..."
+
+    - name: check rbac crb kubelet-bootstrap"
+      command: "{{ bin_path }}/kubectl get clusterrolebinding kubelet-bootstrap"
+      register: rbac_kubelet_bootstrap_get_result
+
+  always:
+    - debug:
+        msg: "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding kubelet-bootstrap"
+
+    - debug:
+        msg: "will continue ..."
+
+##########################################
+
+# 3.
+#
+# authorize apiser to access kubelet apis
+#
+# file: rbac-crb-kube-apiserver-bind-kubelet-api-access.yaml.j2
+# crb: system:kube-apiserver-to-kubelet-api-access
+# cr: system:kubelet-api-access
+# user: kube-apiserver
+#
+
+# generate kube rbac clusterrolebinding ( store in etcd ) for system:kube-apiserver-to-kubelet-api-access
+
+- block:
+    - name: check rbac crb system:kube-apiserver-to-kubelet-api-access
+      command: "{{ bin_path }}/kubectl get clusterrolebinding system:kube-apiserver-to-kubelet-api-access"
+      register: rbac_kube_apiserver_to_kubelet_api_access_get_result
+
+  rescue:
+    - debug:
+        msg:
+          - "error occured during check rbac rule existence."
+          - "ERROR: {{ rbac_kube_apiserver_to_kubelet_api_access_get_result.stderr_lines }}"
+          - "it seems rbac clusterrolebinding system:kube-apiserver-to-kubelet-api-access not exist."
+          - "continue to create rbac system:kube-apiserver-to-kubelet-api-access cluster role binding ..."
+
+    - name: generate rbac system:kube-apiserver-to-kubelet-api-access clusterrolebinding
+      command: "{{ bin_path }}/kubectl apply -f {{ kube_rbac_config_path }}/rbac-crb-kube-apiserver-bind-kubelet-api-access.yaml"
+      register: rbac_kube_apiserver_to_kubelet_api_access_get_result_a
+
+    - debug:
+        msg:
+          - "{{ rbac_kube_apiserver_to_kubelet_api_access_get_result_a.stdout }}" 
+          - "exit from rbac role creating. check rbac role existence again ..."
+
+    - name: check rbac crb system:kube-apiserver-to-kubelet-api-access again
+      command: "{{ bin_path }}/kubectl get clusterrolebinding system:kube-apiserver-to-kubelet-api-access"
+      register: rbac_kube_apiserver_to_kubelet_api_access_get_result
+
+  always:
+    - debug:
+        msg: "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding system:kube-apiserver-to-kubelet-api-access"
+
+    - debug:
+        msg: "will continue ..."
+
+##########################################
+
+# 4.
+#
+# auto approve csr
+# (use system role system:certificates.k8s.io:certificatesigningrequests:nodeclient)
+#
+# file: rbac-crb-auto-approve-csr-for-bootstrappers.yaml.j2
+# crb: auto-approve-csrs-for-group
+# cr: (system:certificates.k8s.io:certificatesigningrequests:nodeclient)
+# group: system:bootstrappers
+#
+
+# generate kube rbac clusterrolebinding ( store in etcd ) for auto-approve-csrs-for-group
+
+- block:
+    - name: check rbac crb auto-approve-csrs-for-group
+      command: "{{ bin_path }}/kubectl get clusterrolebinding auto-approve-csrs-for-group"
+      register: rbac_auto_approve_csrs_for_group_get_result
+
+  rescue:
+    - debug: 
+        msg:
+          - "error occured during check rbac rule existence."
+          - "ERROR: {{ rbac_auto_approve_csrs_for_group_get_result.stderr_lines }}"
+          - "it seems rbac clusterrolebinding auto-approve-csrs-for-group not exist."
+          - "continue to create rbac auto-approve-csrs-for-group cluster role binding ..."
+
+    - name: generate rbac auto-approve-csrs-for-group clusterrolebinding
+      command: "{{ bin_path }}/kubectl apply -f {{ kube_rbac_config_path }}/rbac-crb-auto-approve-csr-for-bootstrappers.yaml"
+      register: rbac_auto_approve_csrs_for_group_get_result_a
+
+    - debug:
+        msg: 
+          - "{{ rbac_auto_approve_csrs_for_group_get_result_a.stdout }}"
+          - "exit from rbac role creating. check rbac role existence again ..."
+
+    - name: check rbac crb auto-approve-csrs-for-group
+      command: "{{ bin_path }}/kubectl get clusterrolebinding auto-approve-csrs-for-group"
+      register: rbac_auto_approve_csrs_for_group_get_result
+
+  always:
+    - debug:
+        msg: "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding auto-approve-csrs-for-group"
+
+    - debug:
+        msg: "will continue ..."
+
+##########################################
+
+# 5. 
+
+# node certificate renew
+# (use system role: system:certificates.k8s.io:certificatesigningrequests:selfnodeclient)
+#
+# file: rbac-crb-node-client-cert-renewal.yaml.j2
+# crb: node-client-cert-renewal
+# cr: (system:certificates.k8s.io:certificatesigningrequests:selfnodeclient)
+# group: (system:bootstrappers)
+
+# generate kube rbac clusterrolebinding ( store in etcd ) for node-client-cert-renewal
+
+- block:
+    - name: check rbac crb node-client-cert-renewal
+      command: "{{ bin_path }}/kubectl get clusterrolebinding node-client-cert-renewal"
+      register: rbac_node_client_cert_renewal_get_result
+
+  rescue:
+    - debug: 
+        msg:
+          - "error occured during check rbac rule existence."
+          - "ERROR: {{ rbac_node_client_cert_renewal_get_result.stderr_lines }}"
+          - "it seems rbac clusterrolebinding node-client-cert-renewal not exist."
+          - "continue to create rbac node-client-cert-renewal cluster role binding ..."
+
+    - name: generate rbac node-client-cert-renewal clusterrolebinding
+      command: "{{ bin_path }}/kubectl apply -f {{ kube_rbac_config_path }}/rbac-crb-node-client-cert-renewal.yaml"
+      register: rbac_node_client_cert_renewal_get_result_a
+
+    - debug:
+        msg: 
+          - "{{ rbac_node_client_cert_renewal_get_result_a.stdout }}"
+          - "exit from rbac role creating. check rbac role existence again ..."
+
+    - name: check rbac crb node-client-cert-renewal
+      command: "{{ bin_path }}/kubectl get clusterrolebinding node-client-cert-renewal"
+      register: rbac_node_client_cert_renewal_get_result
+
+  always:
+    - debug:
+        msg: "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding node-client-cert-renewal"
+
+    - debug:
+        msg: "will continue ..."
+
+##########################################
+
+# 6.
+# clusterrole - custome (role: approve-node-server-renewal-csr use resource: certificatesigningrequests/selfnodeserver)
+#
+# file: rbac-cr-approve-node-server-renewal-csr.yaml.j2
+# cr: approve-node-server-renewal-csr
+# 
+
+# generate kube rbac clusterrolebinding ( store in etcd ) for approve-node-server-renewal-csr
+
+- block:
+    - name: check rbac crb kubelet-bootstrap
+      command: "{{ bin_path }}/kubectl get clusterrole approve-node-server-renewal-csr"
+      register: rbac_approve_node_server_renewal_csr_get_result
+
+  rescue:
+    - debug:
+        msg:
+          - "error occured during check rbac rule existence."
+          - "ERROR: {{ rbac_approve_node_server_renewal_csr_get_result.stderr_lines }}"
+          - "it seems rbac clusterrole approve-node-server-renewal-csr not exist."
+          - "continue to create rbac approve-node-server-renewal-csr cluster role  ..."
+
+    - name: generate rbac approve-node-server-renewal-csr clusterrole
+      command: "{{ bin_path }}/kubectl apply -f {{ kube_rbac_config_path }}/rbac-cr-approve-node-server-renewal-csr.yaml"
+      register: rbac_approve_node_server_renewal_csr_get_result_a
+
+    - debug:
+        msg: 
+          - "{{ rbac_approve_node_server_renewal_csr_get_result_a.stdout }}"
+          - "exit from rbac role creating. check rbac role existence again ..."
+
+    - name: check rbac crb approve-node-server-renewal-csr
+      command: "{{ bin_path }}/kubectl get clusterrole approve-node-server-renewal-csr"
+      register: rbac_approve_node_server_renewal_csr_get_result
+
+  always:
+    - debug:
+        msg: "please check rbac role havs been created. using command line: # kubectl get clusterrole approve-node-server-renewal-csr"
+
+    - debug:
+        msg: "will continue ..."
+
+##########################################
+
+# 7. 
+#
+# node server renew cert
+# (use custome role: apprive-node-server-renewal-csr)
+#
+# file: rbac-crb-node-server-cert-renewal.yaml.j2
+# crb: node-server-cert-renewal
+# cr: approve-node-server-renewal-csr
+# group: system:nodes
+
+# generate kube rbac clusterrolebinding ( store in etcd ) for node-server-cert-renewal
+
+- block:
+    - name: check rbac crb node-server-cert-renewal
+      command: "{{ bin_path }}/kubectl get clusterrolebinding node-server-cert-renewal"
+      register: rbac_node_server_cert_renewal_get_result
+
+  rescue:
+    - debug:
+        msg:
+          - "error occured during check rbac rule existence."
+          - "ERROR: {{ rbac_node_server_cert_renewal_get_result.stderr_lines }}"
+          - "it seems rbac clusterrolebinding node-server-cert-renewal not exist."
+          - "continue to create rbac node-server-cert-renewal cluster role binding ..."
+
+    - name: generate rbac node-server-cert-renewal clusterrolebinding
+      command: "{{ bin_path }}/kubectl apply -f {{ kube_rbac_config_path }}/rbac-crb-node-server-cert-renewal.yaml"
+      register: rbac_node_server_cert_renewal_get_result_a
+
+    - debug:
+        msg:
+          - "{{ rbac_node_server_cert_renewal_get_result_a.stdout }}" 
+          - "exit from rbac role creating. check rbac role existence again ..."
+
+    - name: check rbac crb node-server-cert-renewal
+      command: "{{ bin_path }}/kubectl get clusterrolebinding node-server-cert-renewal"
+      register: rbac_node_server_cert_renewal_get_result
+
+  always:
+    - debug:
+        msg: "please check rbac role havs been created. using command line: # kubectl get clusterrolebinding node-server-cert-renewal"
+
+    - debug:
+        msg: "will continue ..."
+
+

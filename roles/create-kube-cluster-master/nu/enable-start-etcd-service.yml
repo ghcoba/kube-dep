@@ -1,0 +1,12 @@
+---
+
+# file: roles/create-etcd-cluster/tasks/enable-start-etcd-service.yml
+
+# enable and start etcd service
+
+- name: enable and start etcd service
+  systemd:
+    name: etcd
+    daemon_reload: yes
+    state: started
+    enabled: yes

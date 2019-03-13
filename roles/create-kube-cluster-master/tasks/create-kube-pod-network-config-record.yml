@@ -1,0 +1,54 @@
+---
+
+# file: create-kube-pod-network-config-record.yml
+#
+
+# write kube pod network setting key:value to etcd (for flannel using)
+#
+# kube POD network config settings:
+#   key name/url: /kube/network
+#   key value:
+#     {
+#       "Network": "10.240.0.0/16",
+#       "SubnetLent": 24,
+#       "Backend":
+#          {
+#            "Type": "vxlan"
+#          }
+#      }
+#
+#   network 10.240.0.0/16 is defined as kube pod network cidr 
+#       (must be use same setting as --cluster-cidr in controller manager )
+#   backend now using vxlan type
+#
+
+- name: write kube pod network to etcd
+  command: >
+    {{ bin_path }}/etcdctl \
+    --ca-file={{ kube_etcd_ca_file }} \
+    --cert-file={{ kube_etcd_cert_file }} \
+    --key-file={{ kube_etcd_key_file }} \
+    --endpoints=https://{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}:2379 \
+    set \
+    {{ kube_pod_network_config_url }} \
+    '{"Network":"{{ cluster_pod_cidr }}","SubnetLen":24,"Backend":{"Type":"vxlan"}}'
+  register: pod_network_config_set_result
+
+- debug:
+    msg: "set result is: {{ pod_network_config_set_result }}"
+
+- name: get 
+  command: >
+    {{ bin_path }}/etcdctl \
+    --ca-file={{ kube_etcd_ca_file }} \
+    --cert-file={{ kube_etcd_cert_file }} \
+    --key-file={{ kube_etcd_key_file }} \
+    --endpoints=https://{{ hostvars[groups['etcd-nodes'][0]]['host_ip_address'] }}:2379 \
+    get \
+    {{ kube_pod_network_config_url }}
+  register: pod_network_config_get_result
+
+- debug:
+    msg: "set result is: {{ pod_network_config_get_result }}"
+
+      

@@ -1,0 +1,54 @@
+---
+
+# file: roles/create-kube-worker-node/tasks/main.yml
+#
+
+# func:
+#   . include external variable files and defaults
+#   . schedule tasks to deploy cluster worker node and processing
+#
+
+
+# 1.
+
+# include etcd variables from create-kube-etcd-cluster roles
+# ( will use in create-kube-work-node role )
+
+- block:
+  - debug:
+      msg: "include etcd default variables ..."
+  - name: INCLUDE VAR main.yml (in dir roles/create-etcd-cluster/defaults)
+    include_vars:
+#   relative directory - relative to roles/roles-item/.
+      file: ../create-etcd-cluster/defaults/main.yml
+  - debug:
+      msg: "variables included for etcd version: {{ etcd_version }}"
+# end block
+#  run_onece: true
+  when:
+    - inventory_hostname in groups['kube-nodes']
+
+# include cluster masters variables from create-kube-cluster-master roles
+# ( will use  in create-kube-work-node role )
+
+#- block:
+#  - debug:
+#      msg: "include cluster master default variables ..."
+#  - name: INCLUDE VAR main.yml (in dir roles/create-kube-cluster-master/defaults)
+#    include_vars:
+##   relative directory - relative to roles/roles-item/.
+#      file: ../create-kube-cluster-master/defaults/main.yml
+#  - debug:
+#      msg: "variables included for kubernetes version: {{ kube_version }}"
+## end block
+##  run_onece: true
+#  when:
+#    - inventory_hostname in groups['kube-nodes']
+
+
+# 2.
+
+- name: exec schedule-create-work-node
+  import_tasks: schedule-create-worker-node.yml
+  when:
+    - inventory_hostname in groups['kube-nodes']

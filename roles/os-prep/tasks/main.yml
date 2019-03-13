@@ -1,0 +1,61 @@
+---
+
+# file: roles/os-prep/tasks/main.yml
+
+
+# set bridge l2 package netfileter and port forward
+#
+- name: task os-set-bridge-nf-and-forward
+  import_tasks: set-nf-n-forward.yml
+
+
+# enable ipvs, ipset, install ipvsadm utility
+#
+- name: task install - ipset and ipvsadm for ipvs
+  import_tasks: install-ipset-n-ipvsadm.yml
+- name: task create file to load ipvs modules and enable load on boot
+  import_tasks: enable-ipvs.yml
+
+
+# remove firewalld service (replace firewalld service with iptables service)
+#
+- name: stop, disable, remove firewalld service and its denpencancies
+  import_tasks: remove-firewalld-service.yml
+
+
+# install network utilities - iproute, net-tools, bind-utils, iptables
+#   (latest version)
+- name: install network tools - iproute, net-tools, bind-utils, iptables
+  import_tasks: install-network-utility.yml
+
+# install, start and enable iptables.service
+#
+- name: install, start and enable iptables service
+  import_tasks: install-and-start-iptables-service.yml
+
+# create default iptables and backup copy (/etc/sysconfig/iptables, /etc/sysconfig/iptables.backup)
+#   (manual change iptables file setting for master node to disable kubelet related port rules)
+- name: create default iptables rules setting file for boot up default
+  import_tasks: install-default-iptalbes-file.yml
+
+# REM: selinux not disabled 
+#
+#- name: task disable-selinux
+#  import_tasks: disable-selinux.yml
+
+# disable swap (for docker and kubernetes)
+#
+- name: task disable-swap
+  import_tasks: disable-swap.yml
+
+# to disable ipv6 sub system
+# 
+- name: tasks disable-ipv6
+  import_tasks:  disable-ipv6.yml
+
+#
+# reboot to take effect all settings
+
+
+
+

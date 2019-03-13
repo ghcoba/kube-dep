@@ -1,0 +1,13 @@
+# ClusterRole which instruct the CSR aprove to approve a node requesting a
+#   serving cert matching its client cert
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: approve-node-server-renewal-csr
+rules:
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests/selfnodeserver
+  verbs:
+  - create

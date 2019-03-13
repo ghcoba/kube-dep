@@ -1,0 +1,32 @@
+---
+
+# file: install-and-start-iptables-service.yml
+
+
+# install firewalld service
+- name:
+  block:
+    - name: install iptables service
+      yum:
+        name: iptables-services
+        state: latest
+  rescue:
+    - debug:
+        msg: "ERROR: can not install iptables-services, please check"
+# end block
+
+# start and enable iptables.service
+#
+- name:
+  block:
+    - name: start and enable iptables.service
+      systemd:
+        name: iptables
+        daemon_reload: yes
+        state: started
+        enabled: yes
+  rescue:
+    - debug:
+        msg: "ERROR: can not start and enable iptables.service, please check"
+# end block
+

@@ -1,0 +1,174 @@
+---
+
+# file: roles/gen-kube-ca-cert/tasks/gen-kube-ca-ccert.yml
+#
+# function:
+#   . use /etc/cert-cache/kubernetes (describer as kube cache) as home directory 
+#       to create following ca cert
+#   . generate bootstrap token file token.csv
+#   . generate bootstap token secret yaml file (6.16 token_id.token_secret)
+#   . generated client cert  - admin (for kubectl access account)
+#   . gen server/client cert - kube-apiserver
+#   . gen c/s cert           - kube-controller-manager
+#   . gen c/s cert           - kube-scheduler
+#   . gen client cert        - kube-proxy
+#   . gen client cert        - kube-serviceaccount
+# 
+# prev env:
+#   . /etc/cert-cache exist
+#   . /etc/cert-cache/ca-config dir and ca-config.json exist
+#   . /etc/cert-cache/ca dir and its ca.pem, ca-key.pem exist
+#   . /etc/cert-cache/kubernetes (kube cache) dir exist
+#   . /etc/cert-cache/admin dir exist
+#   . /etc/cert-cache/kube-apiserver dir exist
+#   . /etc/cert-cache/kube-controller-manager dir exist
+#   . /etc/cert-cache/kube-scheduler dir exist
+#   . /etc/cert-cache/kube-proxy dir exist
+#   . /etc/cert-cache/kube-serviceaccount dir exit
+#
+#   . (ansible temp exchange dir (./.tmp ) on ansible machine exist )
+#
+#   . /usr/local/bin/<cfssl utility bin files> exist 
+#
+#   . ca-config.json has been copied to kube cache dir (/etc/cert-cache/kubernetes dir)
+#   . ca.pem, ca-key.pem have been copied to kube cache dir
+#
+#   . (rem: other *-csr.json for kube-apiserver, kube-controller-manager, kube-scheduler,
+#             and kube-serviceaccount 
+#             is created by using this shell script)
+# post proc:
+#   . all generated ca cert ands its configuration will be populated to its specific dir 
+#       from kube cache dir
+#
+
+# --------------------------------------------------------------------------------------
+#
+
+- name: exec_gen_kube_ca_cert
+  block:
+    - name:
+      debug:
+        msg: "notified -> start generating kube ca cert ..."
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
+#   insert main procedure here ----------->
+
+#   generate apiserver kubelet bootstrap auth token file
+    - name: generate bootstrap token file
+      template:
+        src: token.csv.j2
+        dest: "{{ cert_cache_path_kubernetes }}/token.csv"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+#   generate bootstrap token secret yaml file
+
+    - name: get expiration time for bootstrap token
+      command: "date +'%Y-%m-%dT%H:%M:%SZ' -d '+365 days'"
+#     register current time variable for calculating expiration - expire in 365 days
+      register: tls_bootstrap_token_expiration
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+    - name: generate tls bootstrap token secret file to kube cache
+      template:
+        src: tls-bootstrap-token.yaml.j2
+        dest: "{{ cert_cache_path_kubernetes }}/tls-bootstrap-token.yaml"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+     
+#   create kubernetes ca/cert file in cert-cache
+
+#   create gen shell script
+    - name: copy shell script to /etc/cert-cache/kubernetes
+      copy:
+        src: gen-kube-ca-cert.sh
+        dest: "{{ cert_cache_path_kubernetes }}"
+        owner: root
+        group: root
+        mode: "0500"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+#   run script to create kube cert in kube cache directory of first kube master node
+#     create ca certs for kube-admin, kube-apiserver, kube-controller-manager, 
+#     kube-scheduler, kube-proxy
+    - name: gen kube ca certs kubernetes services
+      command:
+        "{{ cert_cache_path_kubernetes }}/gen-kube-ca-cert.sh"
+      args:
+        creates: "{{ cert_cache_path_kubernetes }}/server.crt"
+      environment:
+        NODE_IPS: "{% for host in groups['kube-masters'] %}{{ hostvars[host]['kube_masters_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+        NODE_DNS: "{{ groups['kube-masters']|join(',') }}"
+        CERT_DIR: "{{ cert_cache_path_kubernetes }}"
+        MASTER_CA_DIR: "{{ cert_cache_path_ca }}"
+        MASTER_CA_CONFIG_DIR: "{{ cert_cache_path_ca_config }}"
+#       # cert group env - now use group root
+#       CERT_GROUP: "{{ kube_cert_group }}"
+        CERT_GROUP: root
+        LOAD_BALANCER_IP: "{% for host in groups['load-balancer'] %}{{ hostvars[host]['load_balancer_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+#       # apiserver cluster service network 10.254.0.0/16, use the first ip 10.254.0.1 as service ip
+#       APISERVER_SERVICE_CLUSTER_IP: "{{ apiserver_service_cluster_ip }}"
+        APISERVER_SERVICE_CLUSTER_IP: "{{ cluster_kubernetes_svc_ip }}"
+#       # cluster dns service ip -  use the second ip of service network 10.254.0.0/16 - ip - 10.254.0.2
+#       CLUSTER_DNS_IP: "{{ cluster_kube_dns_ip }}"
+        CLUSTER_DNS_IP: "{{ cluster_dns_svc_ip }}"
+        POD_NETWORK_START_IP: "{{ cluster_pod_net_first_ip }}"
+      register: gen_kube_script_result
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+#   end main procedure  ----------------<
+
+#
+    - name: prompt exec state
+      debug:
+        msg: "exiting gen_kube_ca_cert."
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+  rescue:
+    - debug:
+        msg: "issue occured in gen_kube_ca_cert"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+    - name: debug script result
+      local_action:
+        copy content="{{ gen_kube_script_result.stdout }}" dest="{{ dep_path_tmp_exchange }}/script-exec.log"
+    - name:
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/script-exec.log"
+        dest: "{{ cert_cache_path_kubernetes }}"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
+  always:
+
+#     create timestamp log file
+#
+    - name: create time stamp record
+      command: date
+      register: date_command
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+    - name: log time stamp record
+      local_action:
+        copy content="{{ date_command.stdout }}" dest="{{ dep_path_tmp_exchange }}/timestamp.log"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+    - name: push record on local to remote
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/timestamp.log"
+        dest: "{{ cert_cache_path_kubernetes }}"
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+#
+    - debug:
+        msg: ". exit gen-kube-ca-cert.yml"    
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"

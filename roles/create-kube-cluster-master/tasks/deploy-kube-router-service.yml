@@ -1,0 +1,12 @@
+---
+
+# file: deploy-kube-router-service.yml
+#
+
+# remark:
+#
+
+- name:
+  debug:
+    msg: "kube-router.service not yet installed"
+
