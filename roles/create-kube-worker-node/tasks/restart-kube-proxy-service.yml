@@ -1,0 +1,11 @@
+---
+
+# file: restart-kube-proxy-service.yml
+
+# restart kube-proxy finally (after calico demonset start, and setting up ipvs related parameters)
+#   to enable kube-proxy can change into using ipvs proxy mode
+
+- name: restart kube-proxy service
+  command: systemctl restart kube-proxy.service
+
+

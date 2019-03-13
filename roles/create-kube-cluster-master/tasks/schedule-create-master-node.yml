@@ -125,91 +125,101 @@
 # 7.
     - name: create kubectl config enviroment
       import_tasks: create-kubectl-config.yml
+
+
 # 8.
 # FIREWALL SETTING IS REPLACED BY APPLYING IN SYSTEM LEVEL USING IPTABLES.SERVICE
 #    - name: eanble firewall rules for kubernetes
 #      import_tasks: enable-firewall-rule-for-kube.yml
-# 9.
-    - name: deploy kube-apiserver service
-      import_tasks: deploy-kube-apiserver-service.yml
-# 10.
-    - name: deploy kube-controller-manager service
-      import_tasks: deploy-kube-controller-manager-service.yml
-# 11.
-    - name: deploy kube-scheduler service
-      import_tasks: deploy-kube-scheduler-service.yml
-#######
-# using kube-router networking and also using kube-router as service proxy 
-#   (kube-proxy environment will be created, but kube-proxy is not enanbled and not started)
-#   (deploy-kube-proxy-service.yml will create kube-proxy environment and also start kube-proxy service)
-# 12.
-#   deploy kube-proxy service on master node
-    - name: deploy kube-proxy service environment (not enable, not start)
-      import_tasks: deploy-kube-proxy-service-environment.yml
-#      import_tasks: deploy-kube-proxy-service.yml
 
-# 20.
+
+# 10.
 # not use - flannel need write flannel network setting in etcd. not use flannel now
 #    - name: create pod network config key in etcd (for flannel network)
-#      import_tasks: create-kube-pod-network-config-record.yml 
+#      import_tasks: create-kube-pod-network-config-record.yml
 #      run_once: true
 #      delegate_to: "{{ groups['kube-masters'][0] }}"
-
-# 30.
-#     cni environment include cni directories (/etc/cni, /etc/cni/net.d, /var/lib/cni etc) and
-#       basic cni plugins (host-local, bridge is needed for kube-router)
-    - name: create cni enviroment
-      import_tasks: create-cni-environment.yml
-# 31. 
+# 11.
 # not use - not use flannel now - replaced by kube-router
 #    - name: create flannel environment
 #      import_tasks: create-flannel-environment.yml
 #     do not enable and start flannel service - we change into using calico networking to replace flannel
 #    - name: start flannel service on master node
 #      import_tasks: enable-and-start-flannel-service.yml
+# 12.
+#     cni environment include cni directories (/etc/cni, /etc/cni/net.d, /var/lib/cni etc) and
+#       basic cni plugins (host-local, bridge is needed for kube-router)
+    - name: create cni enviroment
+      import_tasks: create-cni-environment.yml
 
-# 40.
+
+# 20.
     - name: create docker environment
       import_tasks: create-docker-environment.yml
-# 41.
+# 21.
 #     enable and start docker on masters - need docker to create calico node container on master node
     - name: start docker service on master node
       import_tasks: enable-and-start-docker-service.yml
 
-# 50.
-#   created calico common environment
-    - name: created calico networking common environment
-      import_tasks: create-calico-common-environment.yml
-# 51.
-#   deploy calico networking daemonset on worker node using node#0 of master
-    - name: deploy calico daemonset - one time only
-      import_tasks: deploy-calico-networking-daemonset.yml
-      run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
-# 52.
-#   create calico ippool for cluster pod network
-    - name: create calico ippool for kube cluster pod network
-      import_tasks: tasks/apply-calico-pod-network-ippool.yml
-      run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
 
-# 60.
+
+# 30.
+    - name: deploy kube-apiserver service
+      import_tasks: deploy-kube-apiserver-service.yml
+# 31.
+    - name: deploy kube-controller-manager service
+      import_tasks: deploy-kube-controller-manager-service.yml
+# 32.
+    - name: deploy kube-scheduler service
+      import_tasks: deploy-kube-scheduler-service.yml
+#######
+# using kube-router networking and also using kube-router as service proxy
+#   (kube-proxy environment will be created, but kube-proxy is not enanbled and not started)
+#   (deploy-kube-proxy-service.yml will create kube-proxy environment and also start kube-proxy service)
+# 33.
+#   deploy kube-proxy service on master node
+#    - name: deploy kube-proxy service environment (not enable, not start)
+#      import_tasks: deploy-kube-proxy-service-environment.yml
+##      import_tasks: deploy-kube-proxy-service.yml
+
+
+
+
+# 40.
+#   created calico common environment
+#    - name: created calico networking common environment
+#      import_tasks: create-calico-common-environment.yml
+# 41.
+#   deploy calico networking daemonset on worker node using node#0 of master
+#    - name: deploy calico daemonset - one time only
+#      import_tasks: deploy-calico-networking-daemonset.yml
+#      run_once: true
+#      delegate_to: "{{ groups['kube-masters'][0] }}"
+# 42.
+#   create calico ippool for cluster pod network
+#    - name: create calico ippool for kube cluster pod network
+#      import_tasks: tasks/apply-calico-pod-network-ippool.yml
+#      run_once: true
+#      delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
+# 45.
 #   created kube-router common environment - environment need for kube-router daemonset or 
 #     kube-router systemd service
 #   (create directories needed by kube-router, kube-router client, network configuration
 #      for kube-router, kubeconfig file for kube-router need to access kube apiserver)
 #    - name: created kube-router networking common environment
 #      import_tasks: create-kube-router-common-environment.yml
-# 61.
+# 46.
 #   deploy kube-router networking daemonset on worker node using node#0 of master
 #     kube-router networking daemonset install a pod on every worker node. kube-router pod do -
 #     1. a busybox sub-pod to copy/create network configuration setting, 2. selectable daemon for
 #     ipvs/lvs for pod cluster networking, kube service proxy, firewall and networking police 
-#    - name: deploy kube-router daemonset - one time only
-#      import_tasks: deploy-kube-router-networking-daemonset.yml
-#      run_once: true
-#      delegate_to: "{{ groups['kube-masters'][0] }}"
-# 62.
+    - name: deploy kube-router daemonset - one time only
+      import_tasks: deploy-kube-router-networking-daemonset.yml
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+# 47.
 #   - not yet finished ( so not actually exected on masters now)
 #   deploy kube-router systemd service on master node
 #   func: deploy service and enable and start service. service will create and run a kube-router container
@@ -217,32 +227,36 @@
 #      import_tasks: deploy-kube-router-service.yml
 #      when: inventory_hostname in groups['kube-masters']
 
-# 70.
+
+
+# 50.
 #   CREATE ENVIROMENT, NOT APPLAY NOW
 #   deploy ip-masq agent daemonset
     - name: deploy ip-masq agent daemonset
       import_tasks: deploy-ipmasq-daemonset.yml
 
-# 80.
+
+
+# 60.
     - name: exec master node post process
       import_tasks: create-cluster-post-process.yml
-# 81.
+# 61.
     - name: enable ntp server and client on node-0 of masters to act as time sync source
       import_tasks: enable-master-ntp-time-source.yml      
 
-# 90.
+# 70.
 #    - name: eanble firewall rules for kubernetes
 #      import_tasks: enable-firewall-rule-for-kube.yml
 
-# A0.
+# 80.
     - name: create kubernetes addon env and addon-manager file
       import_tasks: create-cluster-addons-manager-file.yml
 
-# B0.
+# 80.
 #    - name: take final process
 #      import_tasks: take-final-process.yml
 
-# C-.
+# A0.
 #   create default iptables rule file for iptables service (in /etc/sysconfig/iptables file)
     - name: create default iptables rule for iptables service
       import_tasks: create-default-iptables-file-master-node.yml

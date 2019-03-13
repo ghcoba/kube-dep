@@ -1,7 +1,6 @@
 [Unit]
 Description=bootup iptables setting - service name: bootup-iptables-setting.service
-After=kube-proxy.service
-Requires=kube-proxy.service
+After=kubelet.service
 
 [Service]
 Type=simple

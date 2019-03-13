@@ -5,16 +5,16 @@ set -o nounset
 set -o pipefail
 
 # flush iptables
-iptables -F
+#iptables -F
 
 # erase iptables
-iptables -X
+# iptables -X
 
 # re-create default iptables rules by restarting iptables.service
-systemctl restart iptables.service
+#systemctl restart iptables.service
 
 # restart kube-proxy.service to re-create kube-porxy (iptables, ipvs rules)
-systemctl restart kube-proxy.service
+#systemctl restart kube-proxy.service
 
 timestamp() {
   date +"- bootup iptables setting created on %D %T"

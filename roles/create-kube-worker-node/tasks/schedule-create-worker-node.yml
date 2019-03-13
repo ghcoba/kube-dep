@@ -129,6 +129,8 @@
     - name: create kubectl config enviroment
       import_tasks: create-kube-worker-node-kubectl-config.yml
 
+
+
 # 10.
 #   deploy cni environment on worker node
     - name: deploy cni
@@ -141,23 +143,7 @@
 #   enable and start docker service on worker node
     - name: enable and start docker service
       import_tasks: ../create-kube-cluster-master/tasks/enable-and-start-docker-service.yml
-# 13.
-# FIREWALL SETTING IS NOW APPLYING IN SYSTEM LEVEL BY USING IPTABLES.SERVICE
-#   enable firewall rules on worker node
-#    - name: eanble firewall rules on worker node
-#      import_tasks: enable-firewall-rule-for-kube-worker-node.yml
-# 14.
-#   deploy kubelet service on worker node
-    - name: deploy kubelet service
-      import_tasks: deploy-kubelet-service.yml
-# ###
-# change into using kube-router networking and also using kube-router as cluster service proxy
-#   and thus, kube-proxy is not used (replaced by using kube-router)
-#   (we create kube-proxy enviroment, but not enable and not start kube-proxy service)
-# 15.
-#   deploy kube-proxy service on worker node
-    - name: deploy kube-proxy service
-      import_tasks: ../create-kube-cluster-master/tasks/deploy-kube-proxy-service.yml
+
 
 # 20.
 #   created calico common environment on work node
@@ -166,31 +152,55 @@
 #     yet settled, this will cause calico node restart for a period untile calico common
 #     enviroment created here
 #  (check: how to process calico daemonset when we need to add some worker nodes)
-    - name: created calico networking common environment on worker node
-      import_tasks: ../create-kube-cluster-master/tasks/create-calico-common-environment.yml
+#    - name: created calico networking common environment on worker node
+#      import_tasks: ../create-kube-cluster-master/tasks/create-calico-common-environment.yml
 
 # 20. ALTERNATIVE - KUBE-ROUTER NETWORKING
 #   created kube-router environment on work node - needed by kube-router daemon deployed on every
 #     worker node ( deployed by kube-router daemonset )
 #   remark:
 #     as kube-router daemonset already deployed but kube-router common runtime environment not
-#     yet settled on worker node in deploying, this will cause kube-router pod restart for a period 
+#     yet settled on worker node in deploying, this will cause kube-router pod restart for a period
 #     untile kube-router common enviroment created now
 #  (check: how to process kube-router daemonset when we need to add some worker nodes)
-#    - name: created kube-router networking common environment on worker node
-#      import_tasks: ../create-kube-cluster-master/tasks/create-kube-router-common-environment.yml
+    - name: created kube-router networking common environment on worker node
+      import_tasks: ../create-kube-cluster-master/tasks/create-kube-router-common-environment.yml
+
+
+
+# xx.
+# FIREWALL SETTING IS NOW APPLYING IN SYSTEM LEVEL BY USING IPTABLES.SERVICE
+#   enable firewall rules on worker node
+#    - name: eanble firewall rules on worker node
+#      import_tasks: enable-firewall-rule-for-kube-worker-node.yml
+
 
 # 30.
+#   deploy kubelet service on worker node
+    - name: deploy kubelet service
+      import_tasks: deploy-kubelet-service.yml
+# 31.
+#   deploy post procee for kubelet on worker node
+#    - name: deploy kubelet service post process
+#      import_tasks: deploy-kubelet-post-process.yml
+# ###
+# change into using kube-router networking and also using kube-router as cluster service proxy
+#   and thus, kube-proxy is not used (replaced by using kube-router)
+#   (we create kube-proxy enviroment, but not enable and not start kube-proxy service)
+# 32.
+#   deploy kube-proxy service on worker node
+#    - name: deploy kube-proxy service
+#      import_tasks: ../create-kube-cluster-master/tasks/deploy-kube-proxy-service.yml
+
+
+
+# 40.
 # - not need now, and can be deleted. we do not use bootstrap facility, instead of using 
 #     certification created by every worker node itself
 #   create updated bootstrap token secrect file and update bootstrap token secret
     - name: create and update bootstrap token secret
       import_tasks: create-update-bootstrap-token-secret.yml
 
-# 40.
-#   deploy post procee for kubelet on worker node
-#    - name: deploy kubelet service post process
-#      import_tasks: deploy-kubelet-post-process.yml
 
 # 50.
 #   deploy coredns service (2 pods) for cluster on worker node
@@ -212,6 +222,8 @@
 #   deploy 3 myip test pods
     - name: deploy 3 myip test pods
       import_tasks: deploy-myip-test-pod.yml
+
+
 
 # 60.
 #   setting and enable npt client on worker node
@@ -237,6 +249,12 @@
 #   deploy bootup iptables setting setting to get workable iptable/ipvs rules after reboot
     - name: deploy bootup iptables setting service
       import_tasks: deploy-bootup-iptables-setting-service.yml
+
+# B0.
+#   restart kube-proxy service after calico daemonset has been start and has setup ipvs
+#     parameters for kube-proxy work in ipvs proxy mode
+#    - name: restart kube-proxy service
+#      import_tasks: restart-kube-proxy-service.yml
     
 # - condition of block:
 #     when for block (exec block when condition true - need create kube cluster master node)
