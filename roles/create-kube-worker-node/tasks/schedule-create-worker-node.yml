@@ -52,14 +52,16 @@
 #      . call deploy coredns
 #  
 
-########################################################################################
+#########################################################################################################
 
 - name: traceing - start schedule-create-worker-node
   debug:
     msg: "check tracing - starting schedule-create-worker-node ..."
 
 
-##################################################
+
+
+#########################################################################################################
 # 0.0
 # check environmental status and
 #   determine if machine we can deploy on it
@@ -79,8 +81,12 @@
 #
 #   (using when condition for following block)
 
-###########
-###########
+
+##########################################################################################################
+
+#############
+# block start
+#############
 # set skip deploy to  false when kube config directory ( /etc/kubernetes )  not exist
 - block:
 
@@ -88,6 +94,12 @@
     - name: exec condition promp of worker node
       debug:
         msg: "{{ kube_config_path }} directory existence is {{ kube_config_path_exist_result.stat.exists }}, schedule starting to create kube worker node on {{ inventory_hostname }}"
+
+
+##########################################################################################################
+# . basic environment - user, directories, system cert files, kubernetes binary files, 
+#                       etcdctl client, kubectl client, worker node server and client cert creation
+#
 
 # 1.
 #   create etcd user and group (as etcd client on kuber worker node), also create etcd user
@@ -131,10 +143,23 @@
 
 
 
+
+#######################################################################################################
+# . cni container networking interface environment
+#
+
 # 10.
 #   deploy cni environment on worker node
     - name: deploy cni
       import_tasks: ../create-kube-cluster-master/tasks/create-cni-environment.yml
+
+
+
+
+#######################################################################################################
+# . docker environment and docker service deployment
+#
+
 # 11.
 #   deploy docker environment on worker node
     - name: deploy docker (but not start it)
@@ -144,6 +169,14 @@
     - name: enable and start docker service
       import_tasks: ../create-kube-cluster-master/tasks/enable-and-start-docker-service.yml
 
+
+
+
+#######################################################################################################
+# . networking environment for networking components daemonset
+#     - optional calico networking environment (not use now. it is replace by kube-router)
+#     - kube-router networking environment
+#
 
 # 20.
 #   created calico common environment on work node
@@ -168,12 +201,25 @@
 
 
 
+
+########################################################################################################
+# . firewall - not use now. replaced by system level iptables service
+#
+
 # xx.
 # FIREWALL SETTING IS NOW APPLYING IN SYSTEM LEVEL BY USING IPTABLES.SERVICE
 #   enable firewall rules on worker node
 #    - name: eanble firewall rules on worker node
 #      import_tasks: enable-firewall-rule-for-kube-worker-node.yml
 
+
+
+
+########################################################################################################
+# . kubernetes component for kube cluster worker node
+#     - kubelet service
+#     - kube-proxy service (not use now. it is replaced by kube-router)
+#
 
 # 30.
 #   deploy kubelet service on worker node
@@ -194,6 +240,14 @@
 
 
 
+
+#########################################################################################################
+# . kubernetes worker node bootstrap facility 
+#   remark: not use kubernetes worker node bootstrap and renewal facility now. it is replaced by 
+#           creating worker node kubelet certification during deploying worker node, and use the
+#           certification to certificate communication between apiserver and kubelet.
+#
+
 # 40.
 # - not need now, and can be deleted. we do not use bootstrap facility, instead of using 
 #     certification created by every worker node itself
@@ -202,10 +256,28 @@
       import_tasks: create-update-bootstrap-token-secret.yml
 
 
+
+
+##########################################################################################################
+# . basic addon components for kubernetes cluster
+#     - coredns worker load (pod for cluster dns)
+
 # 50.
 #   deploy coredns service (2 pods) for cluster on worker node
     - name: deploy coredns
       import_tasks: deploy-coredns-service.yml
+
+
+
+
+#########################################################################################################
+# . test pod or daemonset
+#     - hostnames pod - return hostname of pod
+#     - my-ip pod     - return host name and ip of pod 
+#     - busybox pod - basic busybox exec environment
+#     - nginx pod - nginx test server to check service ip, pod ip, node-port
+#
+
 # 51.
 #   deploy 3 hostnames test pods
     - name: deploy 3 test hostnames pods
@@ -225,20 +297,46 @@
 
 
 
+
+#########################################################################################################
+# . misc
+#
+
 # 60.
 #   setting and enable npt client on worker node
 #    - name: enable ntp server and client on node-0 of masters to act as time sync source
 #      import_tasks: enable-worker-node-ntp-time-source.yml
+
+
+
+
+#########################################################################################################
+# . firewall (not use now. it is replaced by system level iptables service)
+#
 
 # 70.
 #   enable firewall rules on worker node
 #    - name: eanble firewall rules on worker node
 #      import_tasks: enable-firewall-rule-for-kube-worker-node.yml
 
+
+
+########################################################################################################
+# . final processes
+#
+
 # 80.
 #   take final process (apply firewall rules, save iptables backup, etc.)
 #    - name: take final process
 #      import_tasks: take-final-process.yml
+
+
+
+
+########################################################################################################
+# . system default iptables file and facility to make machine enter determined iptables firewall state
+#   after reboot
+#
 
 # 90.
 #   create default iptables rules file for iptables service (in dir /etc/sysconfig/iptables file)
@@ -250,18 +348,18 @@
     - name: deploy bootup iptables setting service
       import_tasks: deploy-bootup-iptables-setting-service.yml
 
-# B0.
-#   restart kube-proxy service after calico daemonset has been start and has setup ipvs
-#     parameters for kube-proxy work in ipvs proxy mode
-#    - name: restart kube-proxy service
-#      import_tasks: restart-kube-proxy-service.yml
+
+
+#######################################################################################################
+#
     
 # - condition of block:
 #     when for block (exec block when condition true - need create kube cluster master node)
   when: ( kube_config_path_exist_result.stat.exists == false )
 
-##########
-##########
+############
+# block end
+############
 
 # continue do nothing
 #   (

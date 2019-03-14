@@ -57,7 +57,7 @@
 #      with external time sync server
 #
 
-########################################################################################
+############################################################################################################
 
 - name: traceing - start schedule-create-master-node
   debug:
@@ -65,7 +65,7 @@
 
 # 0.0
 # check environmental status
-#######################################
+###########################################################################################################
 
 # check kubernetes directory (/etc/kubernetes) exist
 - name: check kubernetes directory exist
@@ -75,6 +75,8 @@
   run_once: true
   delegate_to: "{{ groups['kube-masters'][0] }}"
 
+
+##########################################################################################################
 
 # skip following block if exist condition true
 #   (using when condition for following block)
@@ -88,7 +90,14 @@
     - name: exec condition promp
       debug:
         msg: "{{ kube_config_path }} directory existence is {{ kube_config_path_exist_result.stat.exists }}, schedule starting to create kube master node on {{ inventory_hostname }}"
-    
+
+
+
+
+#########################################################################################################
+# . prepare basic environment - user, directories, files, etcdctl environment, kubectl environment
+#
+
 # 1.
 #   create etcd user and group (as etcd client on kuber masters), also create etcd user 
 #     home directory (use etcd data dir path (/var/lib/etcd/) as home dir path)
@@ -127,11 +136,23 @@
       import_tasks: create-kubectl-config.yml
 
 
+
+
+###########################################################################################################
+# . firewall - (NOT USE NOE - have change into use system default fireewall setting - use iptables service)
+#
+
 # 8.
 # FIREWALL SETTING IS REPLACED BY APPLYING IN SYSTEM LEVEL USING IPTABLES.SERVICE
 #    - name: eanble firewall rules for kubernetes
 #      import_tasks: enable-firewall-rule-for-kube.yml
 
+
+
+
+###########################################################################################################
+# . networking environment - flannel and cni, or cni
+#
 
 # 10.
 # not use - flannel need write flannel network setting in etcd. not use flannel now
@@ -153,6 +174,12 @@
       import_tasks: create-cni-environment.yml
 
 
+
+
+############################################################################################################
+# . docker enviroment and start docker service
+#
+
 # 20.
     - name: create docker environment
       import_tasks: create-docker-environment.yml
@@ -162,6 +189,11 @@
       import_tasks: enable-and-start-docker-service.yml
 
 
+
+
+############################################################################################################
+# . kubernetes components for master node - apiserver, controller-manager, scheduler, (optional kube-proxy)
+#
 
 # 30.
     - name: deploy kube-apiserver service
@@ -173,7 +205,8 @@
     - name: deploy kube-scheduler service
       import_tasks: deploy-kube-scheduler-service.yml
 #######
-# using kube-router networking and also using kube-router as service proxy
+# using kube-router networking and also using kube-router as service proxy - kube-proxy is now not needed
+#   on both master node and worker node.
 #   (kube-proxy environment will be created, but kube-proxy is not enanbled and not started)
 #   (deploy-kube-proxy-service.yml will create kube-proxy environment and also start kube-proxy service)
 # 33.
@@ -185,6 +218,17 @@
 
 
 
+############################################################################################################
+# . networking daemonset (must be deployed after kubernetes basic components deployment have finished)
+#   - optional calico networking system
+#       . calico environment and calico daemonset (include calico node pod and calico kube controller pod)
+          ( not use calico now. replaced by kube-router)
+#   - kube-router networking system
+#       . kube-router environment and kube-router daemonset 
+#         (to be used in router, service proxy and network policy mode)   
+#
+
+# calico networking system
 # 40.
 #   created calico common environment
 #    - name: created calico networking common environment
@@ -202,7 +246,7 @@
 #      run_once: true
 #      delegate_to: "{{ groups['kube-masters'][0] }}"
 
-
+# kube-router networking system
 # 45.
 #   created kube-router common environment - environment need for kube-router daemonset or 
 #     kube-router systemd service
@@ -229,6 +273,11 @@
 
 
 
+
+############################################################################################################
+# . ip-masq agent daemonset (create environment, but not apply ip-masq agent daemonset now)
+#
+
 # 50.
 #   CREATE ENVIROMENT, NOT APPLAY NOW
 #   deploy ip-masq agent daemonset
@@ -237,6 +286,11 @@
 
 
 
+
+#############################################################################################################
+# . misc tasks after primary deployment
+#
+
 # 60.
     - name: exec master node post process
       import_tasks: create-cluster-post-process.yml
@@ -244,17 +298,44 @@
     - name: enable ntp server and client on node-0 of masters to act as time sync source
       import_tasks: enable-master-ntp-time-source.yml      
 
+
+
+
+#############################################################################################################
+# . firewall - (not use now. it is replaced by using system level iptables service)
+#
+
 # 70.
 #    - name: eanble firewall rules for kubernetes
 #      import_tasks: enable-firewall-rule-for-kube.yml
+
+
+
+
+#############################################################################################################
+# . addons for kubernetes cluster system
+#
 
 # 80.
     - name: create kubernetes addon env and addon-manager file
       import_tasks: create-cluster-addons-manager-file.yml
 
+
+
+
+#############################################################################################################
+# . final processes for kubenetes master deployment
+#
+
 # 80.
 #    - name: take final process
 #      import_tasks: take-final-process.yml
+
+
+
+#############################################################################################################
+# . create default iptables file and daemon service for applying determined iptables rules on bootup
+#
 
 # A0.
 #   create default iptables rule file for iptables service (in /etc/sysconfig/iptables file)
@@ -264,6 +345,11 @@
     - name: prompt kube cluster master deploy
       debug:
         msg: "exit deploy kube cluster masters."
+
+
+
+#############################################################################################################
+#
 
 # - condition of block:
 #     when for block (exec block when condition true - need create kube cluster master node)
