@@ -43,15 +43,16 @@
 #- name: task disable-selinux
 #  import_tasks: disable-selinux.yml
 
-# disable swap (for docker and kubernetes)
-#
-- name: task disable-swap
-  import_tasks: disable-swap.yml
-
 # to disable ipv6 sub system
-# 
+#
 - name: tasks disable-ipv6
   import_tasks:  disable-ipv6.yml
+
+# disable swap (for docker and kubernetes)
+# ATTENTION: will reboot after disable-swap.yml exec finished 
+#            ( reboot will make all above changes take effect)
+- name: task disable-swap
+  import_tasks: disable-swap.yml
 
 #
 # reboot to take effect all settings
