@@ -12,7 +12,7 @@
 
 # remove kube config and etcd config dirs on cluster master
 - block:
-    - name: stop services 1 if exist
+    - name: stop services 1 - kubelet service if exist
       systemd:
         name: kubelet
         daemon_reload: no
@@ -26,7 +26,7 @@
     - inventory_hostname in groups['kube-nodes']
 
 #- block:
-#    - name: stop services 2 if exist
+#    - name: stop services 2 - kube-proxy service if exist
 #      systemd:
 #        name: kube-proxy 
 #        daemon_reload: no
@@ -40,7 +40,7 @@
 #    - inventory_hostname in groups['kube-nodes']
 
 - block:
-    - name: stop services 3 if exist
+    - name: stop services 3 - docker service if exist
       systemd:
         name: docker
         daemon_reload: no
@@ -54,7 +54,7 @@
     - inventory_hostname in groups['kube-nodes']
 
 #- block:
-#    - name: stop services 3 if exist
+#    - name: stop services 4 - flannel service if exist
 #      systemd:
 #        name: flannel
 #        daemon_reload: no
@@ -68,7 +68,7 @@
 #    - inventory_hostname in groups['kube-nodes']
 
 #- block:
-#    - name: stop services 4 if exist
+#    - name: stop services 5 - calico-node-container service if exist
 #      systemd:
 #        name: calico-node-container
 #        daemon_reload: no
@@ -82,7 +82,7 @@
 #    - inventory_hostname in groups['kube-nodes']
 
 - block:
-    - name: remove docker-ce
+    - name: remove docker-ce package
       yum:
         name: docker-ce
         state: absent

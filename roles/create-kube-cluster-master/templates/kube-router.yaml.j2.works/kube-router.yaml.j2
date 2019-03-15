@@ -117,12 +117,10 @@ spec:
           - "--nodes-full-mesh={{ kuberouter_node_full_mesh }}"
           - "--enable-ibgp={{ kuberouter_enable_igbp }}"
           - "--advertise-cluster-ip={{ kuberouter_advertise_cluster_ip }}"
-          - "--enable-overlay={{ kuberouter_enable_overlay }}"
-          - "--enable-pod-egress={{ kuberouter_enable_pod_egress }}"
-          #
+          #- "--enable-overlay={{ kuberouter_enable_overlay }}"
           # - "--advertise-external-ip={{ kuberouter_advertise_external_ip }}"
           # - "--bgp-graceful-restart={{ kuberouter_bgp_graceful_restart }}"
-          #
+          #- "--enable-pod-egress={{ kuberouter_enable_pod_egress }}"
           #- "--peer-router-ips={{ kuberouter_peer_router_ips }}"
           #- "--peer-router-asns={{ kuberouter_peer_router_asns }}"
           #

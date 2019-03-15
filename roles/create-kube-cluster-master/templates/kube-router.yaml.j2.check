@@ -117,14 +117,14 @@ spec:
           - "--nodes-full-mesh={{ kuberouter_node_full_mesh }}"
           - "--enable-ibgp={{ kuberouter_enable_igbp }}"
           - "--advertise-cluster-ip={{ kuberouter_advertise_cluster_ip }}"
-          - "--enable-overlay={{ kuberouter_enable_overlay }}"
-          - "--enable-pod-egress={{ kuberouter_enable_pod_egress }}"
           #
-          # - "--advertise-external-ip={{ kuberouter_advertise_external_ip }}"
+          # - "--enable-overlay={{ kuberouter_enable_overlay }}"
           # - "--bgp-graceful-restart={{ kuberouter_bgp_graceful_restart }}"
+          # - "--advertise-external-ip={{ kuberouter_advertise_external_ip }}"
+          # - "--enable-pod-egress={{ kuberouter_enable_pod_egress }}"
           #
-          #- "--peer-router-ips={{ kuberouter_peer_router_ips }}"
-          #- "--peer-router-asns={{ kuberouter_peer_router_asns }}"
+          # - "--peer-router-ips={{ kuberouter_peer_router_ips }}"
+          # - "--peer-router-asns={{ kuberouter_peer_router_asns }}"
           #
           ## for advertise load balancer ip
           # - "--advertise-loadbalancer-ip=true"
@@ -349,4 +349,3 @@ subjects:
 - kind: User
   name: kubernetes-admin
   namespace: kube-system
-
