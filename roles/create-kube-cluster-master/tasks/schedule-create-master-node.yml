@@ -222,7 +222,7 @@
 # . networking daemonset (must be deployed after kubernetes basic components deployment have finished)
 #   - optional calico networking system
 #       . calico environment and calico daemonset (include calico node pod and calico kube controller pod)
-          ( not use calico now. replaced by kube-router)
+#         ( not use calico now. replaced by kube-router)
 #   - kube-router networking system
 #       . kube-router environment and kube-router daemonset 
 #         (to be used in router, service proxy and network policy mode)   

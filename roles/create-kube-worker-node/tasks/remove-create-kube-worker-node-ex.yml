@@ -25,19 +25,19 @@
   when:
     - inventory_hostname in groups['kube-nodes']
 
-- block:
-    - name: stop services 2 if exist
-      systemd:
-        name: kube-proxy 
-        daemon_reload: no
-        state: stopped
-        enabled: no
-  rescue:
-    - debug:
-        msg: "ERROR: can not stop kube-proxy service, or kube-proxy service not exist"
-# end block
-  when:
-    - inventory_hostname in groups['kube-nodes']
+#- block:
+#    - name: stop services 2 if exist
+#      systemd:
+#        name: kube-proxy 
+#        daemon_reload: no
+#        state: stopped
+#        enabled: no
+#  rescue:
+#    - debug:
+#        msg: "ERROR: can not stop kube-proxy service, or kube-proxy service not exist"
+## end block
+#  when:
+#    - inventory_hostname in groups['kube-nodes']
 
 - block:
     - name: stop services 3 if exist
@@ -53,33 +53,47 @@
   when:
     - inventory_hostname in groups['kube-nodes']
 
+#- block:
+#    - name: stop services 3 if exist
+#      systemd:
+#        name: flannel
+#        daemon_reload: no
+#        state: stopped
+#        enabled: no
+#  rescue:
+#    - debug:
+#        msg: "ERROR: can not stop flannel service, or flannel service not exist"
+## end block
+#  when:
+#    - inventory_hostname in groups['kube-nodes']
+
+#- block:
+#    - name: stop services 4 if exist
+#      systemd:
+#        name: calico-node-container
+#        daemon_reload: no
+#        state: stopped
+#        enabled: no
+#  rescue:
+#    - debug:
+#        msg: "ERROR: can not stop calico-node-container service, or calico-node-container service not exist"
+## end block
+#  when:
+#    - inventory_hostname in groups['kube-nodes']
+
 - block:
-    - name: stop services 3 if exist
-      systemd:
-        name: flannel
-        daemon_reload: no
-        state: stopped
-        enabled: no
+    - name: remove docker-ce
+      yum:
+        name: docker-ce
+        state: absent
+#        autoremove: yes
   rescue:
     - debug:
-        msg: "ERROR: can not stop flannel service, or flannel service not exist"
-# end block
+        msg: "ERROR: can not remove docker-ce package, or docker-ce package not exist"
+#     end block
   when:
     - inventory_hostname in groups['kube-nodes']
 
-- block:
-    - name: stop services 4 if exist
-      systemd:
-        name: calico-node-container
-        daemon_reload: no
-        state: stopped
-        enabled: no
-  rescue:
-    - debug:
-        msg: "ERROR: can not stop calico-node-container service, or calico-node-container service not exist"
-# end block
-  when:
-    - inventory_hostname in groups['kube-nodes']
 
 - block:
     - name: remove kube and etcd config and data directories on worker node
@@ -100,10 +114,10 @@
         - "{{ kube_proxy_data_path }}/"
 #        - "{{ docker_data_path }}/"
         - "{{ cni_data_path }}/"
-        - "{{ calico_log_path }}/"
-        - "{{ calico_data_path }}/"
-        - "{{ calico_config_conf_path }}/"
-        - "{{ calico_config_path }}/"
+#        - "{{ calico_log_path }}/"
+#        - "{{ calico_data_path }}/"
+#        - "{{ calico_config_conf_path }}/"
+#        - "{{ calico_config_path }}/"
 # rem kubelet directory - may have pod data busy
 #        - "{{ kubelet_data_path }}/"
         - "{{ kuberouter_config_path }}/"
@@ -113,14 +127,6 @@
     - debug: 
         msg: "{{ kube_config_path }}, {{etcd_config_path }}, {{ flannel_config_path }}, {{ cni_config_path }} directories removed on {{ inventory_hostname }}."
 
-#    - name:
-#      command: iptables -F
-#    - name:
-#      command: iptables -X
-#    - name:
-#      command: iptables -F -t nat 
-#    - name:
-#      command: iptables -X -t nat
 
   when:
     - inventory_hostname in groups['kube-nodes']

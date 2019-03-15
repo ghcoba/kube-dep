@@ -14,15 +14,23 @@
 
 # remove rbac role and binding created for cluster kubelet bootstrap
 
-- name: remove rbac role and binding created for kubelet bootstrap
-  import_tasks: remove-created-bootstrap-rbac-ex.yml
-  run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+#- name: remove rbac role and binding created for kubelet bootstrap
+#  import_tasks: remove-created-bootstrap-rbac-ex.yml
+#  run_once: true
+#  delegate_to: "{{ groups['kube-masters'][0] }}"
 
-- name: remove rbac role and binding created for apiserver - kubelet
-  import_tasks: remove-created-apiserver-kubelet-rbac-ex.yml
-  run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+- block:
+    - name: remove rbac role and binding created for apiserver - kubelet
+      import_tasks: remove-created-apiserver-kubelet-rbac-ex.yml
+      run_once: true
+      delegate_to: "{{ groups['kube-masters'][0] }}"
+  rescue:
+    - debug:
+        msg: "error removing apiserver kubelet rabac"
+# end block
+#  when:
+#    - inventory_hostname in groups['kube-masters']
+  
 
 ##############################################################
 
@@ -64,17 +72,17 @@
             msg: "ERROR: can not stop kube-scheduler service, or service not exist"
 #     end block
 
-    - block:
-        - name: stop services 4 if exist
-          systemd:
-            name: kube-proxy
-            daemon_reload: no
-            state: stopped
-            enabled: no
-      rescue:
-        - debug:
-            msg: "ERROR: can not stop kube-proxy service, or service not exist"
-#     end block
+#    - block:
+#        - name: stop services 4 if exist
+#          systemd:
+#            name: kube-proxy
+#            daemon_reload: no
+#            state: stopped
+#            enabled: no
+#      rescue:
+#        - debug:
+#            msg: "ERROR: can not stop kube-proxy service, or service not exist"
+##     end block
 
 
     - block:
@@ -89,17 +97,17 @@
             msg: "ERROR: can not stop docker service, or service not exist"
 #     end block
 
-    - block:
-        - name: stop services 6 if exist
-          systemd:
-            name: flannel
-            daemon_reload: no
-            state: stopped
-            enabled: no
-      rescue:
-        - debug:
-            msg: "ERROR: can not stop flannel service, or service not exist"
-#     end block
+#    - block:
+#        - name: stop services 6 if exist
+#          systemd:
+#            name: flannel
+#            daemon_reload: no
+#            state: stopped
+#            enabled: no
+#      rescue:
+#        - debug:
+#            msg: "ERROR: can not stop flannel service, or service not exist"
+##     end block
 
 #    - block:
 #        - name: stop services 7 if exist
@@ -113,7 +121,19 @@
 #            msg: "ERROR: can not stop flannel service, or service not exist"
 #     end block
 
-    - name: remove kube and etcd config and data directories cluster master
+    - block:
+        - name: remove docker-ce package
+          yum:
+            name: docker-ce
+            state: absent
+#            autoremove: yes
+      rescue:
+        - debug:
+            msg: "ERROR: can not remove docker-ce package, or docker-ce package not exist"
+#     end block
+
+
+    - name: remove kube and etcd config and data directories on cluster master
       file:
         path: "{{ item }}"
         force: yes
@@ -130,10 +150,10 @@
         - "{{ cni_data_path }}/"        
 #        - "{{ flannel_cert_path }}/"
 #        - "{{ flannel_config_path }}/"
-        - "{{ calico_log_path }}/"
-        - "{{ calico_data_path }}/"
-        - "{{ calico_config_conf_path }}/"
-        - "{{ calico_config_path }}/"
+#        - "{{ calico_log_path }}/"
+#        - "{{ calico_data_path }}/"
+#        - "{{ calico_config_conf_path }}/"
+#        - "{{ calico_config_path }}/"
         - "{{ kuberouter_config_path }}/"
         - "{{ kuberouter_data_path }}/"
 
@@ -147,5 +167,3 @@
     - inventory_hostname in groups['kube-masters']
 
 # end block
-
-

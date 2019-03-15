@@ -252,8 +252,8 @@
 # - not need now, and can be deleted. we do not use bootstrap facility, instead of using 
 #     certification created by every worker node itself
 #   create updated bootstrap token secrect file and update bootstrap token secret
-    - name: create and update bootstrap token secret
-      import_tasks: create-update-bootstrap-token-secret.yml
+#    - name: create and update bootstrap token secret
+#      import_tasks: create-update-bootstrap-token-secret.yml
 
 
 
