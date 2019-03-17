@@ -25,6 +25,7 @@ Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/bi
 
 # for calico networking - use manual managed docker subnet
 # subnet cidr used for node :  hostvars[inventory_hostname]['docker_subnet_bip']
+
 ExecStart=/usr/bin/dockerd --label machine.hostname={{ inventory_hostname }} --bip={{ hostvars[inventory_hostname]['docker_subnet_bip'] }}
 # --iptables=false --ip-forward=true 
 

@@ -13,11 +13,11 @@
     state: restarted
     enabled: yes
 
-- block:
-    - name: remove docker0 interface
-      command: ip link delete docker0
-  rescue:
-    - debug:
-        msg: "ERROR: fail to delete docker0 interface. please check."
-# end block
+#- block:
+#    - name: remove docker0 interface
+#      command: ip link delete docker0
+#  rescue:
+#    - debug:
+#        msg: "ERROR: fail to delete docker0 interface. please check."
+## end block
 
