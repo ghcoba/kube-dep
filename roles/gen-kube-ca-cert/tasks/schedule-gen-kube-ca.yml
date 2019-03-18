@@ -4,22 +4,22 @@
 #
 
 # func:
-#   0. check root cache directory ( /etc/cert-cache ) on remote
+#   0. check root cache directory ( /etc/cert-cache ) on remote (use ansible machine - node #0 of ansible-nodes group)
 #        end play when main cache directory exist
 #   1. check kube cache directory (/etc/cert-cache/kubernetes) on remote
 #   2. create cach directory and then schedule generating kube , if cache dir not exist
 #       skip generating kube ca, if cache dir exist
 #
 # scheduled proc:
-#   . copy root ca-config ca-config json file to node-0 of master cluster
-#   . copy root ca.pem and ca-key.pem to node-0 of master cluster
+#   . copy root ca-config ca-config json file to node #0 of ansible-nodes group
+#   . copy root ca.pem and ca-key.pem to node #0 of ansible-nodes
 #   . 
 #   . create *-csr.json file for *= kube-apiserver, kube-controller-manager, kube-scheduler,
 #       kube-admin, kube-proxy   
 #       by using script and generate kube ca cert using cfssl utility
-#   . create bootstrap toke files (token.csv - will not use now, tls-bootstrap-token.yaml)
+#   . create bootstrap toke files (token.csv - will not use now, tls-bootstrap-token.yaml - will also not use now)
 #   . populate ca cert and config file to its dedicated cache directory from kube cache dir
-#   . fetch all config/json/csr/ca/cert files and copy back to ansible deploy site
+#   . fetch all config/json/csr/ca/cert files and copy back to ansible deploy site as backup
 #  ref:
 #   . check /etc/cert-cache/kubernetes directory exist
 #
@@ -36,21 +36,21 @@
     path: "{{ cert_cache_path }}"
   register: cert_cache_path_exist_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 - name: check cert-cache ca directory exist
   stat:
     path: "{{ cert_cache_path_ca }}"
   register: cert_cache_path_ca_exist_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 - name: check cert-cache ca-configdirectory exist
   stat:
     path: "{{ cert_cache_path_ca_config }}"
   register: cert_cache_path_ca_config_exist_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 
 # exit if false condition
@@ -67,16 +67,16 @@
 ##########
 ##########
 
-# or continue to go
 
+# or continue to go
 
 # check kubernetes cert cache dir (/etc/cert-cache/kubernetes) exist
 - name: check kubernetes cert cache directory exist
   stat:
-    path: "{{ cert_cache_path_kubernetes }}"
+    path: "{{ cert_cache_path_kubernetes }}/"
   register: cert_cache_path_kubernetes_exist_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 #- debug:
 #    msg: "{{ cert_cache_path_kubernetes_exist_result }}"
@@ -86,14 +86,14 @@
   debug:
     msg: "cache kubernetes directory not exist. will continue to generate kube ca cert..."
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_kubernetes_exist_result.stat.exists == false
 # prompt check result
 - name: prompt cache kubernetes directory exist result - exist
   debug:
     msg: "cache kubernetes directory already exist. will exit generating kube ca cert."
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_kubernetes_exist_result.stat.exists == true
 
 
@@ -104,7 +104,7 @@
 # create cache kube directories for kube cert (for generated) if cache dir not exist
 - name: create kube directories
   file:
-    path: "{{ item }}"
+    path: "{{ item }}/"
     state: directory
     force: yes
     mode: 01755
@@ -118,9 +118,10 @@
     - "{{ cert_cache_path_kube_scheduler }}"
     - "{{ cert_cache_path_kube_proxy }}"
     - "{{ cert_cache_path_kube_serviceaccount }}"
+#    - "{{ cert_cache_path_front_proxy }}"
 #  register: kube_dir_create_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_kubernetes_exist_result.stat.exists == false
 
 #- debug:
@@ -139,7 +140,7 @@
 - name: exec copy ca-config, ca.pem, ca-key.pem file to remote kube cache
   import_tasks: copy-root-ca-to-cache.yml
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_kubernetes_exist_result.stat.exists == false
 
 
@@ -152,7 +153,7 @@
 - name: exec generate kube ca cert
   import_tasks: gen-kube-ca-cert.yml
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_kubernetes_exist_result.stat.exists == false
 
 ##########################################################################################
@@ -165,7 +166,7 @@
 - name: exec populate ca cert files from kube cache
   import_tasks: populate-ca-cert-from-kube-cache.yml
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_kubernetes_exist_result.stat.exists == false
 
 # 2.1
@@ -176,6 +177,6 @@
 - name: exec fetch kube ca cert files from cache and back copy to ansible machine
   import_tasks: fetch-back-kube-ca-cert.yml
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_kubernetes_exist_result.stat.exists == false
   

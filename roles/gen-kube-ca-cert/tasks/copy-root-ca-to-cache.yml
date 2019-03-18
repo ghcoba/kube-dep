@@ -2,9 +2,9 @@
 
 # file: copy-root-ca-to-cache.yml
 
-- name: exec_copy_root_ca_to_cache
+- name: exec copy-root-ca-to-cache
   block:
-    - name: prompt exec_copy_root_ca_to_cache notified
+    - name: prompt exec coyp-root-ca-to-cache notified
       debug: 
         msg: "notified -> start copy root ca-config, ca-pem, ca-key.pem to remote cache ..."
 
@@ -25,7 +25,7 @@
     - name: copy ca-config.json to kube cache
       copy:
         src: "{{ dep_path_tmp_exchange }}/{{ item }}"
-        dest: "{{ cert_cache_path_kubernetes }}"
+        dest: "{{ cert_cache_path_kubernetes }}/"
       with_items:
         - ca-config.json
 
@@ -41,15 +41,15 @@
     - name: copy ca cert to kube cache
       copy:
         src: "{{ dep_path_tmp_exchange }}/{{ item }}"
-        dest: "{{ cert_cache_path_kubernetes }}"
+        dest: "{{ cert_cache_path_kubernetes }}/"
       with_items:
         - ca.pem
         - ca-key.pem
 
   rescue:
     - debug:
-        msg: "issue in exec_copy_root_ca_to_cache (to kube cache))"
+        msg: "issue occured in exec copy-root-ca-to-cache (to kube cache))"
 
   always:
     - debug:
-        msg: ". exit copy-root-ca-to-cache.yml (to kube cache))"
+        msg: ". exit exec copy-root-ca-to-cache.yml (to kube cache))"

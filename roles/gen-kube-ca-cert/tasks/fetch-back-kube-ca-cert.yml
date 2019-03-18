@@ -12,7 +12,7 @@
 #      . kube-serviceaccount
 #
 
-- name: exec_fetch_back_kube_ca_cert
+- name: exec fetch-back-kube-ca-cert
   block:
     - name:
       debug: 
@@ -168,12 +168,12 @@
 
     - name: 
       debug: 
-        msg: "exiting fetch_back_kube_ca_cert"
+        msg: "finish, and exiting fetch-back-kube-ca-cert"
 
   rescue:
     - debug:
-        msg: "issue occured"
+        msg: "issue occured in exec fetch-back-kube-ca-cert"
 
   always:
     - debug:
-        msg: ". exit fetch-back-kube-ca-cert.yml"
+        msg: ". exit exec fetch-back-kube-ca-cert.yml"
