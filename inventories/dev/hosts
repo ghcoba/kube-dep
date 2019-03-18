@@ -1,5 +1,8 @@
 node0 ansible_connection=local
 
+[ansible-nodes]
+node0
+
 [cluster]
 node1
 node2
@@ -36,3 +39,4 @@ node6
 
 [ntp-master-node]
 node1
+
