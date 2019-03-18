@@ -2,23 +2,22 @@
 
 # file: copy-ca-cfg.yml
 
-- name: exec_copy_ca_cfg_to_cache
+- name: exec copy ca-config to cert-cache
   block:
-    - name: prompt exec_copy_ca_cfg_to_cache notified
+    - name: prompt exec copy ca-config to cert-cache
       debug: 
         msg: "notified -> start copy ca-config and ca-csr to remote cache ..."
 
-    - name: copy ca-config and ca-csr to remote cache
+#   copy ca-config, ca-csr file from role files/ to cert-cache (ansible machine /etc/cert-cache/ca-config
+    - name: copy ca-config and ca-csr (from role files/) to remote cache
       copy:
         src: "{{ item }}"
-        dest: "{{ cert_cache_path_ca_config }}"
+        dest: "{{ cert_cache_path_ca_config }}/"
       with_items:
         - ca-config.json
         - ca-csr.json
-#      changed_when: True
-#      notify: exec_gen_ca_cert
-#     listen: ca_cache_dir_created
 
+#   create time stamp record
     - name: create time stamp record
       command: date
       register: date_command
@@ -28,11 +27,11 @@
     - name: push record on local to remote
       copy:
         src: "{{ dep_path_tmp_exchange }}/timestamp.log"
-        dest: "{{ cert_cache_path_ca_config }}"      
+        dest: "{{ cert_cache_path_ca_config }}/"      
 
   rescue:
     - debug:
-        msg: "issue in exec_copy_ca_cfg_to_cache"
+        msg: "issue in exec ca-config to cert-cache task"
   always:
     - debug:
-        msg: ". exit copy-ca-cfg.yml"
+        msg: ". exit exec copy ca-config to cert-cache (copy-ca-cfg.yml)"

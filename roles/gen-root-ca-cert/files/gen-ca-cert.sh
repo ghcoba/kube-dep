@@ -71,13 +71,3 @@ fi
 
 # debug
 #ls -al ./* > "${cert_dir}/files.tx"
-
-#cp -p ./ca-config.json "${tempdir_cert_backup}/ca-config.json"
-#cp -p ./ca.csr "${tempdir_cert_backup}/ca.csr"
-#cp -p ./ca-csr.json "${tempdir_cert_backup}/ca-csr.json"
-#cp -p ./ca-key.pem "${tempdir_cert_backup}/ca-key.pem"
-#cp -p ./ca.pem "${tempdir_cert_backup}/ca.pem"
-
-#cp -p ./bin/cfssl "${tempdir_cert_backup}/cfssl"
-#cp -p ./bin/cfssljson "${tempdir_cert_backup}/cfssljson"
-

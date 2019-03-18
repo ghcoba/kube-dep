@@ -6,13 +6,13 @@
 #   1. fetch ca-config, ca-csr, ca, cert and copy back to ansible site
 #
 
-- name: exec_fetch_back_root_ca
+- name: exec fetch-back-root-ca
   block:
     - name:
       debug: 
         msg: "notified -> start fetch ca-config, ca-csr, ca, cert files back ..."
 
-#   insert procedure here
+#   insert main procedure here
 
 #   copy back ca config files
     - name: backup ca-config, ca-scr, timestamp files to ansible
@@ -43,12 +43,10 @@
 
     - name: prompt exec next
       debug: 
-        msg: "exiting fetch_back_root_ca"
-#      changed_when: True
-#      notify: exec_fetch_back_root_ca
+        msg: "finish, exiting fetch-back-root-ca"
   rescue:
     - debug:
-        msg: "issue occured"
+        msg: "issue occured in exec fetch-back-root-ca"
   always:
     - debug:
         msg: ". exit fetch-back-root-ca.yml"

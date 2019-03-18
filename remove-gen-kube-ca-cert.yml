@@ -3,10 +3,11 @@
 # playbook - remove-gen-kube-ca-cert.yml
 #
 
-# only use this playbook for node-0 of cluster masters
-# attention: only for node-0 of cluster masters
+# only use this playbook for node #0 of ansible-nodes
 
-- hosts: node1
+#- hosts: node1
+#- hosts: node0
+- hosts: "{{ groups['ansible-nodes'][0] }}"
 
   roles:
     - { role: cluster-defaults }

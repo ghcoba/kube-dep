@@ -2,29 +2,5 @@
 
 # handler to copy ca-config ca-csr file to cache and generate root ca cert
 
-#- name: EXEC_GEN_ROOT_CA
-#  debug: 
-#    msg: "notified -> start generating root ca cert ..."
-#  command: /bin/true
-#  changed_when: True
-#  notify: exec_copy_ca_cfg_to_cache
-
-# following handler tasks will exec insequence by using notify sequence
-#
-
-#- name: exec_copy_ca_cfg
-#  include: ../handlers/copy_ca_cfg.yml
-#  import_tasks: copy_ca_cfg.yml
-# will notify exec_gen_ca_cert
-
-#- name: gen_ca_cert
-#  include: ../handlers/gen_ca_cert.yml
-#  import_tasks: gen_ca_cert.yml
-# will notify exec_fetch_back_root_ca
-
-#- name: fetch_back_root_ca
-#  include: ../handlers/fetch_back_root_ca.yml
-##  import_tasks: fetch_back_root_ca.yml
-
   
 

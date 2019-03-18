@@ -7,7 +7,9 @@
 #   remove kube ca cert
 #   remove root ca cert
 
-- hosts: node1
+#- hosts: node1
+#- hosts: node0
+- hosts: "{{ groups['ansible-nodes'][0] }}"
   roles:
     - { role: cluster-defaults }
   tasks:
@@ -19,7 +21,9 @@
     - name: remove procedure of role gen-etcd-ca-cert
       include: roles/gen-etcd-ca-cert/tasks/remove-gen-etcd-ca.yml
 
-- hosts: node1
+#- hosts: node1
+#- hosts: node0
+- hosts: "{{ groups['ansible-nodes'][0] }}"
   roles:
     - { role: cluster-defaults }
   tasks:
@@ -34,7 +38,9 @@
     - name: remove procedure of role gen-kube-ca-cert
       include: roles/gen-kube-ca-cert/tasks/remove-gen-kube-ca.yml
 
-- hosts: node1
+#- hosts: node1
+#- hosts: node0
+- hosts: "{{ groups['ansible-nodes'][0] }}"
   roles:
     - { role: cluster-defaults }
   tasks:

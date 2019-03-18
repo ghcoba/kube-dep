@@ -1,6 +1,7 @@
 ---
 dependencies:
   - role: cluster-defaults
-  - role: install-cfssl
+#  - role: install-cfssl
+  - role: install-cfssl-local
   - role: common
 run_once: true
