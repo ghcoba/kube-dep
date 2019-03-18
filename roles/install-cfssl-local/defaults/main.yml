@@ -1,0 +1,6 @@
+---
+
+# file: roles/install-cfssl-local/defaults/main.yml
+
+# 
+cfssl_bin_local_path: "{{ dep_path_local_bin }}/cfssl-bin-local/cfssl"

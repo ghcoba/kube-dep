@@ -1,0 +1,34 @@
+---
+
+# file: roles/install-cfssl-local/tasks/main.yml
+#
+# copy cfssl utility files from ansible deploy site deploy data directory
+#    to node #0 of ansible-nodes inventory group
+
+- name: configure start install-cfssl task main
+  debug:
+    msg: "check tracing - start install-cfssl-local task main"
+
+- name: create bin path for cfssl (/usr/local/bin), if not exist
+  file:
+    path: "{{ bin_path }}/"
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+
+- name: install cfssl utility
+  copy:
+    src: "{{ cfssl_bin_local_path }}/{{ item }}_linux-amd64"
+    dest: "{{ bin_path }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0751
+  with_items:
+    - cfssl
+    - cfssljson
+    - cfssl-certinfo
+    - cfssl-newkey
+    - cfssl-scan
+#  run_once: true
+#  delegate_to: "{{ groups['ansible-nodes'][0] }}"

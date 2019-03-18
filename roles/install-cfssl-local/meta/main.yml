@@ -1,0 +1,6 @@
+---
+
+# file: roles/install-cfssl-local/meta/main.yml
+
+dependencies:
+  - role: cluster-defaults
