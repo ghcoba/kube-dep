@@ -2,9 +2,9 @@
 
 # file: copy-root-ca-to-etcd-cache.yml
 
-- name: exec_copy_root_ca_to_etcd_cache
+- name: exec copy-root-ca-to-etcd-cache
   block:
-    - name: prompt exec_copy_root_ca_to_etcd_cache notified
+    - name: prompt exec copy-root-ca-to-etcd-cache notified
       debug: 
         msg: "notified -> start copy root ca-config, ca-pem, ca-key.pem to remote etcd cache ..."
 
@@ -71,7 +71,7 @@
 
   rescue:
     - debug:
-        msg: "issue in exec_copy_root_ca_to_etcd_cache"
+        msg: "issue occured in exec copy-root-ca-to-etcd-cache"
 
   always:
     - debug:

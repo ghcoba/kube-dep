@@ -3,13 +3,13 @@
 # file: populate-ca-cert-from-etcd-cache.yml
 
 # func:
-#   all ca cert files remain in etcd cache directory
+#   all ca cert files remain in etcd cache directory (no need to proc)
 #   copy flanneld ca cert and config to flanneld cache directory
 #
 
-- name: exec_populate_ca_cert_from_etcd_cache
+- name: exec populate-ca-cert-from-etcd-cache
   block:
-    - name: prompt exec_populate_ca_cert_from_etcd_cache notified
+    - name: prompt exec populate-ca-cert-from-etcd-cache notified
       debug: 
         msg: "notified -> start populate ca cert from etcd cache ..."
 
@@ -38,7 +38,7 @@
     - name: copy flanneld ca cert and config to flanneld cache directory
       copy:
         src: "{{ dep_path_tmp_exchange }}/{{ item }}"
-        dest: "{{ cert_cache_path_flanneld }}"
+        dest: "{{ cert_cache_path_flanneld }}/"
       with_items:
         - ca-config.json
         - ca.pem
@@ -53,8 +53,8 @@
 
   rescue:
     - debug:
-        msg: "issue in exec_populate_ca_cert_from_etcd_cache"
+        msg: "issue occured in exec populate-ca-cert-from-etcd-cache"
 
   always:
     - debug:
-        msg: ". exit polulate-ca-cert-from_kube-cache.yml (copy flanneld to its cache dir)"
+        msg: ". exit exec polulate-ca-cert-from_kube-cache.yml (flanneld cert to its cache dir)"

@@ -34,35 +34,35 @@
 # --------------------------------------------------------------------------------------
 #
 
-- name: exec_gen_etcd_ca_cert
+- name: exec gen-etcd-ca-cert
   block:
     - name:
       debug:
         msg: "notified -> start generating etcd ca cert ..."
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
-
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 
 #   insert main procedure here ----------->
 
-    - name: copy shell script to /etc/cert-cache/etcd
+    - name: copy shell script to /etc/cert-cache/etcd/
       copy:
         src: gen-etcd-ca-cert.sh
-        dest: "{{ cert_cache_path_etcd }}"
+        dest: "{{ cert_cache_path_etcd }}/"
         owner: root
         group: root
         mode: "0500"
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
-#   run script to create etcd cert in etcd cache directory of first kube master node
+#   run script to create etcd cert in etcd cache directory of node #0 of ansible-nodes group
 #     create ca certs for etcd root/server/client/peer ca and flanneld client ca.  
     - name: gen etcd ca certs kubernetes services
       command:
         "{{ cert_cache_path_etcd }}/gen-etcd-ca-cert.sh"
-      args:
-        creates: "{{ cert_cache_path_etcd }}/server.crt"
+#      args:
+#        creates: "{{ cert_cache_path_etcd }}/server.crt"
+      chdir: "{{ cert_cache_path_etcd }}/"
       environment:
         NODE_IPS: "{% for host in groups['etcd-nodes'] %}{{ hostvars[host]['etcd_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
         NODE_DNS: "{{ groups['etcd-nodes']|join(',') }}"
@@ -73,7 +73,7 @@
         CERT_GROUP: root
       register: gen_etcd_script_result
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 #   end main procedure  ----------------<
 
@@ -81,15 +81,15 @@
 #
     - name: prompt exec state
       debug:
-        msg: "exiting gen_etcd_ca_cert."
+        msg: "finish, and exiting gen-etcd-ca-cert."
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
   rescue:
     - debug:
-        msg: "issue occured in gen_etcd_ca_cert"
+        msg: "issue occured in exec gen-etcd-ca-cert"
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
     - name: debug script result
       local_action:
@@ -97,9 +97,9 @@
     - name:
       copy:
         src: "{{ dep_path_tmp_exchange }}/script-exec.log"
-        dest: "{{ cert_cache_path_etcd }}"
+        dest: "{{ cert_cache_path_etcd }}/"
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 
   always:
@@ -110,20 +110,20 @@
       command: date
       register: date_command
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
     - name: log time stamp record
       local_action:
         copy content="{{ date_command.stdout }}" dest="{{ dep_path_tmp_exchange }}/timestamp.log"
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
     - name: push record on local to remote
       copy:
         src: "{{ dep_path_tmp_exchange }}/timestamp.log"
-        dest: "{{ cert_cache_path_etcd }}"
+        dest: "{{ cert_cache_path_etcd }}/"
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
 #
     - debug:
-        msg: ". exit gen-etcd-ca-cert.yml"    
+        msg: ". exit exec gen-etcd-ca-cert.yml"    
       run_once: true
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"

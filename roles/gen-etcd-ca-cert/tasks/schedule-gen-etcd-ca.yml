@@ -4,7 +4,7 @@
 #
 
 # func:
-#   0. check root cache directory ( /etc/cert-cache ) on remote
+#   0. check root cache directory ( /etc/cert-cache ) on remote ( on node #0 of ansible-nodes group)
 #        end play when main cache directory exist
 #   1. check etcd cache directory (/etc/cert-cache/etcd) on remote
 #   2. create cach directory and then schedule generating etcd ca cert , if etcd cache dir not exist
@@ -13,11 +13,11 @@
 #              network configuration data)
 #
 # scheduled proc:
-#   . copy root ca-config ca-config json file to node-0 of master cluster
-#   . copy root ca.pem and ca-key.pem to node-0 of master cluster
+#   . copy root ca-config ca-config json file to node #0 of ansible-nodes
+#   . copy root ca.pem and ca-key.pem to node #0 of ansible-nodes
 #   . create *-csr.json file for *= etcd-server, etcd-client, etcd-peer
 #       by using script and generate etcd ca cert using cfssl utility
-#   . fetch all config/json/csr/ca/cert files and copy back to ansible deploy machine
+#   . fetch all config/json/csr/ca/cert files and copy back to ansible deploy machine as backup
 #  ref:
 #   . check /etc/cert-cache/etcd directory exist
 #
@@ -28,28 +28,29 @@
 # check environmental status
 #######################################
 
-# check main cert-cache dir exist
+# check main cert-cache dir exist (/etc/cert-cache/)
 - name: check cert-cache directory exist
   stat:
     path: "{{ cert_cache_path }}"
   register: cert_cache_path_exist_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
+# check (/etc/cert-cache/ca/)
 - name: check cert-cache ca directory exist
   stat:
     path: "{{ cert_cache_path_ca }}"
   register: cert_cache_path_ca_exist_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
+# check (/etc/cert-cache/ca-config/)
 - name: check cert-cache ca-config directory exist
   stat:
     path: "{{ cert_cache_path_ca_config }}"
   register: cert_cache_path_ca_config_exist_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
-
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # exit if false condition
 
@@ -59,7 +60,7 @@
 - block:
     - name: end play if cer-cache dir not exist
       debug:
-        msg: "ca-config, ca or cert-cache directory not exist, ending play"
+        msg: "ERROR: ca-config, ca or cert-cache directory not exist, ending play"
     - meta: end_play
   when: ( cert_cache_path_exist_result.stat.exists == false ) or ( cert_cache_path_ca_exist_result.stat.exists == false ) or ( cert_cache_path_ca_config_exist_result.stat.exists == false )
 ##########
@@ -68,13 +69,13 @@
 # or continue to go
 
 
-# check etcd cert cache dir (/etc/cert-cache/etcd) exist
+# check etcd cert cache dir (/etc/cert-cache/etcd/) exist
 - name: check etcd cert cache directory exist
   stat:
     path: "{{ cert_cache_path_etcd }}"
   register: cert_cache_path_etcd_exist_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 #- debug:
 #    msg: "{{ cert_cache_path_etcd_exist_result }}"
@@ -84,14 +85,14 @@
   debug:
     msg: "etcd cache directory not exist. will continue to generate etcd ca cert..."
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_etcd_exist_result.stat.exists == false
 # prompt check result
 - name: prompt etcd cache directory exist result - exist
   debug:
     msg: "etcd cache directory already exist. will exit generating etcd ca cert."
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_etcd_exist_result.stat.exists == true
 
 
@@ -103,7 +104,7 @@
 #   also, flanneld cache directory will be created
 - name: create etcd and flanneld dir
   file:
-    path: "{{ item }}"
+    path: "{{ item }}/"
     state: directory
     force: yes
     mode: 01755
@@ -114,7 +115,7 @@
     - "{{ cert_cache_path_flanneld }}"
 #  register: etcd_dir_create_result
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_etcd_exist_result.stat.exists == false
 
 #- debug:
@@ -133,7 +134,7 @@
 - name: exec copy ca-config, ca.pem, ca-key.pem file to remote etcd cache
   import_tasks: copy-root-ca-to-etcd-cache.yml
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_etcd_exist_result.stat.exists == false
 
 
@@ -146,7 +147,7 @@
 - name: exec generate etcd ca cert
   import_tasks: gen-etcd-ca-cert.yml
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_etcd_exist_result.stat.exists == false
 
 
@@ -159,7 +160,7 @@
 - name: exec populate etcd and flannel ca cert files from etcd cache
   import_tasks: populate-ca-cert-from-etcd-cache.yml
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_etcd_exist_result.stat.exists == false
 
 # 2.2
@@ -170,6 +171,6 @@
 - name: exec fetch etcd ca cert files from etcd cache and back copy to ansible site
   import_tasks: fetch-back-etcd-ca-cert.yml
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: cert_cache_path_etcd_exist_result.stat.exists == false
   

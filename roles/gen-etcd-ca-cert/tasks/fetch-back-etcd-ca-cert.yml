@@ -8,7 +8,7 @@
 #      . flanneld
 #
 
-- name: exec_fetch_back_etcd_ca_cert
+- name: exec fetch-back-etcd-ca-cert
   block:
     - name:
       debug: 
@@ -70,14 +70,14 @@
 
     - name: 
       debug: 
-        msg: "exiting fetch_back_etcd_ca_cert"
+        msg: "finish, and exiting fetch-back-etcd-ca-cert"
 
   rescue:
     - debug:
-        msg: "issue occured"
+        msg: "issue occured in exec fetch-back-etcd-ca-cert"
 
   always:
     - debug:
-        msg: ". exit fetch-back-etcd-ca-cert.yml"
+        msg: ". exit exec fetch-back-etcd-ca-cert.yml"
 
 
