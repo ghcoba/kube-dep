@@ -3,7 +3,7 @@
 # file: roles/create-etcd-cluster/tasks/copy-cert-to-etcd-node.yml
 #
 
-# fetch etcd cert from node-0 of cluster masters to ansible temp exchange directory
+# fetch etcd cert from node #0 of ansible-nodes group to ansible temp exchange directory
 #   using delegate_to node-0
 
 # fech all cert to ansible temp exchange dir
@@ -23,7 +23,7 @@
     - etcd-server-key.pem
     - etcd-peer.pem
     - etcd-peer-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy all cert from ansible temp exchange directory to etcd cluster node
 - name: copy all cert files to etcd cluster node

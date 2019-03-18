@@ -4,8 +4,13 @@
 #
 
 # func:
-#   0. check etcd config directory ( /etc/etcd ) on remote
-#        skip create-etcd-node procedure if /etc/etcd directory exist
+#   0. check etcd config directory ( /etc/etcd ) or etcd cert directory (/etc/etcd/cert) on remote
+#        skip create-etcd-node procedure if /etc/etcd  or /etc/etcd/cert directory exist
+#   0. will also force to create-etcd-node, if node is a cluster master node or cluster worker node
+#        (means, if we use cluster master or cluster worker node to act as a etcd node, 
+#         /etc/etcd and /etc/etcd/cert directory many already exist for etcd client, we also need to
+#         exec create-etcd-node procedure to ceate a full set of /etc/etcd and /etc/etcd/cert for the
+#         node can act as a etcd cluster server node)
 #   1. create etcd node of etcd cluster
 #
 # scheduled proc:
@@ -54,7 +59,7 @@
   delegate_to: "{{ groups['etcd-nodes'][0] }}"
 
 
-# skip it exist condition true
+# skip if exist condition true AND node is not a kube cluster node (kube master node or kube worker node)
 
 ###########
 ###########
@@ -91,6 +96,10 @@
 #   create firewall rule to enable etcd network traffic
     - name: exec enable-firewall-rule-for-etcd
       import_tasks: enable-firewall-rule-for-etcd.yml
+#     as kube-masters and kube-nodes do not use firewalld firewall, then eanble firewalld rules only when
+#       node is not a kube-master node and noto a kube-worker node
+#     only dedicated etcd server (other than kube masters and worker nodes) node will apply firewalld rules for etcd
+      when: ( inventory_hostname not in groups['kube-masters'] ) and ( inventory_hostname not in groups['kube-nodes'] )
 
 # 7.
 #   enable and start etcd service
@@ -104,13 +113,13 @@
 
 # - condition of block:
 #     when for block (exec block when condition true - need create etcd cluster node)
-  when: ( etcd_config_path_exist_result.stat.exists == false ) or ( etcd_cert_path_exist_result.stat.exists == false )
+  when: ( etcd_config_path_exist_result.stat.exists == false ) or ( etcd_cert_path_exist_result.stat.exists == false ) or ( inventory_hostname in groups['kube-masters'] ) or ( inventory_hostname in groups['kube-nodes'] )
 
 ##########
 ##########
 
 # continue do nothing
 #   (
-#     etcd config and cert directory exist, we consider this condition as etcd cluster is exist,
+#     etcd config and cert directory exist AND node is not a KUBE CLUSTER NODE, we consider this condition as etcd cluster is exist,
 #       and then need not to re-create etcd cluster
 #   )

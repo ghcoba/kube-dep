@@ -22,15 +22,20 @@
         daemon_reload: no
         state: stopped
         enabled: no
+   
+    - name: remove etcd service systemd file
+      file:
+        path: /etc/systemd/system/etcd.service
+        state: absent
 
     - name: remove kube and etcd config directory cluster master
       file:
-        path: "{{ item }}"
+        path: "{{ item }}/"
         state: absent
       with_items:
-        - "{{ etcd_cert_path }}/"
-        - "{{ etcd_config_path }}/"
-        - "{{ etcd_data_path }}/"
+        - "{{ etcd_cert_path }}"
+        - "{{ etcd_config_path }}"
+        - "{{ etcd_data_path }}"
 
 
     - debug: 

@@ -9,9 +9,9 @@
 #   . /etc/etcd/cert
 
 # create /etc/etcd/cert
-- name: create etcd_cert_path directory exist
+- name: create etcd_cert_path directory
   file:
-    path: "{{ etcd_cert_path }}"
+    path: "{{ etcd_cert_path }}/"
     recurse: yes
     state: directory
     owner: "{{ etcd_user }}"

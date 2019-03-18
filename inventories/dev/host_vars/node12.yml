@@ -1,5 +1,6 @@
 ---
 
 host_ip_address: "10.0.0.112"
+ansible_hostname: node12
 docker_subnet_cidr: "172.16.12.0/24"
 docker_subnet_bip: "172.16.12.1/24"

@@ -1,5 +1,6 @@
 ---
 
 host_ip_address: "10.0.0.113"
+ansible_hostname: node13
 docker_subnet_cidr: "172.16.13.0/24"
 docker_subnet_bip: "172.16.13.1/24"
