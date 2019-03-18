@@ -35,8 +35,8 @@
     path: "{{ cert_cache_path_ca_config }}"
   register: ca_config_exist_result
   run_once: true
-  delegate_to: "{{ groups['ansible-nodes'][0] }}"
-	
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"	
+
 #- debug:
 #    msg: "{{ ca_config_exist_result }}"
 

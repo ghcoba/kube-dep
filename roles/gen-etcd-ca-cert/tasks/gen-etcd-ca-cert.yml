@@ -62,7 +62,8 @@
         "{{ cert_cache_path_etcd }}/gen-etcd-ca-cert.sh"
 #      args:
 #        creates: "{{ cert_cache_path_etcd }}/server.crt"
-      chdir: "{{ cert_cache_path_etcd }}/"
+      args:
+        chdir: "{{ cert_cache_path_etcd }}/"
       environment:
         NODE_IPS: "{% for host in groups['etcd-nodes'] %}{{ hostvars[host]['etcd_machine_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
         NODE_DNS: "{{ groups['etcd-nodes']|join(',') }}"

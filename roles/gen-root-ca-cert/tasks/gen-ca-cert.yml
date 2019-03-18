@@ -67,7 +67,8 @@
     - name: generate root ca, cert on node-0 of cluster master
       command:
         "{{ cert_cache_path_ca }}/gen-ca-cert.sh"
-      chdir: "{{ cert_cache_path_ca }}/"
+      args:
+        chdir: "{{ cert_cache_path_ca }}/"
       environment:
         CERT_DIR: "{{ cert_cache_path_ca }}"
         CERT_GROUP: root
