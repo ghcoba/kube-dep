@@ -10,7 +10,7 @@ After=network.target
 [Service]
 WorkingDirectory={{ kube_proxy_data_path }}
 EnvironmentFile=-{{ kube_config_path }}/kube-proxy
-ExecStart={{ bin_path }}/kube-proxy \
+ExecStart=/usr/bin/kube-proxy \
         --logtostderr=true \
         --v=2 \
         --bind-address=0.0.0.0 \

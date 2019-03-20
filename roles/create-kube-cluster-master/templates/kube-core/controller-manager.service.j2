@@ -14,12 +14,14 @@
 Description=kubernetes controller-manager service - kube-controller-manager.service
 After=network.target
 After=kube-apiserver.service
+Requires=kube-apiserver.service
 
 [Service]
-User=root
+User={{ kube_user }}
+#User=root
 EnvironmentFile=-/etc/kubernetes/controller-manager
 
-ExecStart={{ bin_path }}/kube-controller-manager \
+ExecStart=/usr/bin/kube-controller-manager \
   --alsologtostderr=false \
   --logtostderr=true \
   --v=2 \

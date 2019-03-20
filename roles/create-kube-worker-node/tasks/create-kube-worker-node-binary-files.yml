@@ -10,7 +10,7 @@
 - name: exec create-kube-binary-files
   copy:
     src: "{{ dep_path_local_bin_kube_node }}/{{ item }}"
-    dest: "{{ bin_path }}/"
+    dest: "/usr/bin/"
     owner: "{{ kube_user }}"
     group: "{{ kube_group }}"
     mode: 0750
@@ -20,6 +20,16 @@
     - kubelet
     - kube-proxy
 
+#   copy kube binary to kube master node
+- name: exec create-kube-binary-files
+  copy:
+    src: "{{ dep_path_local_bin_kube_node }}/{{ item }}"
+    dest: "{{ bin_path }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0750
+  with_items:
+    - kubectl
 
 - name:
   debug:

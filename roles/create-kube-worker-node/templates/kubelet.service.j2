@@ -19,7 +19,7 @@ Requires=docker.service
 [Service]
 WorkingDirectory={{ kubelet_data_path }}
 EnvironmentFile=-/etc/kubernetes/kubelet
-ExecStart={{ kubelet_bin_path }}/kubelet \
+ExecStart=/usr/bin/kubelet \
         --logtostderr=true \
         --v=3 \
         \

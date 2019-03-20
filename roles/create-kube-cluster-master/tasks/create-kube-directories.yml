@@ -22,7 +22,7 @@
 # create kube config directory (/etc/kubernetes/)
 - name: create and ensure kube config directory exists
   file:
-    path: "{{ kube_config_path }}"
+    path: "{{ kube_config_path }}/"
     recurse: yes
     state: directory
     mode: 0760
@@ -36,7 +36,7 @@
  
 - name: create kube cert, manifests, log directories
   file:
-    path: "{{ item }}"
+    path: "{{ item }}/"
     recurse: yes
     state: directory
     mode: 0760

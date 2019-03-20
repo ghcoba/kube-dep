@@ -8,13 +8,13 @@
 # create ip-masq agent yaml 
 - name: create ip-masq agent yaml
   template:
-    src: ip-masq-agent.yaml.j2
+    src: ip-masq/ip-masq-agent.yaml.j2
     dest: "{{ kube_daemonset_path }}/ip-masq-agent.yaml"
 
 # create ip-masq-agent config directory
 - name: create ip-masq-agent config directory
   file:
-    path: "{{ item }}"
+    path: "{{ item }}/"
     recurse: yes
     state: directory
     mode: 0766
@@ -26,7 +26,7 @@
 # create ip-masq agent config file
 - name: create ip-masq agent config file
   template:
-    src: ip-masq-agent.config.j2
+    src: ip-masq/ip-masq-agent.config.j2
     dest: "{{ kube_ipmasq_agent_config_path }}/config"
 
 # create ip-masq agent configmap

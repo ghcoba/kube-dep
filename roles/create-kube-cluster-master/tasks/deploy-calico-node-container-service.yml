@@ -20,13 +20,13 @@
 # . (import calico node container docker image to local docker image directory - has move to calico common environment prepare deploy)
 # . enable and start calico node container service to create and run calico container node in docker
 #
-# calico-node-container.service.j2
+# calico/calico-node-container.service.j2
 #
 
 # create calico node docker container service systemd file
 - name: create calico node service systemd file
   template:
-    src: ../../create-kube-cluster-master/templates/calico-node-container.service.j2
+    src: ../../create-kube-cluster-master/templates/calico/calico-node-container.service.j2
     dest: /etc/systemd/system/calico-node-container.service
 
 #### DO NOT START SERVICE

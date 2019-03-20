@@ -32,13 +32,13 @@
     shell: /sbin/nologin
     state: present
     system: yes
-    home: "{{ kube_home_path }}"
+    home: "{{ kube_home_path }}/"
 #   ATTENTION: also add kube user to etcd group, to enable kube user has rights to access etcd certs
     groups: "{{ kube_group }}, {{ etcd_group}}"
 
 - name: create kube home directory and data directory
   file:
-    path: "{{ item }}"
+    path: "{{ item }}/"
     recurse: yes
     state: directory
     owner: "{{ kube_user }}"

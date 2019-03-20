@@ -17,14 +17,14 @@
 #
 
 # create etcd directory
-#   . /etc/etcd
-#   . /etc/etcd/cert
+#   . /etc/etcd/
+#   . /etc/etcd/cert/
 
 # 1.
-# create /etc/etcd/cert directory
+# create /etc/etcd/cert/ directory
 - name: create kube etcd_cert_path directory
   file:
-    path: "{{ etcd_cert_path }}"
+    path: "{{ etcd_cert_path }}/"
     recurse: yes
     state: directory
     owner: "{{ kube_user }}"
@@ -53,7 +53,7 @@
 #    - etcd-server-key.pem
 #    - etcd-peer.pem
 #    - etcd-peer-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy all etcd-ca and etcd client cert from ansible temp exchange directory to node
 - name: copy etcd-ca and client cert for etcdctl client
@@ -95,7 +95,7 @@
 
 - name: copy etcdctl-env.rc for etcdctl environment
   template:
-    src: etcdctl-env.rc.j2
+    src: ../../create-kube-cluster-master/templates/etcdctl/etcdctl-env.rc.j2
     dest: /root/.etcdctl-env.rc
 
 - name: copy write-etcdctl-env.sh to /usr/local/bin

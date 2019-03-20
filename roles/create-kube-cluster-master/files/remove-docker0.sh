@@ -15,6 +15,7 @@
 # limitations under the License.
 
 # Delete default docker bridge, so that docker can start with flannel network.
+# (delete previously created docker0 bridge)
 
 # exit on any error
 set -e

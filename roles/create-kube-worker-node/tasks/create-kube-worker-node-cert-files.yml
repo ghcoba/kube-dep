@@ -19,7 +19,7 @@
   with_items:
     - ca.pem
     - ca-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 # ??? do not add ca-key.pem on worker node
 
 # copy kube root ca cert from ansible temp exchange directory to kube worker node
@@ -46,7 +46,7 @@
   with_items:
     - kube-admin.pem
     - kube-admin-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube admin cert key from ansible temp exchange directory to kube work node
 - name: copy kube admin cert key files to kube worker node
@@ -72,7 +72,7 @@
     - kube-proxy.pem
     - kube-proxy-key.pem
     - timestamp.log
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube proxy cert key from ansible temp exchange directory to kube worker node
 - name: copy kube proxy cert key files to kube worker node
@@ -103,7 +103,7 @@
     - kube-apiserver-client-key.pem
     - kube-apiserver.pem
     - kube-apiserver-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube admin cert key from ansible temp exchange directory to kube work node
 - name: copy kube admin cert key files to kube worker node
@@ -135,7 +135,7 @@
   with_items:
     - kube-serviceaccount.pem
     - kube-serviceaccount-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube serviceaccount cert key from ansible temp exchange directory to kube worker node
 - name: copy kube serviceaccount cert key files to kube worker node

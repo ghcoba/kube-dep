@@ -19,7 +19,7 @@
 # create kube-router log directory /var/log/kube-router
 - name: create kube-router log dicrectory
   file:
-    path: "{{ kuberouter_log_path }}"
+    path: "{{ kuberouter_log_path }}/"
     owner: "root"
     group: "root"
     mode: 0660
@@ -28,7 +28,7 @@
 # create kube-router data directory /var/lib/kube-router
 - name: create kube-router data dicrectory
   file:
-    path: "{{ kuberouter_data_path }}"
+    path: "{{ kuberouter_data_path }}/"
     owner: "root"
     group: "root"
     mode: 0660
@@ -37,7 +37,7 @@
 # create kube-router config directory (/etc/kube-router)
 - name: create kube-router config dicrectory
   file:
-    path: "{{ kuberouter_config_path }}"
+    path: "{{ kuberouter_config_path }}/"
     owner: "root"
     group: "root"
     mode: 0640
@@ -46,7 +46,7 @@
 # create kube-router config yaml directory (/etc/kube-router/yaml)
 - name: create kube-router config yaml dicrectory
   file:
-    path: "{{ kuberouter_config_yaml_path }}"
+    path: "{{ kuberouter_config_yaml_path }}/"
     owner: "root"
     group: "root"
     mode: 0640
@@ -55,7 +55,7 @@
 # create cni config directory (/etc/cni/net.d)
 - name: create cni config dicrectory
   file:
-    path: "{{ cni_config_path }}"
+    path: "{{ cni_config_path }}/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -78,11 +78,11 @@
 
 
 ### create kube-router network config file 
-#   copy template kuberouter-cn-conf.json.j2 to
+#   copy template kube-router/kuberouter-cn-conf.json.j2 to
 #     cni-conf.json in /etc/kube-router/ directory
 - name: create kube-router network config file
   template:
-    src: ../../create-kube-cluster-master/templates/kuberouter-cni-conf.json.j2
+    src: ../../create-kube-cluster-master/templates/kube-router/kuberouter-cni-conf.json.j2
     dest: "{{ kuberouter_network_conf_file_path }}"
 - name: set file attrib
   file: 

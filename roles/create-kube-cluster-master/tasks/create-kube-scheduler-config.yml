@@ -52,7 +52,7 @@
     group: "{{ kube_group }}"
     mode: 0640
 
-# copy kube config file to ansible backup directory
+# copy kube config file from node #0 of kube-masters group to ansible backup directory
 - name: fetch kube controller-manager config file to ansible backup directory
   fetch:
     src: "{{ kube_scheduler_config_file }}"

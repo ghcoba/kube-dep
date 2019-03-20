@@ -66,13 +66,13 @@
 # check environmental status and
 #   determine if machine we can deploy on it
 #
-# ( check each node,if /etc/kubernetes directory exists, then avoid deploy on this node )
+# ( check each node,if /etc/kubernetes directory exists, then avoid deploy on this host )
 #
 
-# check kubernetes directory (/etc/kubernetes) exist
+# check kubernetes directory (/etc/kubernetes/ on every host ) exist
 - name: check kubernetes directory exist
   stat:
-    path: "{{ kube_config_path }}"
+    path: "{{ kube_config_path }}/"
   register: kube_config_path_exist_result
 
 

@@ -48,6 +48,3 @@
     daemon_reload: yes
     state: restarted
     enabled: yes
-# to start kube-apiserver on node#0 only for test only
-  run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}"

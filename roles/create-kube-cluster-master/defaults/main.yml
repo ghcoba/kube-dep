@@ -9,15 +9,19 @@
 #   . misc. string definition for generating kube config file
 #
 
+
+# 1.
 #########################################################################################
 kube_api_load_balancer_apiserver_url: "https://{{ hostvars['lb-node']['host_ip_address'] }}:6443"
 kube_api_load_balancer_apiserver_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
 
 
+# 2.0
 #########################################################################################
 # varibles for gen kube config
 #
 
+# 2.1
 ###################################
 # argument string of kubectl config
 #
@@ -37,12 +41,18 @@ arg_str_defaultcontext: " config use-context kubernetes-admin@kubernetes --kubec
 # ###
 arg_str_kube_config: "{{ arg_str_cluster }}{{ arg_str_credentials }}{{ arg_str_context }}{{ arg_str_defaultcontext }}"
 
+
+# 2.2
 #######################################
 # argument string of kube-controller-manager config
 
+
+# 2.3
 #######################################
 # argument string of kube-scheduler config
 
+
+# 2.4
 #======================================
 # varibles for gen kube-proxy config
 
@@ -58,6 +68,7 @@ arg_str_kube_proxy_defaultcontext: " config use-context system:kube-proxy@kubern
 arg_str_kube_proxy_kube_config: "{{ arg_str_kube_proxy_cluster }}{{ arg_str_kube_proxy_credentials }}{{ arg_str_kube_proxy_context }}{{ arg_str_kube_proxydefaultcontext }}"
 
 
+# 3.
 #######################################
 # command argument to create pod network config in etcd
 

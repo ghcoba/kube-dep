@@ -24,7 +24,7 @@
     shell: /sbin/nologin
     state: present
     system: yes
-    home: "{{ kube_proxy_data_path }}"
+    home: "{{ kube_proxy_data_path }}/"
     groups: "{{ kube_proxy_group }}"
 
 # 2.
@@ -32,7 +32,7 @@
 
 - name: create and ensure kube_proxy_data_path exists
   file:
-    path: "{{ kube_proxy_data_path }}"
+    path: "{{ kube_proxy_data_path }}/"
     recurse: yes
     state: directory
     owner: "{{ kube_proxy_user }}"

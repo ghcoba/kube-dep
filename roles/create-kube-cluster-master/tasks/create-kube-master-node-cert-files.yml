@@ -18,7 +18,7 @@
   with_items:
     - ca.pem
     - ca-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube root ca cert from ansible temp exchange directory to kube cluster master
 - name: copy root ca cert files to kube master
@@ -43,7 +43,7 @@
   with_items:
     - kube-admin.pem
     - kube-admin-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube admin cert key from ansible temp exchange directory to kube cluster master
 - name: copy kube admin cert key files to kube master
@@ -74,7 +74,7 @@
     - kube-apiserver-key.pem
     - kube-apiserver-client.pem
     - kube-apiserver-client-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube apiserver cert key from ansible temp exchange directory to kube cluster master
 - name: copy kube apiserver cert key files to kube master
@@ -103,7 +103,7 @@
   with_items:
     - kube-controller-manager.pem
     - kube-controller-manager-key.pem
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube controller-manager cert key from ansible temp exchange directory to kube cluster master
 - name: copy kube controller-manager cert key files to kube master
@@ -129,7 +129,7 @@
     - kube-scheduler.pem
     - kube-scheduler-key.pem
     - timestamp.log
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube scheduler cert key from ansible temp exchange directory to kube cluster master
 - name: copy kube scheduler cert key files to kube master
@@ -156,7 +156,7 @@
     - kube-proxy.pem
     - kube-proxy-key.pem
     - timestamp.log
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube proxy cert key from ansible temp exchange directory to kube cluster master
 - name: copy kube proxy cert key files to kube master
@@ -183,7 +183,7 @@
     - kube-serviceaccount.pem
     - kube-serviceaccount-key.pem
     - timestamp.log
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy kube serviceaccount cert key from ansible temp exchange directory to kube cluster master
 - name: copy kube sa service account cert key files to kube master
@@ -203,10 +203,10 @@
 # generate kube encryption config file
 - name: generate kube encryption config file - include encryption key
   template:
-    src: encryption-config.yaml.j2
+    src: encryption/encryption-config.yaml.j2
     dest: "{{ encryption_config_file }}"
 
-# change audit policy config file attribute
+# change encryption file attribute
 - name: change file attrib
   file:
     path: "{{ encryption_config_file }}"
@@ -214,7 +214,7 @@
     group: "{{ kube_group }}"
     mode: 0640
 
-# backup encryption config file to ansible machine
+# backup encryption config file from node #0 of kube-masters group to ansible machine
 - name: backup encryptionconfig file to ansible machine
   fetch:
     src: "{{ encryption_config_file }}"

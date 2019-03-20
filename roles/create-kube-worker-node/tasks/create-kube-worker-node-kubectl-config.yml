@@ -91,7 +91,7 @@
     group: "{{ kube_group }}"
     mode: 0640
 
-- name: cp kube config to home
+- name: copy kube config to home
   command: cp "{{ kubectl_config_file }}" "{{ kubectl_client_config_file }}"
 #  args:
 

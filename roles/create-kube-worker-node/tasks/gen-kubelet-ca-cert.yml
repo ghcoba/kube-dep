@@ -28,7 +28,7 @@
 #   create temp work directory
     - name: create temp work directory
       file:
-        path: /tmp/work-dir-gen-cert
+        path: /tmp/work-dir-gen-cert/
         owner: root
         state: directory
         recurse: yes
@@ -58,7 +58,7 @@
         flat: true
       with_items:
         - ca-config.json
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
     - name: copy ca-config.json to tmp work dir
       copy:
@@ -77,7 +77,7 @@
       with_items:
         - ca.pem
         - ca-key.pem
-      delegate_to: "{{ groups['kube-masters'][0] }}"
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
     - name: copy ca cert to kube cache
       copy:
@@ -125,8 +125,6 @@
 #        MASTER_CA_CONFIG_DIR: "{{ cert_cache_path_ca_config }}"
 #       # cert group env - now use group root
 #        CERT_GROUP: root
-#      run_once: true
-#      delegate_to: "{{ groups['kube-masters'][0] }}"
 
     - debug:
         msg: "exit gen kubelet cert. on {{ inventory_hostname }}, using node ip of {{ hostvars[inventory_hostname]['host_ip_address'] }}"

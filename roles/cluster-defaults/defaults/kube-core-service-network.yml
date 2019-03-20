@@ -40,8 +40,8 @@ kube_load_balancer_apiserver_secure_port: "{{ kube_apiserver_secure_port }}"
 # kube-apiserver secure listen port
 kube_apiserver_secure_port: 6443
 # kube apiserver insecure port - default 8080 (for test only), use 0 to disable using insecure port
-kube_apiserver_insecure_port: 8080
-#kube_apiserver_insecure_port: 0
+#kube_apiserver_insecure_port: 8080
+kube_apiserver_insecure_port: 0
 
 ##############
 # kube controller manager secure port (in-secure 10252 port is not used)

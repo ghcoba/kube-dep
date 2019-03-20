@@ -87,7 +87,7 @@
 # create flannel config directory (/etc/flannel/)
 - name: create and ensure flannel config directory exists
   file:
-    path: "{{ flannel_config_path }}"
+    path: "{{ flannel_config_path }}/"
     recurse: yes
     state: directory
     mode: 0760
@@ -99,7 +99,7 @@
 
 - name: create flannel cert
   file:
-    path: "{{ item }}"
+    path: "{{ item }}/"
     recurse: yes
     state: directory
     mode: 0760
@@ -128,7 +128,7 @@
     - flanneld.pem
     - flanneld-key.pem
     - timestamp.log
-  delegate_to: "{{ groups['kube-masters'][0] }}"
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # copy flannel daemon cert to node
 - name: copy flannel cert to nodes from ansible machine
@@ -180,7 +180,7 @@
 # ( /etc/flannel/flanneld.config )
 - name: create flannel environment config file
   template:
-    src:  ../../create-kube-cluster-master/templates/flanneld.config.j2
+    src:  ../../create-kube-cluster-master/templates/flannel/flanneld.config.j2
     dest: "{{ flannel_config_path }}/flanneld.config"
     owner: "{{ flannel_user }}"
     group: "{{ flannel_group }}"
@@ -191,7 +191,7 @@
 #   to generate /run/flannel/docker.flannelconfig from /run/flannel/subnet.env in this directory
 - name: create flannel network config data directory /run/flannel
   file:
-    path: "{{ flannel_data_path }}"
+    path: "{{ flannel_data_path }}/"
     state: directory
     owner: "{{ flannel_user }}"
     group: "{{ flannel_group }}"
@@ -220,7 +220,7 @@
 # create flanneld service systemd unit file
 - name: create kube flannel systemd unit file
   template:
-    src: ../../create-kube-cluster-master/templates/flannel.service.j2
+    src: ../../create-kube-cluster-master/templates/flannel/flannel.service.j2
     dest: /etc/systemd/system/flannel.service
 
 # 10. 
@@ -229,6 +229,6 @@
 #   setting information
 - name: create cni interface for flanneld service
   template:
-    src: ../../create-kube-cluster-master/templates/10-flannel.conf.j2
+    src: ../../create-kube-cluster-master/templates/flannel/10-flannel.conf.j2
     dest: "{{ cni_config_path }}/10-flannel.conf"
 

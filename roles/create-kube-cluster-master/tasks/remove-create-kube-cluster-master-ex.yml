@@ -135,27 +135,27 @@
 
     - name: remove kube and etcd config and data directories on cluster master
       file:
-        path: "{{ item }}"
+        path: "{{ item }}/"
         force: yes
         state: absent
       with_items:
-        - "{{ kube_config_path }}/cert/"
-        - "{{ kube_config_path }}/"
-        - "{{ etcd_config_path }}/"
-#        - "{{ docker_config_path }}/"
-        - "{{ cni_config_path }}/"
-        - "{{ etcd_data_path }}/"
-        - "{{ kube_data_path }}/"
-#        - "{{ docker_data_path }}/"
-        - "{{ cni_data_path }}/"        
-#        - "{{ flannel_cert_path }}/"
-#        - "{{ flannel_config_path }}/"
-#        - "{{ calico_log_path }}/"
-#        - "{{ calico_data_path }}/"
-#        - "{{ calico_config_conf_path }}/"
-#        - "{{ calico_config_path }}/"
-        - "{{ kuberouter_config_path }}/"
-        - "{{ kuberouter_data_path }}/"
+        - "{{ kube_config_path }}/cert"
+        - "{{ kube_config_path }}"
+        - "{{ etcd_config_path }}"
+#        - "{{ docker_config_path }}"
+        - "{{ cni_config_path }}"
+        - "{{ etcd_data_path }}"
+        - "{{ kube_data_path }}"
+#        - "{{ docker_data_path }}"
+        - "{{ cni_data_path }}"        
+#        - "{{ flannel_cert_path }}"
+#        - "{{ flannel_config_path }}"
+#        - "{{ calico_log_path }}"
+#        - "{{ calico_data_path }}"
+#        - "{{ calico_config_conf_path }}"
+#        - "{{ calico_config_path }}"
+        - "{{ kuberouter_config_path }}"
+        - "{{ kuberouter_data_path }}"
 
 
 #    - name: rm directory forcely

@@ -24,14 +24,14 @@
     name: "{{ etcd_user }}"
     comment: "etcd user"
     shell: /sbin/nologin
-    home: "{{ etcd_data_path }}"
+    home: "{{ etcd_data_path }}/"
     system: yes
     groups: "{{ etcd_group }}" 
     state: present
 
 - name: ensure etcd_data_path directory exist
   file:
-    path: "{{ etcd_data_path }}"
+    path: "{{ etcd_data_path }}/"
     recurse: yes
     state: directory
     owner: "{{ etcd_user }}"

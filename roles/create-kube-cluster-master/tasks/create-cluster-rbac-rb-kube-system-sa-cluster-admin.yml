@@ -11,13 +11,13 @@
 #   binding name: kube-system-serviceaccount-cluster-admin 
 #   role: cluster-admin
 #   user: system:kube-system:serviceaccount:default
-#   file name: rbac-crb-kube-system-sa-cluster-admin.yaml.j2
+#   file name: rbac/rbac-crb-kube-system-sa-cluster-admin.yaml.j2
 
 - block:
 
 #    - name: create crb file
 #      template:
-#        src: rbac-crb-kube-system-sa-cluster-admin.yaml.j2
+#        src: rbac/rbac-crb-kube-system-sa-cluster-admin.yaml.j2
 #        dest: "{{ kube_rbac_config_path }}/rbac-crb-kube-system-sa-cluster-admin.yaml"
 
     - name: generate kube-system-serviceaccount-cluster-admin clusterrolebinding

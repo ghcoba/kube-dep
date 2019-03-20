@@ -9,7 +9,7 @@
 # generate kube basic audit policy config file
 - name: generate kube audit poicy config file
   template:
-    src: audit-policy.yaml.j2
+    src: policy/audit-policy.yaml.j2
     dest: "{{ audit_policy_config_file }}"
 
 # change audit policy config file attribute
@@ -20,7 +20,7 @@
     group: "{{ kube_group }}"
     mode: 0660
 
-# backup audit policy config file to ansible machine
+# backup audit policy config file from node #0 of kube-masters group to ansible machine
 - name: backup audit policy config file to ansible machine
   fetch:
     src: "{{ audit_policy_config_file }}"

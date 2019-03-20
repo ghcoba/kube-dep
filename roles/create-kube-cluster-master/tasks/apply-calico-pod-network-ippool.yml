@@ -8,7 +8,7 @@
 # create calico yaml file for create pod network ippool network segment in calico network
 - name: create calico yaml file for pod network ippool  network segment
   template:
-    src: "../../create-kube-cluster-master/templates/calico-ippool-pod-network.yaml.j2"
+    src: "../../create-kube-cluster-master/templates/calico/calico-ippool-pod-network.yaml.j2"
     dest: "{{ calico_config_yaml_path }}/calico-ippool-pod-network.yaml"
 
 # exec to apply pod network network segment ippool creating in calico network

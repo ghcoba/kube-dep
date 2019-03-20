@@ -91,15 +91,15 @@
     group: "{{ kube_group }}"
     mode: 0640
 
-- name: cp kube config to home
+- name: copy kube config to home
   command: cp "{{ kubectl_config_file }}" "{{ kubectl_client_config_file }}"
 #  args:
 
-# copy kubectl config file to ansible backup directory
+# copy kubectl config file from node #0 of kube-masters group to ansible backup directory
 - name: fetch kube controller-manager config file to ansible backup directory
   fetch:
     src: "{{ kubectl_config_file }}"
     dest: "{{ dep_path_backup_kube_config }}/"
     flat: yes
-  delegate_to: "{{ groups['kube-masters'][0] }}"
   run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

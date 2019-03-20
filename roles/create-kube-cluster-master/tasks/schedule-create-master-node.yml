@@ -63,11 +63,15 @@
   debug:
     msg: "check tracing - starting schedule-create-master-node"
 
+
+
+
 # 0.0
 # check environmental status
 ###########################################################################################################
 
-# check kubernetes directory (/etc/kubernetes) exist
+# check kubernetes directory exist 
+# ( /etc/kubernetes/ on node #0 of kube-masters group - 1st master node of cluster master)
 - name: check kubernetes directory exist
   stat:
     path: "{{ kube_config_path }}"
@@ -75,15 +79,18 @@
   run_once: true
   delegate_to: "{{ groups['kube-masters'][0] }}"
 
-
 ##########################################################################################################
 
 # skip following block if exist condition true
 #   (using when condition for following block)
 
+
+
+
+
 ###########
 ###########
-# set skip false when etcd config or certdirectory not exist
+# set skip false when kube config directory (/etc/kubernetes/ on node #0 of kube-masters group) not exist
 - block:
 
 # 0.
@@ -110,7 +117,7 @@
     - name: exec create-kube-user-group
       import_tasks: create-kube-user-group.yml
 # 3.
-#   create kube directories ( /etc/kubernetes ):
+#   create kube directories ( /etc/kubernetes/ ):
 #     kube config directory (/etc/kubenetes/)
 #     kube cert directory (/etc/kubernetes/cert/)
 #     kube manifests directory for static pods (/etc/kubernetes/manifests/)
@@ -126,7 +133,7 @@
     - name: create kube etcd client system and enviroment om kube master
       import_tasks: create-kube-etcd-client.yml
 # 5.
-    - name: create kube cert files ( /etc/kubernetes/cert )
+    - name: create kube cert files ( /etc/kubernetes/cert/... )
       import_tasks: create-kube-master-node-cert-files.yml
 # 6. 
     - name: create kubernetes binary files
@@ -168,7 +175,7 @@
 #    - name: start flannel service on master node
 #      import_tasks: enable-and-start-flannel-service.yml
 # 12.
-#     cni environment include cni directories (/etc/cni, /etc/cni/net.d, /var/lib/cni etc) and
+#     cni environment include cni directories (/etc/cni/, /etc/cni/net.d/, /var/lib/cni/ etc) and
 #       basic cni plugins (host-local, bridge is needed for kube-router)
     - name: create cni enviroment
       import_tasks: create-cni-environment.yml
@@ -354,6 +361,10 @@
 # - condition of block:
 #     when for block (exec block when condition true - need create kube cluster master node)
   when: ( kube_config_path_exist_result.stat.exists == false )
+
+
+
+
 
 ##########
 ##########

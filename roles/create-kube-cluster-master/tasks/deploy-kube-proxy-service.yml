@@ -22,7 +22,7 @@
 
 - name: create kube-proxy service systemd unit file
   template:
-     src: ../../create-kube-cluster-master/templates/kube-proxy.service.j2
+     src: ../../create-kube-cluster-master/templates/kube-core/kube-proxy.service.j2
      dest: /etc/systemd/system/kube-proxy.service
 
 # 3.

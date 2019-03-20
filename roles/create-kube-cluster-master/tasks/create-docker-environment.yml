@@ -11,12 +11,12 @@
 
 - name: create docker config directory
   file:
-    path: "{{ docker_config_path }}"
+    path: "{{ docker_config_path }}/"
     state: directory
 
 - name: create docker data directory
   file:
-    path: "{{ docker_data_path }}"
+    path: "{{ docker_data_path }}/"
     state: directory
 
 - name: ensure required packages for docker
@@ -50,7 +50,7 @@
   yum:
     name: "/tmp/{{ containerd_io_rpm_filename }}"
     state: present
-- name: remvove tmp package
+- name: remove tmp package
   file:
     path: "/tmp/{{ containerd_io_rpm_filename }}"
     state: absent
@@ -92,22 +92,22 @@
 
 - name: create docker systemd unit file
   template:
-    src: ../../create-kube-cluster-master/templates/docker.service.j2
+    src: ../../create-kube-cluster-master/templates/docker/docker.service.j2
     dest: /etc/systemd/system/docker.service
 - name: create docker.socket systemd unit file
   template:
-    src: ../../create-kube-cluster-master/templates/docker.socket.j2
+    src: ../../create-kube-cluster-master/templates/docker/docker.socket.j2
     dest: /etc/systemd/system/docker.socket
 
 - name: create docker systemd drop in unit file directory for http-proxy
   file:
-    path: "/etc/systemd/system/docker.service.d"
+    path: "/etc/systemd/system/docker.service.d/"
     state: directory
 
 # to set enviroment option for http proxy used by docker pull
 - name: create docker systemd drop-in unit file for http-proxy
   template:
-    src: ../../create-kube-cluster-master/templates/http-proxy.conf.j2
+    src: ../../create-kube-cluster-master/templates/docker/http-proxy.conf.j2
     dest: /etc/systemd/system/docker.service.d/http-proxy.conf
 
 # create daemon.json in /etc/docker for docker settings
@@ -115,5 +115,5 @@
 #  -  to set mirror registry for local image pull (using 163, aliyun, etc)
 - name: create daemon.json for docker in directory /etc/docker
   template:
-    src: ../../create-kube-cluster-master/templates/docker-daemon.json.j2
+    src: ../../create-kube-cluster-master/templates/docker/docker-daemon.json.j2
     dest: "{{ docker_config_path }}/daemon.json"

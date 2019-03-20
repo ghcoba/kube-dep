@@ -12,7 +12,7 @@
 #
 #   role: system:certificates.k8s.io:certificatesigningrequests:selfnodeserver
 #   apiGroups: ["certificates.k8s.io"]
-#   file name: rbac-cr-instruct-approve-selfnodeserver-csr.yaml.j2
+#   file name: rbac/rbac-cr-instruct-approve-selfnodeserver-csr.yaml.j2
 
 - block:
     - name: generate rbac selfnodeserver cluster role
@@ -40,7 +40,7 @@
 #   binding name: kubelet-bootstrap
 #   role: system:node-bootstrapper
 #   group: system:bootstrappers
-#   file name: rbac-crb-kubelet-bootstrap.yaml.j2
+#   file name: rbac/rbac-crb-kubelet-bootstrap.yaml.j2
 
 - block:
     - name: generate rbac kubelet-bootstrap clusterrolebinding
@@ -67,7 +67,7 @@
 #   binding name: auto-approve-nodeclient-csr
 #   role: system:certificates.k8s.io:certificatesigningrequests:nodeclient
 #   group: system:bootstrappers
-#   file name: rbac-crb-auto-approve-nodeclient-csr.yaml.j2
+#   file name: rbac/rbac-crb-auto-approve-nodeclient-csr.yaml.j2
  
 - block:
     - name: generate rbac auto-approve-nodeclient-csr clusterrole binding
@@ -94,7 +94,7 @@
 #   binding name: auto-approve-renewal-nodeclient-csr
 #   role: system:certificates.k8s.io:certificatesigningrequests:selfnodeclient
 #   group: system:nodes
-#   file name: rbac-crb-auto-approve-renewal-nodeclient-csr.yaml.j2
+#   file name: rbac/rbac-crb-auto-approve-renewal-nodeclient-csr.yaml.j2
 
 - block:
     - name: generate rbac auto-approve-renewal-nodeclient-csr clusterrolebinding
@@ -122,7 +122,7 @@
 #   binding name: auto-approve-renewal-nodeserver-csr
 #   role: system:certificates.k8s.io:certificatesigningrequests:selfnodeserver
 #   group: system:nodes
-#   file name: rbac-crb-auto-approve-renewal-nodeserver-csr.yaml.j2
+#   file name: rbac/rbac-crb-auto-approve-renewal-nodeserver-csr.yaml.j2
 
 - block:
     - name: generate rbac auto-approve-renewal-nodeserver-csr clusterrolebinding

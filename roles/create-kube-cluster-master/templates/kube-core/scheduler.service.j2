@@ -14,12 +14,14 @@
 Description=kubernetes scheduler service - kube-scheduler.service
 After=network.target
 After=kube-apiserver.service
+Requires=kube-apiserver.service
 
 [Service]
-User=root
+User={{ kube_user }}
+#User=root
 EnvironmentFile=-/etc/kubernetes/kube-scheduler
 
-ExecStart={{ bin_path }}/kube-scheduler \
+ExecStart=/usr/bin/kube-scheduler \
   --alsologtostderr=false \
   --logtostderr=true \
   --v=2 \

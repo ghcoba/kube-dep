@@ -9,8 +9,12 @@
 kubelet_healthz_port: 10248
 #kubelet_healthz_bind_address: (use current node ip - dynamic get ip)
 
+
+
 ############################
 # process specific variable
+
+
 
 ###################################
 # argument string of kubectl config
@@ -45,6 +49,7 @@ arg_str_kube_proxy_context: " config set-context system:kube-proxy@kubernetes --
 arg_str_kube_proxy_defaultcontext: " config use-context system:kube-proxy@kubernetes --kubeconfig={{ kube_proxy_config_file }}"
 
 arg_str_kube_proxy_kube_config: "{{ arg_str_kube_proxy_cluster }}{{ arg_str_kube_proxy_credentials }}{{ arg_str_kube_proxy_context }}{{ arg_str_kube_proxydefaultcontext }}"
+
 
 #######################################
 

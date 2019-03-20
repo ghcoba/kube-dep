@@ -24,7 +24,7 @@
 
 - name: create rbac config directory
   file:
-    path: "{{ kube_rbac_config_path }}"
+    path: "{{ kube_rbac_config_path }}/"
     state: directory
     owner: "{{ kube_user }}"
     group: "{{ kube_group }}"
@@ -32,7 +32,7 @@
 
 - name: create rbac config files
   template:
-    src: "{{ item }}.j2" 
+    src: "rbac/{{ item }}.j2" 
     dest: "{{ kube_rbac_config_path }}/{{ item }}"
     owner: "{{ kube_user }}"
     group: "{{ kube_group }}"

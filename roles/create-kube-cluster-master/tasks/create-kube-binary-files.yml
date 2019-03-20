@@ -10,12 +10,11 @@
 - name: exec create-kube-binary-files
   copy:
     src: "{{ dep_path_local_bin_kube_server }}/{{ item }}"
-    dest: "{{ bin_path }}/"
+    dest: "/usr/bin/"
     owner: "{{ kube_user }}"
     group: "{{ kube_group }}"
-    mode: 0750
+    mode: 0755
   with_items:
-    - kubectl
     - kube-apiserver
     - kube-controller-manager
     - kube-scheduler
@@ -26,6 +25,18 @@
     - cloud-controller-manager
     - hyperkube
     - mounter
+
+#   copy kube binary to kube master node
+- name: exec create-kube-binary-files
+  copy:
+    src: "{{ dep_path_local_bin_kube_server }}/{{ item }}"
+    dest: "{{ bin_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0750
+  with_items:
+    - kubectl
+
 
 - name:
   debug:

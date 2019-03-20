@@ -11,7 +11,7 @@
 #   binding name: system:kube-apiserver-to-kubelet-api-access
 #   role: system:kubelet-api-access
 #   user: kube-apiserver
-#   file name: rbac-crb-kube-apiserver-bind-kubelet-api-access.yaml.j2
+#   file name: rbac/rbac-crb-kube-apiserver-bind-kubelet-api-access.yaml.j2
 
 
 - block:
@@ -41,7 +41,7 @@
 #   binding name: system:kubelet
 #   role: system:node
 #   group: system:node
-#   file name: rbac-crb-system-kubelet.yaml.j2
+#   file name: rbac/rbac-crb-system-kubelet.yaml.j2
 
 - block:
     - name: generate rbac system:kubelet clusterrolebinding
@@ -68,7 +68,7 @@
 #   binding name: system:kubelet-user
 #   role: system:node
 #   user: system:kubelet
-#   file name: rbac-crb-system-kubelet-user.yaml.j2
+#   file name: rbac/rbac-crb-system-kubelet-user.yaml.j2
  
 - block:
     - name: generate rbac system:kubelet-user clusterrole binding

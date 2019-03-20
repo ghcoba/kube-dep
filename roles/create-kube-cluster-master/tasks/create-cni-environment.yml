@@ -13,7 +13,7 @@
 
 - name: create cni directory (config, data, binary)
   file:
-    path: "{{ item }}"
+    path: "{{ item }}/"
     state: directory
     owner: "{{ kube_user }}"
     group: "{{ kube_group }}"

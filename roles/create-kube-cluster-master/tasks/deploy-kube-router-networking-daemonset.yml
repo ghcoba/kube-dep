@@ -28,7 +28,7 @@
 
 - name: create kube-router manifest ( yaml ) file
   template:
-    src: kube-router.yaml.j2
+    src: kube-router/kube-router.yaml.j2
     dest: "{{ kube_daemonset_path }}/kube-router.yaml"
 #  run_once: true
 #  delegate_to: "{{ groups['kube-masters'][0] }}"

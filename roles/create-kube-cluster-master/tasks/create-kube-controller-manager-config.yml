@@ -16,7 +16,7 @@
       --server="{{ kube_load_balancer_apiserver_url }}"
       --kubeconfig="{{ kube_controller_manager_config_file }}"
   args:
-    chdir: "{{ kube_config_path }}"
+    chdir: "{{ kube_config_path }}/"
 
 - name: generate kube controller-manager config - set credential
   command: >
@@ -26,7 +26,7 @@
       --embed-certs=true 
       --kubeconfig="{{ kube_controller_manager_config_file }}"
   args:
-    chdir: "{{ kube_config_path }}"
+    chdir: "{{ kube_config_path }}/"
 
 - name: generate kube controller-manager config - set context
   command: >
@@ -35,14 +35,14 @@
       --user=system:kube-controller-manager
       --kubeconfig="{{ kube_controller_manager_config_file }}"
   args:
-    chdir: "{{ kube_config_path }}"
+    chdir: "{{ kube_config_path }}/"
 
 - name: generate kube controller-manager config - set default context
   command: >
     "{{ bin_path }}"/kubectl config use-context system:kube-controller-manager@kubernetes 
       --kubeconfig="{{ kube_controller_manager_config_file }}"
   args:
-    chdir: "{{ kube_config_path }}"
+    chdir: "{{ kube_config_path }}/"
 
 # change kube config file attribute
 - name: change file attrib
@@ -52,7 +52,7 @@
     group: "{{ kube_group }}"
     mode: 0640
 
-# copy kube config file to ansible backup directory
+# copy kube config file from node #0 of kube-masters group to ansible backup directory
 - name: fetch kube controller-manager config file to ansible backup directory
   fetch:
     src: "{{ kube_controller_manager_config_file }}"

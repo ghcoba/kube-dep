@@ -12,3 +12,5 @@
 #              nodes and etcd nodes)
 #
 
+- debug:
+    msg: "enalbe-master-ntp-time-source.yml not yet applied"

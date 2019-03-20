@@ -19,19 +19,26 @@ Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/bi
 
 # attention: $DOCKER_NETWORK_OPTIONS need place at end of line if use, or it will cause error(not start, reason unknow )
 #   $DOCKER_... not ${DOCKER_..}, or service fail to run
-
+#
 # for flannel
 #ExecStart=/usr/bin/dockerd --label machine.hostname={{ inventory_hostname }} --iptables=false --ip-forward=true $DOCKER_NETWORK_OPTIONS
+#
+# for calico or kube-router networking - use manual managed docker subnet - as we do not have auto configuration facility like flannel
+# subnet cidr used for node :  hostvars[inventory_hostname]['docker_subnet_bip']  - whcich is set in inventery data
 
-# for calico networking - use manual managed docker subnet
-# subnet cidr used for node :  hostvars[inventory_hostname]['docker_subnet_bip']
 
+#### EXECSTART
 ExecStart=/usr/bin/dockerd --label machine.hostname={{ inventory_hostname }} --bip={{ hostvars[inventory_hostname]['docker_subnet_bip'] }}
 # --iptables=false --ip-forward=true 
 
+
+#### EXECSTARTPOST  - not used
 #ExecStartPost=/sbin/iptables -I FORWARD -s 0.0.0.0/0 -j ACCEPT
 
+#### EXECRELOAD
 ExecReload=/bin/kill -s HUP $MAINPID
+
+
 
 #TimeoutSec=0
 #RestartSec=2

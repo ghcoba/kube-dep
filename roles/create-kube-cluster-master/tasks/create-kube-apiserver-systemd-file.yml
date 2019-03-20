@@ -10,5 +10,5 @@
   
 - name: exec create-kube-apiserver-systemd-file
   template: 
-    src: apiserver.service.j2
+    src: kube-core/apiserver.service.j2
     dest: /etc/systemd/system/kube-apiserver.service

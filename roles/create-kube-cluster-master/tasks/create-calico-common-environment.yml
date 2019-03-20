@@ -19,14 +19,14 @@
 # create networkmanager config directory
 - name: create networkmanager config dicrectory
   file:
-    path: "/etc/NetworkManager/conf.d"
+    path: "/etc/NetworkManager/conf.d/"
     state: directory
     mode: 0764
 
 # create networkmanager config file to prevent network manager to touch calico network interfaces
 - name: create networkmanager config file
   template:
-    src: ../../create-kube-cluster-master/templates/networkmanager-confd.calico.conf.j2
+    src: ../../create-kube-cluster-master/templates/calico/networkmanager-confd.calico.conf.j2
     dest: "/etc/NetworkManager/conf.d/calico.conf"
 
 # create calico log, lib directory (/var/log/calico, /var/lib/calico)
@@ -35,7 +35,7 @@
 # create calico log directory /var/log/calico
 - name: create calico log dicrectory
   file:
-    path: "{{ calico_log_path }}"
+    path: "{{ calico_log_path }}/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -44,7 +44,7 @@
 # create calico lib directory /var/lib/calico
 - name: create calico lib dicrectory
   file:
-    path: "{{ calico_data_path }}"
+    path: "{{ calico_data_path }}/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -53,7 +53,7 @@
 # create calico config directory (/etc/calico)
 - name: create calico config dicrectory
   file:
-    path: "{{ calico_config_path }}"
+    path: "{{ calico_config_path }}/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -62,7 +62,7 @@
 # create calico confd config directory (/etc/calico/confd)
 - name: create calico confd config dicrectory
   file:
-    path: "{{ calico_config_path }}/confd"
+    path: "{{ calico_config_path }}/confd/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -71,7 +71,7 @@
 # create calico confd/conf.d config directory (/etc/calico/confd/conf.d)
 - name: create calico confd-confd config dicrectory
   file:
-    path: "{{ calico_config_path }}/confd/conf.d"
+    path: "{{ calico_config_path }}/confd/conf.d/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -80,7 +80,7 @@
 # create cni etcd tls cert paht (/etc/cni/net.d/calico-tls)
 - name: create cni config dicrectory
   file:
-    path: "{{ calico_cni_tls_cert_path }}"
+    path: "{{ calico_cni_tls_cert_path }}/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -89,7 +89,7 @@
 # create calico config conf directory (/etc/calico/conf)
 - name: create cni config conf dicrectory
   file:
-    path: "{{ calico_config_conf_path }}"
+    path: "{{ calico_config_conf_path }}/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -98,7 +98,7 @@
 # create calico config yaml directory (/etc/calico/yaml)
 - name: create calico config yaml dicrectory
   file:
-    path: "{{ calico_config_yaml_path }}"
+    path: "{{ calico_config_yaml_path }}/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -154,7 +154,7 @@
 # create cni config directory (/etc/cni/net.d)
 - name: create cni config dicrectory
   file:
-    path: "{{ cni_config_path }}"
+    path: "{{ cni_config_path }}/"
     owner: "root"
     group: "root"
     mode: 0664 
@@ -165,7 +165,7 @@
 # for calico v3.5.2 file configuration, not create /etc/cni/net.d/10-calico.conflist (will create by install-cni pod)
 #- name: create calico cni config file
 #  template:
-#    src: ../../create-kube-cluster-master/templates/10-calico.conflist.j2
+#    src: ../../create-kube-cluster-master/templates/calico/10-calico.conflist.j2
 #    dest: "{{ cni_config_path }}/10-calico.conflist"
 ##  when: inventory_hostname in groups['kube-masters']
 #- name: set file attribute
@@ -178,7 +178,7 @@
 #     (in /etc/calico/, file name - calicoctl.cfg )
 - name: create calicoctl config file
   template:
-    src: ../../create-kube-cluster-master/templates/calicoctl.cfg.j2
+    src: ../../create-kube-cluster-master/templates/calico/calicoctl.cfg.j2
     dest: "{{ calico_config_path }}/calicoctl.cfg"
 - name: set file attrib
   file: 
@@ -217,7 +217,7 @@
 # create calico etcd tls cert directory
 - name: create calico tls cert config dicrectory
   file:
-    path: "{{ calico_etcd_tls_cert_path }}"
+    path: "{{ calico_etcd_tls_cert_path }}/"
     owner: "root"
     group: "root"
     mode: 0664
@@ -288,7 +288,7 @@
 ### create calico node service environment variables file /etc/calico/conf/calico.conf
 - name: create calico node service env conf file
   template:
-    src: ../../create-kube-cluster-master/templates/calico-conf.calico.conf.j2
+    src: ../../create-kube-cluster-master/templates/calico/calico-conf.calico.conf.j2
     dest: "{{ calico_config_conf_path }}/calico.conf"
 - name: set file attrib
   file:
