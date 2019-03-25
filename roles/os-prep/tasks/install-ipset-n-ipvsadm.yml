@@ -13,12 +13,8 @@
   block:
     - name: install ipset and ipvsadm
       yum:
-        name: "{{ item }}"
+        name: ['ipset', 'ipvsadm', 'bridge-utils']
         state: present
-      with_items:
-        - ipset
-        - ipvsadm
-        - bridge-utils
 
   always:
     - name: ipset and ipvsadm installed

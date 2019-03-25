@@ -1,0 +1,12 @@
+---
+
+# playbook - create-kube-worker-node.yml
+#
+
+# only use this playbook for kube worker nodes
+#
+
+- hosts: kube-nodes
+  become: yes
+  roles:
+    - { role: ../roles/create-kube-worker-node }

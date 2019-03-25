@@ -1,0 +1,50 @@
+---
+
+# file: deploy-kube-apiserver-service.yml
+# 
+# func:
+#   - (kubelet bootstrapping auth token file - already created in cert creation)
+#   - (create apiserver parameter config file - not need. kubectl config is used for kube)
+#   - (not use here. will use in worker node - create kubelet bootstrap config file)
+#   - create basic audit policy config file ( referenced in systemd file)
+#   - create apiserver systemd unit file
+#   - enable firewall rule for apiserver (not exec here, exec before this routine)
+#   - create log directory (not exec here, exec before this routine)
+#   - enable/start/restart apiserver service
+#   - create rbac role to authorize apiserver can call kubelet API
+#
+
+# check after deploy:
+# 1. chek key stored in etcd by apiserver write
+#    # ETCDCTL_API=3 etcdctl get /registry/ --prefix --keys-only
+# 2. check cluster info
+#    # kubectl cluster-info
+#    Kubernetes master is running at https://10.0.0.101:6443
+# 3. check cluster component status
+#    # kubectl get cs          (kubectl get componentstatus)
+#    (will display health status of controller-manager, scheduler, etcd nodes)
+# 4. check apiserver listen port
+#    # ss -nutlp |grep apiserver
+#    tcp    LISTEN     0      128    10.0.0.101:6443                  *:*                   users:(("kube-apiserver",pid=11177,fd=3))
+#    (as we closed listen on in-secure port, so listen on port 6443. without in-secure port 8080)
+# 5. check kube-apiserver:kubelet-apis role rbac
+#    # kubectl get clusterrolebinding kube-apiserver:kubelet-apis -o yaml
+#
+
+
+- name: create kube audit policy config file
+  import_tasks: kube-security/create-kube-audit-policy-file.yml
+
+- name: create kube cluster abac role file
+  import_tasks: kube-security/create-cluster-abac-role-file.yml
+
+- name: create kube-apiserver systemd unit file
+  import_tasks: kube-core-service/apiserver/create-kube-apiserver-systemd-file.yml
+
+# enable and start kube-apiserver service
+- name: enable and start kube-apiserver service
+  systemd:
+    name: kube-apiserver
+    daemon_reload: yes
+    state: restarted
+    enabled: yes

@@ -1,0 +1,43 @@
+---
+
+# file: deploy-kube-proxy-service.yml
+#
+
+# func:
+#   deploy kube-proxy service
+#     . prepare kube-proxy environment (user, dir, cert,bin, config)
+#     . create service systemd file
+#     . (external routine to set firewall)
+#     . start service
+
+# 1.
+#   prepare enviroment
+#
+
+- name: create kube-proxy environment
+  import_tasks: ../../create-kube-cluster-master/tasks/kube-core-service/proxy/create-kube-proxy-user-and-env.yml
+
+# 2.
+#   create kube-proxy service systemd file
+
+- name: create kube-proxy service systemd unit file
+  template:
+     src: ../../create-kube-cluster-master/templates/kube-core/kube-proxy.service.j2
+     dest: /etc/systemd/system/kube-proxy.service
+
+# 3.
+#   enable kube-proxy service
+
+# enable and start kube-proxy service
+- name: enable and start kube-proxy service
+  systemd:
+    name: kube-proxy
+    daemon_reload: yes
+    state: restarted
+    enabled: yes
+
+- name:
+  debug:
+    msg: "kube-proxy deployed on {{ inventory_hostname }}."
+
+

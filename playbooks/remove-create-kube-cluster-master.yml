@@ -1,0 +1,20 @@
+---
+
+# playbook - remove-create-kube-cluster-master.yml
+#
+
+# only use this playbook for cluster masters
+
+- hosts: kube-masters
+
+  roles:
+    - { role: ../roles/cluster-defaults }
+
+  tasks:
+#   # remove effects taken by role create-kube-cluster-master
+#       remove /etc/kubernetes on remote
+#       remove /etc/etcd directory on remote
+#
+    - name: remove actions taken by procedure of create-kube-cluster-master role
+      include: ../roles/create-kube-cluster-master/tasks/remove-create-kube-cluster-master-ex.yml
+

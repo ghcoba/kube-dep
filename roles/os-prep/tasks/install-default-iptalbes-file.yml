@@ -11,6 +11,10 @@
   template:
     src: ../../cluster-defaults/templates/iptables-direct-worker-node-conf.j2
     dest: /etc/sysconfig/iptables-worker-node.backup
+- name:
+  template:
+    src: ../../cluster-defaults/templates/iptables-direct-etcd-node-conf.j2
+    dest: /etc/sysconfig/iptables-etcd-node.backup
 
 - name:
   template:

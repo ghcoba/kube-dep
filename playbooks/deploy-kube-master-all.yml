@@ -1,0 +1,71 @@
+---
+
+# file: deploy-kube-master-all.yml
+
+# 0. 
+#   prepare os and system environment
+#
+
+
+# 1. 
+#   generate ca/cert for deployment on node #1 of kube masters
+#   node1 - node[0] of cluster masters - group[kube-masters][0])
+
+
+# 1.0
+#   include cluster defaults
+#
+#   ( already include as dependencies in all roles to exec)
+
+# 1.1
+#   generate root ca/cert cache on node #1 of cluster masters
+
+- hosts: "{{ groups['ansible-nodes'][0] }}"
+  become: yes
+  roles:
+    - { role: ../roles/gen-root-ca-cert }
+
+# 1.2
+#   generate kube ca/cert cache on node #1 of cluster masters
+
+- hosts: "{{ groups['ansible-nodes'][0] }}"
+  become: yes
+  roles:
+    - { role: ../roles/gen-kube-ca-cert }
+
+# 1.3
+#   generate etcd ca/cert cache on node #1 of cluster masters
+#     (etcd ca cert, etcd service and etcdctl enviroment)
+
+- hosts: "{{ groups['ansible-nodes'][0] }}"
+  become: yes
+  roles:
+    - { role: ../roles/gen-etcd-ca-cert }
+
+# 2.
+#   create etcd cluster on etcd cluster nodes - node group of group[etcd-nodes]
+
+- hosts: etcd-nodes
+  become: yes
+  roles:
+    - { role: ../roles/create-etcd-cluster }
+
+# 3.
+#   create cluster masters on kube cluster masters
+#     ( root ca cert, kube ca cert, etcd cacert, 
+#       bootstrap token, encryption key,
+#       apiserver service, controller manager service, scheduler service,
+#       etcdctl client enviroment,
+#       kubectl client enviroment,
+#       rbac roles for apiserver-kubelet, kubelet bootstrap 
+#     )
+
+- hosts: kube-masters
+  become: yes
+  roles:
+    - { role: ../roles/create-kube-cluster-master }
+
+# 4. 
+#   prost process for cluster masters
+#
+

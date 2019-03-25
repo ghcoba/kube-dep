@@ -22,12 +22,26 @@
         daemon_reload: no
         state: stopped
         enabled: no
-   
+  rescue:
+    - debug:
+        msg: "ERROR: error occured during stop etcd service. check if etcd service exist."
+  when:
+    - inventory_hostname in groups['etcd-nodes']
+# end block
+
+- block:   
     - name: remove etcd service systemd file
       file:
         path: /etc/systemd/system/etcd.service
         state: absent
+  rescue:
+    - debug:
+        msg: "ERROR: error occured during removing etcd service systemd file. check if etcd service systemd file exist."
+  when:
+    - inventory_hostname in groups['etcd-nodes']
+# end block
 
+- block:
     - name: remove kube and etcd config directory cluster master
       file:
         path: "{{ item }}/"
@@ -37,11 +51,9 @@
         - "{{ etcd_config_path }}"
         - "{{ etcd_data_path }}"
 
-
     - debug: 
         msg: "{{ etcd_config_path }}, {{etcd_data_path }} directories removed on {{ inventory_hostname }}."
   when:
     - inventory_hostname in groups['etcd-nodes']
-
 # end block
 

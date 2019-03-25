@@ -1,0 +1,83 @@
+*filter
+
+## ##################### SYSTEM IPTABLES #####################################
+## default chains 
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+## lo interface iptables 
+-A INPUT -i lo -j ACCEPT
+-A FORWARD -i lo -j ACCEPT
+
+## icmp traffic iptables
+-A INPUT -p icmp -j ACCEPT
+
+## ssh port iptables
+-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
+
+## basic state (related, established) iptables
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# REF
+#-A INPUT -s 127.0.0.1/32 -d 127.0.0.1/32 -j ACCEPT
+#-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+#-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
+
+
+## ################# KUBERNETES CLUSTER SPECIFIC IPTABLES ############################
+
+## INPUT chain - conntrack cstate (related, established) iptables
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+## FORWARD chain - conntrack cstate (related, established) optables
+-A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# port - 22 tcp (ssh)
+-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
+
+# port - 53 udp (dns)
+-A INPUT -p udp -m udp --dport 53 -j ACCEPT
+
+# port - 67 udp outbound (dhcp)
+-A INPUT -p udp -m udp --dport 67 -j ACCEPT
+-A INPUT -p udp -m udp --sport 67 -j ACCEPT
+
+# port - 68 udp outbound (dhcp)
+-A INPUT -p udp -m udp --dport 68 -j ACCEPT
+-A INPUT -p udp -m udp --sport 68 -j ACCEPT
+
+## KUBE-APISERVER
+# port- 443 tcp (https) - (kube-apiserver service listen port 443 tcp https)
+-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+
+# port - 6443 tcp (kube-apiserver secure listen port 6443 tcp )
+-A INPUT -p tcp -m tcp --dport 6443 -j ACCEPT
+
+# port - 8080 tcp ( apiserver in-secure listen port for healthz)
+# ALSO USED FOR COREDNS HEALTHZ TRAFFIC
+-A INPUT -p tcp -m tcp --dport 8080 -j ACCEPT
+
+
+## ETCD
+## port - 2379, 2380 (etcd)
+# port - 2379 tcp ( etcd listen port 2379)
+-A INPUT -p tcp -m tcp --dport 2379 -j ACCEPT
+# port - 2380 (etcd peer listen port 2380)
+-A INPUT -p tcp -m tcp --dport 2380 -j ACCEPT
+# port - 4001 (etcd local in-secure listen port 4001)
+-A INPUT -p tcp -m tcp --dport 4001 -j ACCEPT
+
+
+## ############### KUBERNETES ADDON SYSTEM SPECIFIC IPTABLES ##########################
+
+
+## ############### KUBERNETES APPLICATIONS SPECIFIC IPTABLES ##########################
+
+
+## ############### FINAL DEFAULT REJECT IPTABLES ######################################
+#-A INPUT -j REJECT --reject-with icmp-port-unreachable
+#-A FORWARD -j REJECT --reject-with icmp-port-unreachable
+-A OUTPUT -j ACCEPT
+
+COMMIT

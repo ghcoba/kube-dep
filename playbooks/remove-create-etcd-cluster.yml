@@ -1,0 +1,21 @@
+---
+
+# playbook - remove-create-etcd-cluster.yml
+#
+
+# only use this playbook for etcd cluster - group['etcd-nodes']]
+
+- hosts: etcd-nodes
+
+  roles:
+    - { role: ../roles/cluster-defaults }
+
+  tasks:
+#   # remove effects taken by role create-etcd-cluster
+#       stop and remove etcd service
+#       remove /etc/etcd on remote
+#       remove /var/lib/etcd directory on remote
+#
+    - name: remove actions taken by procedure of create-etcd-cluster task
+      include: ../roles/create-etcd-cluster/tasks/remove-create-etcd-cluster.yml
+

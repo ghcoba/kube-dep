@@ -91,7 +91,7 @@
 # port - 2379 tcp ( etcd listen port 2379)
 -A INPUT -p tcp -m tcp --dport 2379 -j ACCEPT
 # port - 2380 (etcd peer listen port 2380)
--A INPUT -p tcp -m tcp --dport 2380 NEW -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 2380 -j ACCEPT
 # port - 4001 (etcd local in-secure listen port 4001)
 -A INPUT -p tcp -m tcp --dport 4001 -j ACCEPT
 

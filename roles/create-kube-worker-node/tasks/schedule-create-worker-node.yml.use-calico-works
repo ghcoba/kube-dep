@@ -94,12 +94,12 @@
 #     home directory (use etcd data dir path (/var/lib/etcd/) as home dir path)
 #     (etcd server store etcd db only, client machine do not store etcd db)
     - name: exec create-kube-etcd-user-group on worker node
-      import_tasks: ../create-kube-cluster-master/tasks/create-kube-etcd-user-group.yml
+      import_tasks: ../create-kube-cluster-master/tasks/kube-etcdctl/create-kube-etcd-user-group.yml
 # 2.
 #   create kube user and group, create kube user home directory ($HOME/.kube/) and
 #     data directory (/var/lib/kube/), and also add kube user to etcd group
     - name: exec create-kube-user-group on worker node
-      import_tasks: ../create-kube-cluster-master/tasks/create-kube-user-group.yml
+      import_tasks: ../create-kube-cluster-master/tasks/kube-env/create-kube-user-group.yml
 # 3.
 #   create kube directories:
 #     kube config directory (/etc/kubenetes/)
@@ -107,7 +107,7 @@
 #     kube manifests directory for static pods (/etc/kubernetes/manifests/)
 #     kube log directory (/var/log/kubernetes/)
     - name: create kube directory on worker node
-      import_tasks: ../create-kube-cluster-master/tasks/create-kube-directories.yml
+      import_tasks: ../create-kube-cluster-master/tasks/kube-env/create-kube-directories.yml
 # 4.
 #   create etcdctl client and enviroment 
 #     . create etcd config and cert directory
@@ -115,44 +115,44 @@
 #     . copy etcdctl binary
 #     . setting etcdctl client environment
     - name: create kube etcd client system and enviroment on worker node
-      import_tasks: ../create-kube-cluster-master/tasks/create-kube-etcd-client.yml
+      import_tasks: ../create-kube-cluster-master/tasks/kube-etcdctl/create-kube-etcd-client.yml
 # 5.
 #   create kube cert files for worker node
     - name: create kube cert files on worker node
-      import_tasks: create-kube-worker-node-cert-files.yml
+      import_tasks: kube-env/create-kube-worker-node-cert-files.yml
 # 6.
 #   create kube node binary on worker node
     - name: create kubernetes binary files on worker node
-      import_tasks: create-kube-worker-node-binary-files.yml
+      import_tasks: kube-env/create-kube-worker-node-binary-files.yml
 # 7.
 #    create kubectl config and cert on worker node
     - name: create kubectl config enviroment
-      import_tasks: create-kube-worker-node-kubectl-config.yml
+      import_tasks: kube-kubectl/create-kube-worker-node-kubectl-config.yml
 
 # 10.
 #   deploy cni environment on worker node
     - name: deploy cni
-      import_tasks: ../create-kube-cluster-master/tasks/create-cni-environment.yml
+      import_tasks: ../create-kube-cluster-master/tasks/kube-networking/cni/create-cni-environment.yml
 # 11.
 #   deploy docker environment on worker node
     - name: deploy docker (but not start it)
-      import_tasks: ../create-kube-cluster-master/tasks/create-docker-environment.yml
+      import_tasks: ../create-kube-cluster-master/tasks/kube-container/docker/create-docker-environment.yml
 # 12.
 #   enable and start docker service on worker node
     - name: enable and start docker service
-      import_tasks: ../create-kube-cluster-master/tasks/enable-and-start-docker-service.yml
+      import_tasks: ../create-kube-cluster-master/tasks/kube-container/docker/enable-and-start-docker-service.yml
 # 13.
 #   enable firewall rules on worker node
 #    - name: eanble firewall rules on worker node
-#      import_tasks: enable-firewall-rule-for-kube-worker-node.yml
+#      import_tasks: kube-firewall/enable-firewall-rule-for-kube-worker-node.yml
 # 14.
 #   deploy kubelet service on worker node
     - name: deploy kubelet service
-      import_tasks: deploy-kubelet-service.yml
+      import_tasks: kube-core-service/kubelet/deploy-kubelet-service.yml
 # 15.
 #   deploy kube-proxy service on worker node
     - name: deploy kube-proxy service
-      import_tasks: ../create-kube-cluster-master/tasks/deploy-kube-proxy-service.yml
+      import_tasks: ../create-kube-cluster-master/tasks/kube-core-service/proxy/deploy-kube-proxy-service.yml
 
 # 20.
 #   created calico common environment on work node
@@ -162,48 +162,48 @@
 #     enviroment created here
 #  (check: how to process calico daemonset when we need to add some worker nodes)
     - name: created calico networking common environment on worker node
-      import_tasks: ../create-kube-cluster-master/tasks/create-calico-common-environment.yml
+      import_tasks: ../create-kube-cluster-master/tasks/kube-networking/calico/create-calico-common-environment.yml
 
 # 30.
 #   create updated bootstrap token secrect file and update bootstrap token secret
     - name: create and update bootstrap token secret
-      import_tasks: create-update-bootstrap-token-secret.yml
+      import_tasks: kube-security/create-update-bootstrap-token-secret.yml
 
 # 40.
 #   deploy post procee for kubelet on worker node
 #    - name: deploy kubelet service post process
-#      import_tasks: deploy-kubelet-post-process.yml
+#      import_tasks: kube-core-service/kubelet/deploy-kubelet-post-process.yml
 
 # 50.
 #   deploy coredns service (2 pods) for cluster on worker node
     - name: deploy coredns
-      import_tasks: deploy-coredns-service.yml
+      import_tasks: kube-coredns/deploy-coredns-service.yml
 # 51.
 #   deploy 3 hostnames test pods
     - name: deploy 3 test hostnames pods
-      import_tasks: deploy-hostnames-pod.yml
+      import_tasks: pod-deployment/deploy-hostnames-pod.yml
 # 52.
 #   deploy 3 test nginx pods
     - name: deploy 3 test nginx pods
-      import_tasks: deploy-nginx-test-pod.yml
+      import_tasks: pod-deployment/deploy-nginx-test-pod.yml
 # 53.
 #   deploy a test busybox (with curl) pod
     - name: deploy a test busybox pod
-      import_tasks: deploy-busybox-pod.yml    
+      import_tasks: pod-deployment/deploy-busybox-pod.yml    
 
 # 60.
 #   setting and enable npt client on worker node
 #    - name: enable ntp server and client on node-0 of masters to act as time sync source
-#      import_tasks: enable-worker-node-ntp-time-source.yml
+#      import_tasks: kube-misc/enable-worker-node-ntp-time-source.yml
 
 # 70.
 #   flush iptables before apply firewall rule and starting kubelet and kube-proxy
 #    - name: flush iptables
-#      import_tasks: ../create-kube-cluster-master/tasks/flush-iptables.yml
+#      import_tasks: ../create-kube-cluster-master/tasks/kube-firewall/flush-iptables.yml
 # 71.
 #   take final process (apply firewall rules, etc.)
     - name: take final process
-      import_tasks: take-final-process.yml
+      import_tasks: kube-post-process/take-final-process.yml
     
 # - condition of block:
 #     when for block (exec block when condition true - need create kube cluster master node)

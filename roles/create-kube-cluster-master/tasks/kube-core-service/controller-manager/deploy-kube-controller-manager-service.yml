@@ -1,0 +1,37 @@
+---
+
+# file: deploy-kube-controller-manager-service.yml
+#
+# func:
+#  . deploy controller-manager service
+#      - create controller-manager config file (cluster, credentials, context, default-context)
+#      - create controller-manager systemd unit file
+#      - enable firewall rule for controller-manager
+#      - 
+#      - enable/start controller-manager service
+
+# to check after deploy:
+#
+# 1. listen port
+#    # ss -nutlp |grep kube-controll
+# 2. check cert and access
+#    # curl -s --cacert /etc/kubernetes/cert/ca.pem https://127.0.0.1:10252/metrics | head
+#     ? use kube-apiserver.pem to check cert for access metrics https traffic
+# 3. check ha of controller manager
+#    (stop one node, check log of other node will get leader right in log)
+# 4. check current leader
+#    kubectl get endpoints kube-controller-manager --namespace=kube-system -o yaml                                                                                             
+
+- name: exec create-kube-controller-manager-config
+  import_tasks: kube-core-service/controller-manager/create-kube-controller-manager-config.yml
+
+- name: exec create-kube-controller-manager-systemd-file
+  import_tasks: kube-core-service/controller-manager/create-kube-controller-manager-systemd-file.yml
+
+# enable and start kube-controller-manager service
+- name: enable and start kube-controller-manager service
+  systemd:
+    name: kube-controller-manager
+    daemon_reload: yes
+    state: restarted
+    enabled: yes

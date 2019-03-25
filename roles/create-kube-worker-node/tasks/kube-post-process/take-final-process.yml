@@ -1,0 +1,27 @@
+---
+
+# file: take-final-process.yml
+#
+
+
+#- name: reload firewall rules
+#  import_tasks: kube-firewall/enable-firewall-rule-for-kube-worker-node.yml
+
+#- name: reload docker service
+#  command: systemctl restart docker
+
+#- name: reload kubelet service
+#  command: systemctl restart kubelet
+
+#- name: reload kube-proxy service
+#  command: systemctl restart kube-proxy
+
+
+# backup iptables
+#- name: backup iptables
+#  shell: iptables-save > /etc/sysconfig/deploy-iptables-save.backup
+
+#- name: backup iptables -S
+#  shell: iptables -S > /etc/sysconfig/deploy-iptables-S.backup
+
+

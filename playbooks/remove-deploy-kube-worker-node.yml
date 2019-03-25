@@ -1,0 +1,20 @@
+---
+
+# playbook - remove-create-kube-worker-node.yml
+#
+
+# only use this playbook for cluster worker nodes
+
+- hosts: kube-nodes
+
+  roles:
+    - { role: ../roles/cluster-defaults }
+
+  tasks:
+#   # remove effects taken by role create-kube-worker-node
+#       remove /etc/kubernetes on remote
+#       remove /etc/etcd directory on remote
+#
+    - name: remove actions taken by procedure of create-kube-worker-node role
+      include: ../roles/create-kube-worker-node/tasks/remove-create-kube-worker-node-ex.yml
+

@@ -1,0 +1,32 @@
+file: read.txt
+
+---
+
+1. playbooks are in directory playbook/
+
+2. before deplyment, you need setup following environment settings:
+   . cluster inventory (inventories/dev/hosts, inventories/dev/host_vars/*, inventories/dev/group/vars/* )
+   . cluster network configurations (roles/cluster-defaults/defaults/network.yml)
+   . docker https_proxy setting (roles/cluster-defaults/defaults/docker-https-proxy.yml)
+   . prepare binary files according directory structure and file format (dep-data/bin-local/*)
+   . change binary depploy file path and version according setting of the previous item 
+     (in file roles/cluster-defaults/defaults/deploy-path.yml)
+   . check kube-router settings in file (roles/cluster-defaults/defaults/kube-router-default-setting.yml)
+   . check apiserver setting in file roles/create-kube-cluster-master/defaults/main.yml
+   . check kubelet setting in file roles/create-kube-worker-node/defaults/main.yml
+
+3. deploy and remove kubernetes cluster (including: kubernetes master nodes, etcd cluster, worker node)
+   in kube-dep/ directory, 
+   > type following command in command line to deploy kubernetes cluster:
+     # ansible-playbook -i inventories/dev/hosts playbooks/deploy-cluster.yml
+   > to remove created kubernetes cluster, type following command:
+     # ansible-playbook -i inventories/dev/hosts playbooks/remove-deploy-cluster.yml
+
+4. deploy record and data backups
+   . backup files of cert used in deployment are stored in dep-data/cert-local/* (on ansible deploy machine)
+   . backup files of kubeconfig used in deployment are stored in dep-data/kube-config-local/* (on ansible deploy machine)
+   . during deployment, ansible deploy machine is used to create cert files and also as a cert file cache to store cert files.
+     all generated .json .csr cert key and private key .pem files, which will be used or will be pupulated to cluster node, 
+     are stored in /etc/cert-cache directory (on ansible deploy machine)
+
+

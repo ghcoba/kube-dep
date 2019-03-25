@@ -1,0 +1,109 @@
+---
+
+# file: create-kubelet-user-and-env.yml
+#
+
+# func:
+#   . create kubelet user and group
+#   . create kubelet directories
+#   . create kubelet directory to store dynamic cert files
+#   . create kubelet directory to store kubeconfig file and config file
+#   . generate kubelet cert files (static kubelet server/client cert, not using bootstrap
+#       client cert and bootsrap server cert and rotation renewal cert)
+#
+
+# 1.
+#   create kubelet user and group
+
+- name: create system kubelet group
+  group:
+    name: "{{ kubelet_group }}"
+    state: present
+
+- name: create system kubelet user
+  user:
+    name: "{{ kubelet_user }}"
+    comment: "kubelet user"
+    shell: /sbin/nologin
+    state: present
+    system: yes
+    home: "{{ kubelet_data_path }}/"
+    groups: "{{ kubelet_group }}"
+
+# 2.
+#   create kubelet data directory
+
+# not use - already created when creating user (user's home)
+- name: create and ensure kubelet_data_path exists
+  file:
+    path: "{{ item }}/"
+    recurse: yes
+    state: directory
+    owner: "{{ kubelet_user }}"
+    group: "{{ kubelet_group }}"
+  with_items:
+    - "{{ kubelet_data_path }}"
+    - "{{ kubelet_log_path }}"
+
+# 3.
+#   create directory to store dynamic generated kubeconfig file 
+#     (dirctory: /etc/kubernetes/kubelet-kubeconfig/ )
+#     (after bootstrap approved and finished, new kubeconfig file will generate according return cert)
+- name: create directory to dynamic kubelet kubeconfig files
+  file:
+    path: "{{ kubelet_dynamic_kubeconfig_path }}/"
+    recurse: yes
+    state: directory
+    owner: "{{ kubelet_user }}"
+    group: "{{ kubelet_group }}"
+
+# 4.
+#   create kubelet cert storage directory
+#
+#   - as we bootstrap method for kubelet certification, kubelet will use bootstrap token 
+#       on first time to connect to apiserver
+#   - after bootstrap approved and finished, apiserver will return new generated cert files
+#
+#   - we make directory to store the generated cert (/etc/kubernetes/cert/kubelet/)
+- name: create directory to store dynamic kubelet cert files
+  file:
+    path: "{{ kubelet_dynamic_cert_path }}/"
+    recurse: yes
+    state: directory
+    owner: "{{ kubelet_user }}"
+    group: "{{ kubelet_group }}"
+
+# 5. 
+#   create directory to store (new type) config file used for kubernetes options used in systemd unit file
+#     ( directory: /etc/kubernetes/config/ )
+- name: create directory to store newtype config files
+  file:
+    path: "{{ kube_newtype_config_path }}/"
+    recurse: yes
+    state: directory
+#    owner: "{{ kubelet_user }}"
+#    group: "{{ kubelet_group }}"
+
+# 6.
+#   create and install binary
+#   - already created by deploy schedule routine
+
+# 7. 
+#   create kubelet bootstrap kubeconfig file
+#   - create bootstrap kubeconfig file only
+#       after bootstrap csr approved by apiserver, will return cert and create kubeconfig using cert return
+- name: create kubelet bootstrap kubeconfig file
+  import_tasks: kube-security/create-kubelet-bootstrap-config.yml
+
+# 8.
+#   create kubelet cert (static cert - server and client)
+#     each node has its specific cert bonding to node name and node ip address
+#
+- name: create kubelet static server and client cert
+  import_tasks: kube-core-service/kubelet/gen-kubelet-ca-cert.yml
+
+# 9. 
+#   create kubelet kubecnfig file (include cluter, credential, context and use)
+# 
+- name: create kubelet kubeconfig file
+  import_tasks: kube-core-service/kubelet/create-kubelet-kubeconfig-file.yml

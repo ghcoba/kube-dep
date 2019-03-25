@@ -2,6 +2,17 @@
 
 # file: install-and-start-iptables-service.yml
 
+- name:
+  block:
+    - name: install libselinux-python
+      yum:
+        name: libselinux-python
+        state: latest
+  rescue:
+    - debug:
+        msg: "ERROR: can not install libselinux-python, please check"
+# end block
+
 
 # install firewalld service
 - name:

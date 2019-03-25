@@ -1,0 +1,81 @@
+---
+
+# file: create-cluster-post-process.yml
+#
+
+# func:
+#   . create bootstrap token secret
+#   . create cluster role for master and worker node cluster
+#   . create cluster role binding for master and worker node cluster
+#   . create bootstrap/client cert renewal/ server cert renewal clusterrole and clusterrolebindings
+
+
+####################################################
+# create bootstrap token secret
+#
+- name: create bootstrap token secret
+  import_tasks: kube-security/create-bootstrap-token-secret.yml
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+####################################################
+# create rbac directory and files
+#
+
+- name: create rbac config directory
+  file:
+    path: "{{ kube_rbac_config_path }}/"
+    state: directory
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0764
+
+- name: create rbac config files
+  template:
+    src: "rbac/{{ item }}.j2" 
+    dest: "{{ kube_rbac_config_path }}/{{ item }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0664
+  with_items:
+    - rbac-cr-instruct-approve-selfnodeserver-csr.yaml
+    - rbac-crb-kubelet-bootstrap.yaml
+    - rbac-crb-auto-approve-nodeclient-csr.yaml
+    - rbac-crb-auto-approve-renewal-nodeclient-csr.yaml
+    - rbac-crb-auto-approve-renewal-nodeserver-csr.yaml
+    - rbac-crb-kube-apiserver-bind-kubelet-api-access.yaml
+    - rbac-crb-system-kubelet.yaml
+    - rbac-crb-system-kubelet-user.yaml
+    - rbac-crb-kube-system-sa-cluster-admin.yaml
+
+
+###################################################
+# create cluster role and binding for cluster
+#
+#### #### #### deleted, and replaced
+#- name: create cluster rbac cluster role and bindings
+#  import_tasks: kube-security/create-cluster-rbac-roles.yml
+#  run_once: true
+#  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+
+
+# create cluster roles and bindings for bootstrap
+- name: create cluster roles and bindings for kubelet bootstrap
+  import_tasks: kube-security/create-cluster-rbac-roles-bootstrap.yml
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create cluster roles and bindings for apiserver vs kubelet
+- name: create cluster roles and bindings for apiserver-kubelet
+  import_tasks: kube-security/create-cluster-rbac-roles-apiserver-kubelet.yml
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create cluster role binding for system:kube-system:serviceaccount:default user 
+#   binding t0 cluster-admin clusterrole
+- name: create kube-system-serviceaccount-cluster-admin crb
+  import_tasks: kube-security/create-cluster-rbac-rb-kube-system-sa-cluster-admin.yml
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+ 

@@ -1,0 +1,12 @@
+---
+
+# playbook - create-etcd-cluster.yml
+#
+
+# only use this playbook for etcd cluster
+#
+
+- hosts: etcd-nodes
+  become: yes
+  roles:
+    - { role: ../roles/create-etcd-cluster }

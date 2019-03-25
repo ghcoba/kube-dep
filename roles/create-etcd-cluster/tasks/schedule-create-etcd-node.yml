@@ -93,13 +93,14 @@
       import_tasks: create-etcd-unit-file.yml
 
 # 6. 
+#   REMARK: NOT USED - both master/worker node and etcd cluster have changed into using iptables to replace using firewalld
 #   create firewall rule to enable etcd network traffic
-    - name: exec enable-firewall-rule-for-etcd
-      import_tasks: enable-firewall-rule-for-etcd.yml
+#    - name: exec enable-firewall-rule-for-etcd
+#      import_tasks: enable-firewall-rule-for-etcd.yml
+#      when: ( inventory_hostname not in groups['kube-masters'] ) and ( inventory_hostname not in groups['kube-nodes'] )
 #     as kube-masters and kube-nodes do not use firewalld firewall, then eanble firewalld rules only when
 #       node is not a kube-master node and noto a kube-worker node
 #     only dedicated etcd server (other than kube masters and worker nodes) node will apply firewalld rules for etcd
-      when: ( inventory_hostname not in groups['kube-masters'] ) and ( inventory_hostname not in groups['kube-nodes'] )
 
 # 7.
 #   enable and start etcd service

@@ -1,0 +1,13 @@
+---
+# file: deploy-etcd-os-prep.yml
+
+# func: deploy os preparations and baisc system exec environment 
+#       for kubernetes system operation
+#
+
+
+- hosts: etcd-nodes
+  become: yes
+  roles:
+    - { role: ../roles/os-prep }
+

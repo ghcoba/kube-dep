@@ -1,0 +1,13 @@
+---
+# file: deploy-os-prep.yml
+
+# func: deploy os preparations and baisc system exec environment 
+#       for kubernetes system operation
+#
+
+
+- hosts: cluster
+  become: yes
+  roles:
+    - { role: ../roles/os-prep }
+

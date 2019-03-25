@@ -1,0 +1,26 @@
+---
+
+# playbook - remove-gen-kube-ca-cert.yml
+#
+
+# only use this playbook for node #0 of ansible-nodes
+
+#- hosts: node1
+#- hosts: node0
+- hosts: "{{ groups['ansible-nodes'][0] }}"
+
+  roles:
+    - { role: ../roles/cluster-defaults }
+
+  tasks:
+#   # remove effects taken by role gen-root-ca-cert
+#       remove cert-cache directory on remote
+#       remove ansible temp exchange directory
+#       will also remove cfssl utility on remote)
+#       remove /etc/cert-cache/ca-config directory on remote
+#       remove /etc/cert-cache/ca directory on remote
+#       remmark: ca and ca-config directory in dep-data/cert-local is not removed
+#
+    - name: remove procedure of role gen-kube-ca-cert
+      include: ../roles/gen-kube-ca-cert/tasks/remove-gen-kube-ca.yml
+

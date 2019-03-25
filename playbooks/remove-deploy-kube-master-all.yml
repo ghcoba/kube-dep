@@ -1,0 +1,111 @@
+---
+
+# file: remove-deploy-kube-master-all.yml
+
+
+# 0.
+#   include cluster defaults
+
+- hosts: kube-masters
+
+  roles:
+    - { role: ../roles/cluster-defaults }
+
+- hosts: etcd-nodes
+
+  roles:
+    - { role: ../roles/cluster-defaults }
+
+# 1.
+#   remove deploy process of create-kube-cluster-master
+
+- hosts: kube-masters
+
+#   # remove effects taken by role create-kube-cluster-master
+#       remove /etc/kubernetes on remote
+#       remove /etc/etcd directory on remote
+#
+
+  tasks:
+ 
+    - name: remove actions taken by procedure of create-kube-cluster-master role
+      include: ../roles/create-kube-cluster-master/tasks/remove-create-kube-cluster-master-ex.yml
+
+# 2.
+#   remove deploy process of create-etcd-cluster
+
+- hosts: etcd-nodes
+
+  tasks:
+#   # remove effects taken by role create-etcd-cluster
+#       stop and remove etcd service
+#       remove /etc/etcd on remote
+#       remove /var/lib/etcd directory on remote
+#
+
+
+    - name: remove actions taken by procedure of create-etcd-cluster task
+      include: ../roles/create-etcd-cluster/tasks/remove-create-etcd-cluster.yml
+
+
+# 3.
+#   remove cert cache on node #1 of cluster masters
+
+# 3.1
+#   exec  remove-etcd-kube-root-ca-cert.yml
+
+# remove all ca cert in reverse sequence as they are generated
+#   remove etcd ca cert
+#   remove kube ca cert
+#   remove root ca cert
+
+- hosts: "{{ groups['ansible-nodes'][0] }}"
+
+  tasks:
+#   # remove effects taken by role gen-etcd-ca-cert
+#       remove /etc/cert-cache/etcd directory on remote
+#       remove /etc/cert-cache/flanneld directory on remote
+#       remmark: backup directory in dep-data/cert-local is not removed
+#
+    - name: remove procedure of role gen-etcd-ca-cert
+      include: ../roles/gen-etcd-ca-cert/tasks/remove-gen-etcd-ca.yml
+
+# 3.2
+#   exec remove-gen-kube-ca
+
+- hosts: "{{ groups['ansible-nodes'][0] }}"
+
+  tasks:
+#   # remove effects taken by role gen-root-ca-cert
+#       remove cert-cache directory on remote
+#       remove ansible temp exchange directory
+#       will also remove cfssl utility on remote)
+#       remove /etc/cert-cache/ca-config directory on remote
+#       remove /etc/cert-cache/ca directory on remote
+#       remmark: ca and ca-config directory in dep-data/cert-local is not removed
+#
+    - name: remove procedure of role gen-kube-ca-cert
+      include: ../roles/gen-kube-ca-cert/tasks/remove-gen-kube-ca.yml
+
+# 3.3
+#   exec remove-gen-root-ca
+
+- hosts: "{{ groups['ansible-nodes'][0] }}"
+
+  tasks:
+#   # remove effects taken by role gen-root-ca-cert
+#       remove cert-cache directory on remote
+#       remove ansible temp exchange directory
+#       will also remove cfssl utility on remote)
+#       remove /etc/cert-cache/ca-config directory on remote
+#       remove /etc/cert-cache/ca directory on remote
+#       remmark: ca and ca-config directory in dep-data/cert-local is not removed
+#
+    - name: remove procedure of role gen-root-ca-cert
+      include: ../roles/gen-root-ca-cert/tasks/remove-gen-root-ca.yml
+
+#     remove cert cache dir on remote
+    - name: remove cert cache directory on remote
+      file:
+        path: "{{ cert_cache_path }}"
+        state: absent

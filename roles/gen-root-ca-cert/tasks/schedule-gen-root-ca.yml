@@ -43,14 +43,14 @@
 # prompt check result
 - name: prompt ca-config directory exist result - not exist
   debug:
-    msg: "ca-config directory not exist on {{ groups['ansible-nodes'][0] }}. will continue to generate root ca cert..."
+    msg: "ca-config directory not exist on ansible deploy machine.  will continue to generate root ca cert..."
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: ca_config_exist_result.stat.exists == false
 # prompt check result
 - name: prompt ca-config directory exist result - exist
   debug:
-    msg: "ca-config directory already exist on {{ groups['ansible-nodes][0] }}. will exit generating root ca cert."
+    msg: "ca-config directory already exist on ansible deploy machine. will exit generating root ca cert."
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
   when: ca_config_exist_result.stat.exists == true

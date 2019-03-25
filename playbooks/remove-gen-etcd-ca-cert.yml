@@ -1,0 +1,22 @@
+---
+
+# playbook - remove-gen-etcd-ca-cert.yml
+#
+
+# only use this playbook for node #0 of ansible-nodes
+
+#- hosts: node1
+- hosts: "{{ groups['ansible-nodes'][0] }}"
+
+  roles:
+    - { role: ../roles/cluster-defaults }
+
+  tasks:
+#   # remove effects taken by role gen-etcd-ca-cert
+#       remove /etc/cert-cache/etcd directory on remote
+#       remove /etc/cert-cache/flanneld directory on remote
+#       remmark: backup directory in dep-data/cert-local is not removed
+#
+    - name: remove procedure of role gen-etcd-ca-cert
+      include: ../roles/gen-etcd-ca-cert/tasks/remove-gen-etcd-ca.yml
+
