@@ -14,6 +14,12 @@
 #     7. remove remote /etc/cert-cache/kube-serviceaccount directory
 
 
+############################################################################################
+### ATTENTION:
+### FLOWING PROCESS CAUSE MALFUNCTION TO ERASE /boot PARTITION OF ANSIBLE HARD DISK
+### DELETE IT
+############################################################################################
+
 # remove kube cache dir on remote
 - name: remove kube cache directory on remote
   file:
@@ -33,3 +39,6 @@
 - debug: msg="/etc/cert-cache/<kubernetes,kube-admin,kube-apiserver,kube-controller-manager,kube-scheduler,kube-proxy> directory removed."
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
+
+#- debug:
+#    msg: "kube cert-cache directory will not be deleted. please check"

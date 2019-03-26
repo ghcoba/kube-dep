@@ -8,6 +8,16 @@
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
+# include variable - using in gen-etcd-ca-cert role
+- block:
+  - debug:
+      msg: "include default variables ..."
+  - name: INCLUDE VAR main.yml (in dir roles/create-etcd-cluster/defaults)
+    include_vars:
+#   relative directory - relative to roles/roles-item/
+      file: ../create-etcd-cluster/defaults/main.yml
+# end block
+
 - name: schedule exec generating etcd ca cert
   import_tasks: schedule-gen-etcd-ca.yml
   run_once: true

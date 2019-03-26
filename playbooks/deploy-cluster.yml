@@ -22,6 +22,11 @@
 
 - hosts: "{{ groups['ansible-nodes'][0] }}"
   become: yes
+
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
+
   roles:
     - { role: ../roles/gen-root-ca-cert }
 
@@ -30,6 +35,11 @@
 
 - hosts: "{{ groups['ansible-nodes'][0] }}"
   become: yes
+
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
+
   roles:
     - { role: ../roles/gen-kube-ca-cert }
 
@@ -39,6 +49,11 @@
 
 - hosts: "{{ groups['ansible-nodes'][0] }}"
   become: yes
+
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
+
   roles:
     - { role: ../roles/gen-etcd-ca-cert }
 
@@ -47,6 +62,11 @@
 
 - hosts: etcd-nodes
   become: yes
+
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
+
   roles:
     - { role: ../roles/create-etcd-cluster }
 
@@ -62,6 +82,11 @@
 
 - hosts: kube-masters
   become: yes
+
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
+
   roles:
     - { role: ../roles/create-kube-cluster-master }
 
@@ -79,6 +104,11 @@
 
 - hosts: kube-nodes
   become: yes
+
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
+
   roles:
     - { role: ../roles/create-kube-worker-node }
 

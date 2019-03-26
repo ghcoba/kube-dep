@@ -1,0 +1,40 @@
+---
+
+# file: remove-gen-etcd-ca.yml
+#
+
+# func:
+#   general: remove generated ca cert procedure
+#     1. remove remote /etc/cert-cache/etcd directory
+#     2. remove remote /etc/cert-cache/flannel directory
+#
+
+
+#### ATTENTION ################################################################
+###  FLOWING PROCESS WILL DELETE /boot partition of hard disk (do not know why)
+###  SO, FOLOWING PROCESS IS DELETED 
+###############################################################################
+
+# remove etcd cache dir on remote
+- block:
+    - name: remove etcd cache directory on remote
+      file:
+        path: "{{ item }}/"
+        state: absent
+      with_items:
+        - "{{ cert_cache_path_etcd }}"
+        - "{{ cert_cache_path_flanneld }}"
+      run_once: true
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
+
+    - debug: msg="/etc/cert-cache/<etcd, flanneld> directories removed."
+      run_once: true
+      delegate_to: "{{ groups['ansible-nodes'][0] }}"
+  rescue:
+    - debug:
+        msg: "ERROR: fail to remove etcd cache directory on {{ inventory_hostname }}."
+# end block
+
+#- debug:
+#    msg: "attention: etcd cert cache directory will not be removed. please check."
+

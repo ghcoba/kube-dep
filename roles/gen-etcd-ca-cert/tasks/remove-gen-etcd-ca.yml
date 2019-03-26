@@ -9,6 +9,11 @@
 #     2. remove remote /etc/cert-cache/flannel directory
 #
 
+#########################################################################################
+# ATTENTION:
+# FOLLOWING PROCESS CAUSE MALFUNCTION TO ERASE /boot partition on ansible hard disk
+# DO NOT USE - DELETE IT
+##########################################################################################
 
 # remove etcd cache dir on remote
 - name: remove etcd cache directory on remote
@@ -24,3 +29,6 @@
 - debug: msg="/etc/cert-cache/<etcd, flanneld> directories removed."
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
+
+#- debug:
+#    msg: "etcd cert-cache will not be deleted. please check."

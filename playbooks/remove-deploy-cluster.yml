@@ -6,6 +6,7 @@
 #####################################################################
 - hosts: kube-nodes
 
+###
   roles:
     - { role: ../roles/cluster-defaults }
 
@@ -24,11 +25,13 @@
 
 - hosts: kube-masters
 
+###
   roles:
     - { role: ../roles/cluster-defaults }
 
 - hosts: etcd-nodes
 
+###
   roles:
     - { role: ../roles/cluster-defaults }
 
@@ -42,6 +45,10 @@
 #       remove /etc/etcd directory on remote
 #
 
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
+
   tasks:
 
     - name: remove actions taken by procedure of create-kube-cluster-master role
@@ -51,6 +58,10 @@
 #   remove deploy process of create-etcd-cluster
 
 - hosts: etcd-nodes
+
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
 
   tasks:
 #   # remove effects taken by role create-etcd-cluster
@@ -76,6 +87,10 @@
 
 - hosts: "{{ groups['ansible-nodes'][0] }}"
 
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
+
   tasks:
 #   # remove effects taken by role gen-etcd-ca-cert
 #       remove /etc/cert-cache/etcd directory on remote
@@ -89,6 +104,10 @@
 #   exec remove-gen-kube-ca
 
 - hosts: "{{ groups['ansible-nodes'][0] }}"
+
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
 
   tasks:
 #   # remove effects taken by role gen-root-ca-cert
@@ -106,6 +125,10 @@
 #   exec remove-gen-root-ca
 
 - hosts: "{{ groups['ansible-nodes'][0] }}"
+
+###
+  roles:
+    - { role: ../roles/cluster-defaults }
 
   tasks:
 #   # remove effects taken by role gen-root-ca-cert
