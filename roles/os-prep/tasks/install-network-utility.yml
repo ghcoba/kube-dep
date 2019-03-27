@@ -6,7 +6,7 @@
 #
 - name: install network utility
   yum:
-    name: ['iproute', 'net-tools', 'bind-utils', 'iptables']
+    name: ['iproute', 'net-tools', 'bind-utils', 'iptables', 'bridge-utils']
     state: latest
 
 
