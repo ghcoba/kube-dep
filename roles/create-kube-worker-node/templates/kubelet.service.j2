@@ -32,11 +32,11 @@ ExecStart=/usr/bin/kubelet \
         --fail-swap-on=false \
         --serialize-image-pulls=false \
         \
-        --address=0.0.0.0 \
-        --port=10250 \
-        --read-only-port=0 \
-        --healthz-bind-address=0.0.0.0 \
-        --healthz-port=10248 \
+        --address={{ kubelet_bind_address }} \
+        --port={{ kubelet_secure_port }} \
+        --read-only-port={{ kubelet_insecure_readonly_port }} \
+        --healthz-bind-address={{ kubelet_healthz_bind_address }} \
+        --healthz-port={{ kubelet_healthz_port }} \
         \
         --client-ca-file={{ kube_ca_file }} \
         --bootstrap-kubeconfig={{ kubelet_bootstrap_config_file }} \
