@@ -81,7 +81,7 @@
      
 #   create kubernetes ca/cert file in cert-cache
 
-#   create gen shell script
+#   create gen shell script (used for generating kube cert)
     - name: copy shell script to /etc/cert-cache/kubernetes
       copy:
         src: gen-kube-ca-cert.sh
@@ -92,14 +92,12 @@
       run_once: true
       delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
-#   run script to create kube cert in kube cache directory of first kube master node
+#   run script to create kube cert in kube cache directory of ansible machine
 #     create ca certs for kube-admin, kube-apiserver, kube-controller-manager, 
 #     kube-scheduler, kube-proxy
     - name: gen kube ca certs kubernetes services
       command:
         "{{ cert_cache_path_kubernetes }}/gen-kube-ca-cert.sh"
-#      args:
-#        creates: "{{ cert_cache_path_kubernetes }}/server.crt"
       args:
         chdir: "{{ cert_cache_path_kubernetes }}"
       environment:

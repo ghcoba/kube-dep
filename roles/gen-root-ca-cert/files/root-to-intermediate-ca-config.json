@@ -1,0 +1,68 @@
+{
+    "signing": {
+        "default": {
+            "expiry": "262800h"
+        },
+        "profiles": {
+            "cluster": {
+                "expiry": "262800h",
+                "usages": [
+                    "digital signature",
+                    "cert sign",
+                    "crl sign",
+                    "signing",
+                    "key encipherment",
+                    "server auth",
+                    "client auth"
+                ]
+            },
+            "development": {
+                "expiry": "262800h",
+                "usages": [
+                    "digital signature",
+                    "cert sign",
+                    "crl sign",
+                    "signing",
+                    "key encipherment",
+                    "server auth",
+                    "client auth"
+                ]
+            },
+            "kubernetes": {
+                "expiry": "262800h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth",
+                    "client auth"
+                ]
+            },
+            "server": {
+                "expiry": "262800h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth",
+                    "client auth"
+                ]
+            },
+            "client": {
+                "expiry": "262800h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "client auth"
+                ]
+            },
+            "peer": {
+                "expiry": "262800h",
+                "usages": [
+                    "signing",
+                    "key encipherment",
+                    "server auth",
+                    "client auth"
+                ]
+            }
+        }
+    }
+}

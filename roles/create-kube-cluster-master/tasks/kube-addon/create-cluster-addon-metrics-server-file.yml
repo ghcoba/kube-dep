@@ -1,0 +1,30 @@
+---
+
+# file: create-cluster-addon-metrics-server-file.yml
+#
+
+# func:
+#   . metrics-server file in (/etc/kubernetes/metrics-server/*)
+
+
+#- name: create metrics-server yaml files
+#  template:
+#    src: "addon/metrics-server/{{ item }}.j2" dest: "{{ kube_metrics_server_path }}/{{ 
+#  item }}" owner: "{{ kube_user }}" group: "{{ kube_group }}" mode: 0644 with_items:
+#    - auth-delegator.yaml - auth-reader.yaml - metrics-apiservice.yaml
+#    - metrics-server-deployment.yaml
+#    - metrics-server-service.yaml
+#    - resource-reader.yaml
+#    - auth-reader-user.yaml
+
+
+- name: create metrics-server yaml files
+  template:
+    src: "addon/metrics-server_alt/{{ item }}.j2"
+    dest: "{{ kube_metrics_server_path }}/{{ item }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0644
+  with_items:
+    - metrics-server.yaml
+

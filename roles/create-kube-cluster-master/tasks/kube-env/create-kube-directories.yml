@@ -54,3 +54,5 @@
     - "{{ kube_newtype_config_path }}"
     - "{{ kube_cluster_addon_path }}"
     - "{{ kube_ipmasq_agent_config_path }}"
+    - "{{ kube_metrics_server_path }}"
+    

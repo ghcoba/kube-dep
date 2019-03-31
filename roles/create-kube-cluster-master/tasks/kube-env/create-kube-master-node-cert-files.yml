@@ -172,6 +172,35 @@
     - timestamp.log
 
 # 7.
+#   kube front proxy client cert
+# fech kube front proxy client cert to ansible temp exchange dir
+- name: fetch kube front proxy client cert key from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_front_proxy_client }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - front-proxy-client-ca.pem
+    - front-proxy-client-ca-key.pem
+    - front-proxy-client.pem
+    - front-proxy-client-key.pem
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
+
+# copy kube proxy cert key from ansible temp exchange directory to kube cluster master
+- name: copy kube proxy cert key files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - front-proxy-client-ca.pem
+    - front-proxy-client-ca-key.pem
+    - front-proxy-client.pem
+    - front-proxy-client-key.pem
+
+# 8.
 #   kube service account cert key
 # fech kube sa cert key to ansible temp exchange dir
 - name: fetch kube sa cert key from cache dir to temp
@@ -198,7 +227,71 @@
     - kube-serviceaccount-key.pem
     - timestamp.log
 
-# 8.
+
+###########
+###########
+###########
+
+
+# 9.
+#   kube-metrics-server server cert and kube-aggregated-apiserver-client client cert
+# fech kube-metrics-server cert key to ansible temp exchange dir
+- name: fetch kube-metrics-server cert key from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_metrics_server }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - kube-metrics-server.pem
+    - kube-metrics-server-key.pem
+    - timestamp.log
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
+
+# copy kube-metrics-server cert key from ansible temp exchange directory to kube cluster master
+- name: copy kube proxy cert key files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - kube-metrics-server.pem
+    - kube-metrics-server-key.pem
+    - timestamp.log
+
+# 10.
+#   kube-aggregated-apiserver-client client cert
+# fech kube-aggregated-apiserver-client cert key to ansible temp exchange dir
+- name: fetch kube aggregated apiserver client cert key from cache dir to temp
+  fetch:
+    src: "{{ cert_cache_path_kube_aggregated_apiserver_client }}/{{ item }}"
+    dest: "{{ dep_path_tmp_exchange }}/"
+    flat: true
+  with_items:
+    - kube-aggregated-apiserver-client.pem
+    - kube-aggregated-apiserver-client-key.pem
+    - timestamp.log
+  delegate_to: "{{ groups['ansible-nodes'][0] }}"
+
+# copy kube aggregated apiserver client cert key from ansible temp exchange directory to kube cluster master
+- name: copy kube aggregated apiserver client cert key files to kube master
+  copy:
+    src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+    dest: "{{ kube_cert_path }}/"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+  with_items:
+    - kube-aggregated-apiserver-client.pem
+    - kube-aggregated-apiserver-client-key.pem
+    - timestamp.log
+
+###########
+###########
+###########
+
+# 11.
 # kube encryption config file
 # generate kube encryption config file
 - name: generate kube encryption config file - include encryption key

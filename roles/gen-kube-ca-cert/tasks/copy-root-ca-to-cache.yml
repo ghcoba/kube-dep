@@ -15,22 +15,30 @@
 #
 
 #     ca-config.json
-    - name: fetch ca-config.json to ansible temp dir
+# and
+#     root-to-intermediate-ca-config.json for intermediate-CA (and front-proxy-client-ca for metrics-server) config
+
+    - name: fetch root ca-config.json and intermediate-CA config to ansible temp dir
       fetch:
         src: "{{ cert_cache_path_ca_config }}/{{ item }}"
         dest:  "{{ dep_path_tmp_exchange }}/"
         flat: true
       with_items:
         - ca-config.json
-    - name: copy ca-config.json to kube cache
+        - root-to-intermediate-ca-config.json
+    - name: copy root ca-config.json and intermediate-CA config to kube cache
       copy:
         src: "{{ dep_path_tmp_exchange }}/{{ item }}"
         dest: "{{ cert_cache_path_kubernetes }}/"
       with_items:
         - ca-config.json
+        - root-to-intermediate-ca-config.json
 
 #   ca.pem, ca-key.pem
-    - name: fetch ca cert to ansible temp dir
+# and
+#   front-proxy-client-ca.pem, front-proxy-client-ca-key.pem
+
+    - name: fetch root-CA cert and intermediate-CA(also front-proxy-client-ca) to ansible temp dir
       fetch:
         src: "{{ cert_cache_path_ca }}/{{ item }}"
         dest:  "{{ dep_path_tmp_exchange }}/"
@@ -38,13 +46,17 @@
       with_items:
         - ca.pem
         - ca-key.pem
-    - name: copy ca cert to kube cache
+        - front-proxy-client-ca.pem
+        - front-proxy-client-ca-key.pem
+    - name: copy root-CA cert and intermediate-CA cert (also as front-proxy-client-ca) to kube cache
       copy:
         src: "{{ dep_path_tmp_exchange }}/{{ item }}"
         dest: "{{ cert_cache_path_kubernetes }}/"
       with_items:
         - ca.pem
         - ca-key.pem
+        - front-proxy-client-ca.pem
+        - front-proxy-client-ca-key.pem
 
   rescue:
     - debug:

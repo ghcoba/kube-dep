@@ -17,6 +17,18 @@
 # to check: # cat /etc/fstab
 #
 
+# set system not use swap as possible ( it is NOT to disable swappiness)
+- name: config os to not use swap as possible - not disable swap
+  block:
+    - name: set os not use swap as possible
+      shell: echo "vm.swappiness = 0">> /etc/sysctl.conf
+    - name: take effect (not reboot)
+      shell: sysctl -p
+  rescue:
+    - debug:
+        msg: "error occured in set os vm.swappiness = 0 to /etc/sysctl.conf"
+# end block
+
 # disable swap using fstab setting
 - name: config disable swap
   block:
@@ -34,6 +46,6 @@
   always:
     - debug:
         msg: 'reboot target host to make disable-swap take effect. check # cat /etc/fstab for swap setting after reboot'
-    - name: reboot to make disable-swap take effect
-      command: reboot
+#    - name: reboot to make disable-swap take effect
+#      command: reboot
     

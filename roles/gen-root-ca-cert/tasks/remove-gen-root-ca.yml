@@ -32,6 +32,7 @@
   with_items:
     - ca-config
     - ca
+#    - kube-front-proxy-client-ca
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
 

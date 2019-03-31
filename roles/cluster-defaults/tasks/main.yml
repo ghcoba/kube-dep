@@ -101,3 +101,12 @@
   include_vars:
     file: defaults/kube-router-default-setting.yml
   run_once: true
+
+#13. metrics-server-default-setting.yml
+# kube-router setting for kube-router networking
+- name: INCLUDE VAR metrics-server-default-setting.yml - kubernetes addon - metrics-server
+  include_vars:
+    file: defaults/metrics-server-default-setting.yml
+  run_once: true
+
+

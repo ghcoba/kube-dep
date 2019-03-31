@@ -8,7 +8,7 @@
       debug: 
         msg: "notified -> start copy ca-config and ca-csr to remote cache ..."
 
-#   copy ca-config, ca-csr file from role files/ to cert-cache (ansible machine /etc/cert-cache/ca-config
+#   copy ca-config, ca-csr and intermediate ca csr file from role files/ to cert-cache (ansible machine /etc/cert-cache/ca-config
     - name: copy ca-config and ca-csr (from role files/) to remote cache
       copy:
         src: "{{ item }}"
@@ -16,6 +16,8 @@
       with_items:
         - ca-config.json
         - ca-csr.json
+        - intermediate-ca-csr.json
+        - root-to-intermediate-ca-config.json
 
 #   create time stamp record
     - name: create time stamp record

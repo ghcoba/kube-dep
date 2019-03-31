@@ -11,13 +11,13 @@
 # create addon directory
 #
 
-- name: create cluster addon directory
-  file:
-    path: "{{ kube_cluster_addon_path }}/"
-    state: directory
-    owner: "{{ kube_user }}"
-    group: "{{ kube_group }}"
-    mode: 0644
+#- name: create cluster addon directory
+#  file:
+#    path: "{{ kube_cluster_addon_path }}/"
+#    state: directory
+#    owner: "{{ kube_user }}"
+#    group: "{{ kube_group }}"
+#    mode: 0644
 
 - name: create cluster addon-manager yaml files
   template:

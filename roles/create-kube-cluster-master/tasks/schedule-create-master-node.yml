@@ -329,7 +329,9 @@
 # 80.
     - name: create kubernetes addon env and addon-manager file
       import_tasks: kube-addon/create-cluster-addons-manager-file.yml
-
+# 81.
+    - name: create kubernetes metrics-server addon file
+      import_tasks: kube-addon/create-cluster-addon-metrics-server-file.yml
 
 
 
@@ -337,7 +339,7 @@
 # . final processes for kubenetes master deployment
 #
 
-# 80.
+# 81.
 #    - name: take final process
 #      import_tasks: kube-post-process/take-final-process.yml
 

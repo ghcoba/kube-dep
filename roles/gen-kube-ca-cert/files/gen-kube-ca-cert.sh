@@ -184,7 +184,7 @@ fi
 
 cat <<EOF > kube-apiserver-client-csr.json
 {
-    "CN": "kube-apiserver",
+    "CN": "kube-apiserver-client",
     "key": {
         "algo": "rsa",
         "size": 2048
@@ -356,8 +356,51 @@ fi
 #echo "finished gen kube-proxy cert" >> trace.log
 # end debug
 
+# 6. kube front proxy client cert
+# create kube front proxy client csr json file 
+#   ( use server profile of root-to-intermediate-ca-config.json. 
+#     as wu use it for apiserver to access metrics-server as client - hosts is null )
+# kube user: aggregator, system:metrics-server
+# kube group: kube
 
-# 6. kube-serviceaccount
+#    "hosts": [
+#    ],
+
+cat <<EOF > front-proxy-client-csr.json
+{
+    "CN": "system:metrics-server",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "Shenzhen",
+            "ST": "Shenzhen",
+            "O": "kube",
+            "OU": "internet"
+        }
+    ]
+}
+EOF
+
+
+# debug trace log
+#echo "finished gen front-proxy-client csr" >> trace.log
+# end debug
+
+if ! (cfssl gencert -ca=front-proxy-client-ca.pem -ca-key=front-proxy-client-ca-key.pem -config=root-to-intermediate-ca-config.json -profile=server front-proxy-client-csr.json | cfssljson -bare front-proxy-client) >/dev/null 2>&1; then
+    echo "=== Failed to generate server certificates: Aborting ===" 1>&2
+    exit 2
+fi
+
+# debug trace log
+#echo "finished gen kube-proxy cert" >> trace.log
+# end debug
+
+
+# 7. kube-serviceaccount
 # for kube service account
 # create kube sa csr json file ( csr for service account client, use client profile of ca-config, client - hosts is null )
 # kube user: system:serviceaccount:kube-system:default
@@ -395,6 +438,106 @@ if ! (cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profil
     echo "=== Failed to generate kube-sa client certificates: Aborting ===" 1>&2
     exit 2
 fi
+
+
+###########################################################################################
+# create cert for agrregated servers
+
+# 1. metrics-server (aggregated apiserver, extention apiserver)
+####    generate metrics-server client cert.  csr json file ( use kube profile of ca-config.json, server/client)
+# kube user: metrics-server
+# kube group: kube
+
+cat <<EOF > kube-metrics-server-csr.json
+{
+    "CN": "metrics-server",
+    "hosts": [
+        "127.0.0.1","localhost",
+        "$load_balancer_ip", "lb-node",
+        $hosts_string,
+        "$apiserver_service_cluster_ip_localvar",
+        "$cluster_kube_dns_ip_localvar",
+        "$pod_network_start_ip",
+
+        "api",
+        "kubernetes",
+        "kubernetes.local",
+        "kubernetes.default",
+        "kubernetes.default.svc",
+        "kubernetes.default.svc.cluster",
+        "kubernetes.default.svc.cluster.local",
+        "metrics-server",
+        "metrics-server.local",
+        "metrics-server.kube-system",
+        "metrics-server.kube-system.svc",
+        "metrics-server.kube-system.svc.cluster",
+        "metrics-server.kube-system.svc.cluster.local"
+    ],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "Shenzhen",
+            "ST": "Shenzhen",
+            "O": "kube",
+            "OU": "internet"
+        }
+    ]
+}
+EOF
+
+
+# debug use
+# end debug
+
+if ! (cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kube  kube-metrics-server-csr.json | cfssljson -bare  kube-metrics-server) >/dev/null 2>&1; then
+    echo "=== Failed to generate metrics-server server certificates: Aborting ===" 1>&2
+    exit 2
+fi
+
+#################################################################################################
+# create client cert for accessing aggregated apiserver (extention apiserver)
+#
+
+# 1.1 client cert to access aggregated apiserver (type: client)
+####    generate aggregated apiserver client cert csr json file ( use kube profile of ca-config.json, client)
+# kube user: kube-aggregated-apiserver-client
+# kube group: kube
+
+#    "hosts": [
+#    ],
+
+cat <<EOF > kube-aggregated-apiserver-client-csr.json
+{
+    "CN": "kube-aggregated-apiserver-client",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "Shenzhen",
+            "ST": "Shenzhen",
+            "O": "system:masters",
+            "OU": "internet"
+        }
+    ]
+}
+EOF
+
+
+# debug use
+# end debug
+
+if ! (cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client kube-aggregated-apiserver-client-csr.json | cfssljson -bare kube-aggregated-apiserver-client) >/dev/null 2>&1; then
+    echo "=== Failed to generate kube-apiserver-client client certificates: Aborting ===" 1>&2
+    exit 2
+fi
+
 
 # debug trace log
 #echo "finished gen kube-serviceaccount cert" >> trace.log

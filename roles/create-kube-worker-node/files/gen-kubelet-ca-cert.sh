@@ -156,7 +156,7 @@ EOF
 # debug use
 # end debug
 
-if ! (cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kube kubelet-csr.json | cfssljson -bare kubelet) >/dev/null 2>&1; then
+if ! (cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -hostname="$node_hostname_current,$node_hostname_current.local,$node_ip_current" -profile=kube kubelet-csr.json | cfssljson -bare kubelet) >/dev/null 2>&1; then
     echo "=== Failed to generate kubelet server and client certificates: Aborting ===" 1>&2
     exit 2
 fi

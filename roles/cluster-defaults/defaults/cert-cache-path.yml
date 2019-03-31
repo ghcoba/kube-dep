@@ -46,3 +46,21 @@ cert_cache_path_kube_serviceaccount: "{{ cert_cache_path }}/kube-serviceaccount"
 
 # not use -- (we use bootstrap auto authentication for kubelet) 
 # cert_cache_path_kubelet: "{{ cert_cache_path }}/kubelet"
+
+
+# attention: 
+#   . in cert-cache, kube front proxy client ca config is stored  in same directory as root ca config
+
+# path for kube front proxy (aggregator) client ca
+# front proxy ca file store in same directory as root ca (/etc/cert-cache/ca/)
+#cert_cache_path_kube_front_proxy_client_ca: "{{ cert_cache_path }}/kube-front-proxy-client-ca"
+
+# path for kube front proxy (aggregator) client cert
+cert_cache_path_kube_front_proxy_client: "{{ cert_cache_path }}/kube-front-proxy-client"
+
+# path for metrics-server server cert
+cert_cache_path_kube_metrics_server: "{{ cert_cache_path }}/kube-metrics-server"
+
+# path for aggregated-apiserver-client cert (client to access aggregated apiservers)
+cert_cache_path_kube_aggregated_apiserver_client: "{{ cert_cache_path }}/kube-aggregated-apiserver-client"
+

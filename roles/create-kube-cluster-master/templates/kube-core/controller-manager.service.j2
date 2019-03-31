@@ -61,6 +61,8 @@ ExecStart=/usr/bin/kube-controller-manager \
   \
   --kubeconfig={{ kube_controller_manager_config_file }} \
   \
+  --horizontal-pod-autoscaler-use-rest-clients=true \
+  \
   --enable-garbage-collector=true \
   --terminated-pod-gc-threshold=50 \
   --node-monitor-grace-period=40s \

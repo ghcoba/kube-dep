@@ -1,0 +1,236 @@
+# metrics-server.yaml
+#
+#
+
+
+# cluster role - system:aggregated-metrics-reader
+#
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: system:aggregated-metrics-reader
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+
+
+---
+# cluster role binding - metrics-server:system:auth-delegator
+#
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: metrics-server:system:auth-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: metrics-server
+  namespace: kube-system
+
+
+---
+# role binding - metrics-server-auth-reader
+#
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: metrics-server-auth-reader
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+- kind: ServiceAccount
+  name: metrics-server
+  namespace: kube-system
+
+
+---
+# apiservice - v1beta1.metrics.k8s.io
+#
+apiVersion: apiregistration.k8s.io/v1beta1
+kind: APIService
+metadata:
+  name: v1beta1.metrics.k8s.io
+spec:
+  service:
+    name: metrics-server
+    namespace: kube-system
+  group: metrics.k8s.io
+  version: v1beta1
+  insecureSkipTLSVerify: true
+  groupPriorityMinimum: 100
+  versionPriority: 100
+
+
+---
+# service account - metrics-server
+#
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metrics-server
+  namespace: kube-system
+
+
+---
+# deployment - metrics-server
+#
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: metrics-server
+  namespace: kube-system
+  labels:
+    k8s-app: metrics-server
+spec:
+  selector:
+    matchLabels:
+      k8s-app: metrics-server
+  template:
+    metadata:
+      name: metrics-server
+      labels:
+        k8s-app: metrics-server
+    spec:
+      serviceAccountName: metrics-server
+      hostNetwork: true
+      containers:
+      - name: metrics-server
+        image: k8s.gcr.io/metrics-server-amd64:v0.3.1
+        #imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
+        command:
+          - /metrics-server
+          - --v=3
+          - --kubelet-preferred-address-types=InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP
+          - --requestheader-client-ca-file={{ kube_ca_file }}
+          - --tls-cert-file={{ kube_metrics_server_cert_file }}
+          - --tls-private-key-file={{ kube_metrics_server_key_file }}
+          - --requestheader-allowed-names="kube-aggregated-apiserver-client"
+          - --requestheader-group-headers=X-Remote-Group
+          - --requestheader-extra-headers-prefix=X-Remote-Extra-
+          - --requestheader-username-headers=X-Remote-User
+          #- --kubelet-insecure-tls
+          #- --tls-cert-file=/etc/kubernetes/cert/front-proxy-client.pem
+          #- --tls-private-key-file=/etc/kubernetes/cert/front-proxy-client-key.pem
+        volumeMounts:
+        - name: front-proxy-client-ca-dir
+          mountPath: /etc/kubernetes/cert
+        - name: tmp-dir
+          mountPath: /tmp
+      volumes:
+      # mount in tmp so we can safely use from-scratch images and/or read-only containers
+      - name: tmp-dir
+        emptyDir: {}
+      - name: front-proxy-client-ca-dir
+        hostPath:
+          #path: /etc/kubernetes/cert
+          path: {{ kube_cert_path }}
+
+---
+# service - metrics-server
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-server
+  namespace: kube-system
+  labels:
+    kubernetes.io/name: "Metrics-server"
+spec:
+  selector:
+    k8s-app: metrics-server
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 443
+
+
+---
+# cluster role - system:metrics-server
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:metrics-server
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - nodes
+  - nodes/stats
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - "extensions"
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - update
+  - watch
+
+---
+# cluster role binding - system:metrics-server
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:metrics-server
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:metrics-server
+subjects:
+- kind: ServiceAccount
+  name: metrics-server
+  namespace: kube-system
+
+
+---
+# cluster role binding - user ( kube-aggregated-apiserver-client )
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: user-kube-aggregated-apiserver-client
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:metrics-server
+subjects:
+- kind: User
+  apiGroup: rbac.authorization.k8s.io
+  name: kube-aggregated-apiserver-client
+
+
+---
+# cluster role binding - kubelet-api-asmin
+#
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kubelet-api-admin
+subjects:
+- kind: User
+  name: kubelet-api
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: system:kubelet-api-admin
+  apiGroup: rbac.authorization.k8s.io

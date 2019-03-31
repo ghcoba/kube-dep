@@ -3,7 +3,8 @@
 # file: fetch-back-root-ca.yml
 #
 # func:
-#   1. fetch ca-config, ca-csr, ca, cert and copy back to ansible site
+#   1. fetch ca-config, ca-csr, ca, cert and front-proxy-client-ca ,csr,ca, cert, and then
+#        copy back to ansible site
 #
 
 - name: exec fetch-back-root-ca
@@ -25,7 +26,7 @@
         - ca-csr.json
         - timestamp.log
 
-#   copy back cert files
+#   copy back cert files of root ca
     - name: backup ca, cert, timestamp files to ansible
       fetch:
         src: "{{ cert_cache_path_ca }}/{{ item }}"
@@ -38,6 +39,69 @@
         - ca.pem
         - ca-key.pem
         - timestamp.log      
+
+#   copy back intermediate ca config files
+    - name: backup intermediate ca-config files files to ansible
+      fetch:
+        src: "{{ cert_cache_path_ca_config }}/{{ item }}"
+        dest: "{{ cert_backup_path_intermediate_ca_config }}/"
+        flat: true
+      with_items:
+        - intermediate-ca-csr.json
+        - root-to-intermediate-ca-config.json
+        - timestamp.log
+
+#   copy back intermediate ca cert files of intermediate-CA
+    - name: backup intermediate-CA  cert, timestamp files to ansible
+      fetch:
+        src: "{{ cert_cache_path_ca }}/{{ item }}"
+        dest: "{{ cert_backup_path_intermediate_ca }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca-csr.json
+        - ca.csr
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - intermediate-ca-csr.json
+        - root-to-intermediate-ca-config.json
+        - intermediate-ca.csr
+        - intermediate-ca.pem
+        - intermediate-ca-key.pem
+
+#   copy back front proxy client ca config files
+    - name: backup front proxy ca-config, ca-scr, timestamp files to ansible
+      fetch:
+        src: "{{ cert_cache_path_ca_config }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_front_proxy_client_ca_config }}/"
+        flat: true
+      with_items:
+        - intermediate-ca-csr.json
+        - root-to-intermediate-ca-config.json
+        - timestamp.log
+
+#   copy back front proxy client cert files of front proxy client root ca
+    - name: backup ca, cert, timestamp files to ansible
+      fetch:
+        src: "{{ cert_cache_path_ca }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_front_proxy_client_ca }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca-csr.json
+        - ca.csr
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - intermediate-ca-csr.json
+        - root-to-intermediate-ca-config.json
+        - intermediate-ca.csr
+        - intermediate-ca.pem
+        - intermediate-ca-key.pem
+        - front-proxy-client-ca.pem
+        - front-proxy-client-ca-key.pem
+        - front-proxy-client-ca.csr
 
 #   end procedure
 

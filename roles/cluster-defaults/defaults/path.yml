@@ -95,7 +95,8 @@ kube_newtype_config_path: "{{ kube_config_path }}/config"
 # addons
 #   kube addons directory for static pods
 kube_cluster_addon_path: "{{ kube_config_path }}/addons"
-
+# metrics-server addon
+kube_metrics_server_path: "{{ kube_config_path }}/metrics-server"
 
 #### ip-masq-agent config
 #      /etc/config/ip-masq-agent
@@ -174,6 +175,27 @@ kubelet_cert_file: "{{ kube_cert_path }}/kubelet.pem"
 #kubelet_key_file: "{{ kubelet_dynamic_cert_path }}/kubelet-key.pem"
 kubelet_key_file: "{{ kube_cert_path }}/kubelet-key.pem"
 
+
+########## front proxy (aggregator for extention apiserver) cert 
+kube_front_proxy_client_ca_file: "{{ kube_cert_path }}/front-proxy-client-ca.pem"
+kube_front_proxy_client_ca_key_file: "{{ kube_cert_path }}/front-proxy-client-ca-key.pem"
+kube_front_proxy_client_cert_file: "{{ kube_cert_path }}/front-proxy-client.pem"
+kube_front_proxy_client_key_file: "{{ kube_cert_path }}/front-proxy-client-key.pem"
+
+
+###
+###
+
+########## kube metrics server server cert
+kube_metrics_server_cert_file: "{{ kube_cert_path }}/kube-metrics-server.pem"
+kube_metrics_server_key_file: "{{ kube_cert_path }}/kube-metrics-server-key.pem"
+
+# ######## kube aggregated apiserver client cert
+kube_aggregated_apiserver_client_cert_file: "{{ kube_cert_path }}/kube-aggregated-apiserver-client.pem"
+kube_aggregated_apiserver_client_key_file: "{{ kube_cert_path }}/kube-aggregated-apiserver-client-key.pem"
+ 
+###
+###
 
 
 

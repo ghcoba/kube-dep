@@ -34,7 +34,7 @@
 
 #   inset main procedure here --------------->
 
-#   copy ca-config.json, ca-csr.json from /etc/cert-cache/ca-config to 
+#   copy ca-config.json, ca-csr.json and intermediate ca config from /etc/cert-cache/ca-config to 
 #     /etc/cert-cache/ca dir
 
     - name: fetch config files to ansbile
@@ -46,6 +46,8 @@
       with_items:
         - ca-config.json
         - ca-csr.json
+        - intermediate-ca-csr.json
+        - root-to-intermediate-ca-config.json
     - name: copy fetched config files to ca dir
       copy:
         src: "{{ dep_path_tmp_exchange }}/{{ item }}"
@@ -53,6 +55,8 @@
       with_items:
         - ca-config.json
         - ca-csr.json
+        - intermediate-ca-csr.json
+        - root-to-intermediate-ca-config.json
 
 #   copy shell script to /etc/cert-cache/ca dir
     - name: copy gen root ca script
@@ -63,7 +67,7 @@
         group: root
         mode: "0500"
 
-#   generate root ca, cert using shell script
+#   generate root ca, cert and front-proxy-client-ca and cert using shell script
     - name: generate root ca, cert on node-0 of cluster master
       command:
         "{{ cert_cache_path_ca }}/gen-ca-cert.sh"

@@ -67,6 +67,7 @@
   with_items:
     - "{{ cert_cache_path_ca_config }}"
     - "{{ cert_cache_path_ca }}"
+#    - "{{ cert_cache_path_kube_front_proxy_client_ca }}"
   register: ca_config_dir_create_result
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"

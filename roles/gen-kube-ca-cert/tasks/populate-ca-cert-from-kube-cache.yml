@@ -65,8 +65,21 @@
         - kube-serviceaccount.csr
         - kube-serviceaccount.pem
         - kube-serviceaccount-key.pem
+        - front-proxy-client-ca.pem
+        - front-proxy-client-ca-key.pem
+        - front-proxy-client-csr.json
+        - front-proxy-client.csr
+        - front-proxy-client.pem
+        - front-proxy-client-key.pem
+        - kube-metrics-server-csr.json
+        - kube-metrics-server.csr
+        - kube-metrics-server.pem
+        - kube-metrics-server-key.pem
+        - kube-aggregated-apiserver-client-csr.json
+        - kube-aggregated-apiserver-client.csr
+        - kube-aggregated-apiserver-client.pem
+        - kube-aggregated-apiserver-client-key.pem
  
-
     - name: copy kube-admin cert from kube cache to kube-admin cache directory
       copy:
         src: "{{ dep_path_tmp_exchange }}/{{ item }}"
@@ -156,8 +169,48 @@
         - kube-serviceaccount.csr
         - kube-serviceaccount.pem
         - kube-serviceaccount-key.pem
-#
-#    - name: ... front-proxy (not yet finished)
+
+    - name: copy kube front proxy client cert from kube cache to front proxy client cert cache  directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_front_proxy_client }}/"
+      with_items:
+        - root-to-intermediate-ca-config.json
+        - front-proxy-client-ca.pem
+        - front-proxy-client-ca-key.pem
+        - timestamp.log
+        - front-proxy-client-csr.json
+        - front-proxy-client.csr
+        - front-proxy-client.pem
+        - front-proxy-client-key.pem
+
+    - name: copy kube-metrics-server server cert from kube cache to kube-metrics-server cache directory
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_metrics_server }}/"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-metrics-server-csr.json
+        - kube-metrics-server.csr
+        - kube-metrics-server.pem
+        - kube-metrics-server-key.pem
+
+    - name: copy kube-aggregated-apiserver-client client cert from kube cache to kube-appgregated-apiserver-client cache dir
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_aggregated_apiserver_client }}/"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-aggregated-apiserver-client-csr.json
+        - kube-aggregated-apiserver-client.csr
+        - kube-aggregated-apiserver-client.pem
+        - kube-aggregated-apiserver-client-key.pem
 
   rescue:
     - debug:

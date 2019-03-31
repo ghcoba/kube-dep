@@ -62,12 +62,38 @@ cd "${cert_dir}"
 #which cfssljson >> "${cert_dir}/trace.log"
 #cfssl gencert -initca ca-csr.json | cfssljson -bare ca > "${cert_dir}/trace-cfssl.log"
 
-# exec - generate ca cert using cfssl/cfssljson utility
+# exec - generate root-CA ca cert using cfssl/cfssljson utility
 # generate the master CA/CERT(ca.pem, ca-key.pem) using ca-config.json, ca-csr.json 
 if ! (cfssl gencert -initca ca-csr.json | cfssljson -bare ca -) >/dev/null 2>&1; then
     echo "=== Failed to generate CA certificates: Aborting ===" 1>&2
     exit 2
 fi
+
+### 
+# exec - generate intermediate-CA
+# generate the intermediate-CA, using intermediate-ca csr
+# files will generate:
+# 1. intermediate-ca.csr
+# 2. intermediate-ca.pem
+# 3. intermediate-ca-key.pem
+#
+if ! (cfssl gencert -initca intermediate-ca-csr.json | cfssljson -bare intermediate-ca -) >/dev/null 2>&1; then
+    echo "=== Failed to generate intermediate-CA certificates: Aborting ===" 1>&2
+    exit 2
+fi
+
+# exec - sign intermediate-CA with root-CA, using intermediate-ca.csr and using root-to-intermediate-ca-config.json as ca-config
+# generate signed intermediate-CA file - intermediate-ca.pem
+#
+if ! (cfssl sign -ca ca.pem -ca-key ca-key.pem -config root-to-intermediate-ca-config.json -profile kubernetes intermediate-ca.csr | cfssljson -bare intermediate-ca -) >/dev/null 2>&1; then
+    echo "=== Failed to generate root-CA certified intermediate-CA certificate: Aborting ===" 1>&2
+    exit 2
+fi
+
+# copy and use intermediate-CA as front-proxy client CA
+cp intermediate-ca.pem front-proxy-client-ca.pem
+cp intermediate-ca-key.pem front-proxy-client-ca-key.pem
+cp intermediate-ca.csr front-proxy-client-ca.csr
 
 # debug
 #ls -al ./* > "${cert_dir}/files.tx"

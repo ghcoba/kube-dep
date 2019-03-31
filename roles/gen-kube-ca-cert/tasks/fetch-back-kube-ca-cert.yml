@@ -61,6 +61,21 @@
         - kube-serviceaccount.csr
         - kube-serviceaccount.pem
         - kube-serviceaccount-key.pem
+        - front-proxy-client-ca.pem
+        - front-proxy-client-ca-key.pem
+        - root-to-intermediate-ca-config.json
+        - front-proxy-client-csr.json
+        - front-proxy-client.csr
+        - front-proxy-client.pem
+        - front-proxy-client-key.pem
+        - kube-metrics-server-csr.json
+        - kube-metrics-server.csr
+        - kube-metrics-server.pem
+        - kube-metrics-server-key.pem
+        - kube-aggregated-apiserver-client-csr.json
+        - kube-aggregated-apiserver-client.csr
+        - kube-aggregated-apiserver-client.pem
+        - kube-aggregated-apiserver-client-key.pem
 
 #     # fetch kube-admin cert from remote cache to ansible kube-admin backup directory
     - name: fetch kube-admin cert from remote cache
@@ -163,6 +178,55 @@
         - kube-serviceaccount.csr
         - kube-serviceaccount.pem
         - kube-serviceaccount-key.pem
+
+
+#     # fetch front proxy client cert from remote cache to ansible kube-proxy backup directory
+    - name: fetch kube-proxy cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_front_proxy_client }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_front_proxy_client }}/"
+        flat: true
+      with_items:
+        - root-to-intermediate-ca-config.json
+        - front-proxy-client-ca.pem
+        - front-proxy-client-ca-key.pem
+        - timestamp.log
+        - front-proxy-client-csr.json
+        - front-proxy-client.csr
+        - front-proxy-client.pem
+        - front-proxy-client-key.pem
+
+#     # fetch kube-metrics-server server cert from remote cache to ansible backup directory
+    - name: fetch kube-metrics-server cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_metrics_server }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_metrics_server }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-metrics-server-csr.json
+        - kube-metrics-server.csr
+        - kube-metrics-server.pem
+        - kube-metrics-server-key.pem
+
+#     # fetch kube-aggregated-apiserver-client client cert from remote cache to ansible backup directory
+    - name: fetch kube-aggregated-apiserver-client client cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_aggregated_apiserver_client }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_aggregated_apiserver_client }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-aggregated-apiserver-client-csr.json
+        - kube-aggregated-apiserver-client.csr
+        - kube-aggregated-apiserver-client.pem
+        - kube-aggregated-apiserver-client-key.pem
 
 #   end procedure
 

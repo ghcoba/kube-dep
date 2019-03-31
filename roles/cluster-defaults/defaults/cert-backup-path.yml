@@ -22,6 +22,12 @@ cert_backup_path_ca_config: "{{ dep_path_backup_cert }}/ca-config"
 # path for root ca
 cert_backup_path_ca: "{{ dep_path_backup_cert }}/ca"
 
+# path for intermediate-ca config
+cert_backup_path_intermediate_ca_config: "{{ dep_path_backup_cert }}/intermediate-ca-config"
+
+# path for intermediate-ca
+cert_backup_path_intermediate_ca: "{{ dep_path_backup_cert }}/intermediate-ca"
+
 # path for admin ( admin account of kubectl client)
 cert_backup_path_kube_admin: "{{ dep_path_backup_cert }}/kube-admin"
 
@@ -51,3 +57,23 @@ cert_backup_path_kube_serviceaccount: "{{ dep_path_backup_cert }}/kube-serviceac
 
 # path for kubelet cert (server and client cert), every node has it sub dire
 cert_backup_path_kubelet: "{{ dep_path_backup_cert }}/kubelet"
+
+
+### kube front proxy (aggregator) client cert
+
+# path for front proxy client ca config backup
+cert_backup_path_kube_front_proxy_client_ca_config: "{{ dep_path_backup_cert }}/front-proxy-client-ca-config"
+
+# path for front proxy client ca backup
+cert_backup_path_kube_front_proxy_client_ca: "{{ dep_path_backup_cert }}/front-proxy-client-ca"
+
+# path for front proxy client cert backup 
+cert_backup_path_kube_front_proxy_client: "{{ dep_path_backup_cert }}/front-proxy-client"
+
+# path for metrics-server server cert backup
+cert_backup_path_kube_metrics_server: "{{ dep_path_backup_cert }}/kube-metrics-server"
+
+# path for aggregated-apiserver-client client cert
+cert_backup_path_kube_aggregated_apiserver_client: "{{ dep_path_backup_cert }}/kube-aggregated-apiserver-client"
+
+

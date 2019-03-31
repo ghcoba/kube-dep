@@ -45,13 +45,19 @@
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
-- name: check cert-cache ca-configdirectory exist
+- name: check cert-cache ca-config directory exist
   stat:
     path: "{{ cert_cache_path_ca_config }}"
   register: cert_cache_path_ca_config_exist_result
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
+#- name: check cert-cache front proxy client ca directory exist
+#  stat:
+#    path: "{{ cert_cache_path_kube_front_proxy_client_ca }}"
+#  register: cert_cache_path_kube_front_proxy_client_ca_exist_result
+#  run_once: true
+#  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 
 # exit if false condition
 
@@ -63,10 +69,11 @@
       debug:
         msg: "ca-config, ca or cert-cache directory not exist, ending play"
     - meta: end_play
-  when: ( cert_cache_path_exist_result.stat.exists == false ) or ( cert_cache_path_ca_exist_result.stat.exists == false ) or ( cert_cache_path_ca_config_exist_result.stat.exists == false )
-##########
-##########
+  when: ( cert_cache_path_exist_result.stat.exists == false ) or ( cert_cache_path_ca_exist_result.stat.exists == false ) or ( cert_cache_path_ca_config_exist_result.stat.exists == false ) 
 
+#or ( cert_cache_path_kube_front_proxy_client_ca_exist_result.stat.exists == false )
+##########
+##########
 
 # or continue to go
 
@@ -118,7 +125,9 @@
     - "{{ cert_cache_path_kube_scheduler }}"
     - "{{ cert_cache_path_kube_proxy }}"
     - "{{ cert_cache_path_kube_serviceaccount }}"
-#    - "{{ cert_cache_path_front_proxy }}"
+    - "{{ cert_cache_path_kube_front_proxy_client }}"
+    - "{{ cert_cache_path_kube_metrics_server }}"
+    - "{{ cert_cache_path_kube_aggregated_apiserver_client }}"
 #  register: kube_dir_create_result
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
