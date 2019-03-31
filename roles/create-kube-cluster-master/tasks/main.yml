@@ -14,9 +14,15 @@
       msg: "etcd version: {{ etcd_version }}"
 # end block
 
-
-- name: exec schedule-create-master-node
-  import_tasks: schedule-create-master-node.yml
+# deploy kubernetes cluster master nodes
+- block:
+    - name: exec schedule-create-master-node
+      import_tasks: schedule-create-master-node.yml
+    - name: reboot master node to make deployment and cert take effect
+      reboot:
+  rescue:
+    - debug: "error occured in creating kubernetes master node: {{ inventory_hostname }}."
+# end block
   when:
     - inventory_hostname in groups['kube-masters']
 

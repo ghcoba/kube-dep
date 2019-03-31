@@ -12,9 +12,15 @@
       file: ../create-etcd-cluster/defaults/main.yml
 # end block
 
-
-- name: exec schedule-create-etcd-node
-  import_tasks: schedule-create-etcd-node.yml
+# deploy etcd cluster node
+- block:
+  - name: exec schedule-create-etcd-node
+    import_tasks: schedule-create-etcd-node.yml
+  - name: reboot etcd cluster node to make etcd clude node and cert take effect
+    reboot:
+  rescue:
+    - debug: "error occured in creating etcd cluster node: {{ inventory_hostname }}."
+# end block
   when:
     - inventory_hostname in groups['etcd-nodes']
 
