@@ -88,7 +88,7 @@ ExecStart=/usr/bin/kube-controller-manager \
 #)
 
 # --cluster-sign-cert-file - must be same as --client-cert-file in apiserver
-#   (we use root ca - ca.pem). 
+#   (we use root-CA - ca.pem). 
 #   . it is used to sign a certificate generated from csr
 #
 #   in controller-manager, we need also set --cluster-signing-key-file pair.

@@ -7,7 +7,7 @@ file: read.txt
 2. before deplyment, you need setup following environment settings:
    . cluster inventory (inventories/dev/hosts, inventories/dev/host_vars/*, inventories/dev/group/vars/* )
    . cluster network configurations (roles/cluster-defaults/defaults/network.yml)
-   . docker https_proxy setting (roles/cluster-defaults/defaults/docker-https-proxy.yml)
+   . docker https_proxy setting (roles/cluster-defaults/defaults/network.yml)
    . prepare binary files according directory structure and file format (dep-data/bin-local/*)
    . change binary depploy file path and version according setting of the previous item 
      (in file roles/cluster-defaults/defaults/deploy-path.yml)

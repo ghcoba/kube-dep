@@ -9,5 +9,36 @@ metrics_server_memory_per_node: 8Mi
 
 metrics_server_min_cluster_size: 1
 
+# metrics server metric resolution (in seconds, default: 60)
+# metrics server flag: --metric_resolution
+metrics_server_metric_resolution: 60
+
+# metrics server secure port - default port 443. use port other than default port (443) if not as root user
+# metrics server flag: --secure-port 
+metrics_server_secure_port: 443
+
+# metrics server will connect to metric port of kubelet (default secure port 10250 for kubelet)
+# metrics server flag: --kubelet-port
+metrics_server_kubelet_port: "{{ kubelet_secure_port }}"
+
+# metrics server client CA file
+# metrics server flag: --requestheader-client-ca-file
+metrics_server_client_ca_file: "{{ kube_ca_file }}"
+
+# metrics server server tls cert file
+# metrics server flag: --tls-cert-file
+metrics_server_tls_cert_file: "{{ kube_metrics_server_cert_file }}"
+
+# metrics server server tls private key file
+# metrics server flag: --tls-private-key-file
+metrics_server_tls_private_key_file: "{{ kube_metrics_server_key_file }}"
+
+# metrics server requestheader-allowed-names (list)
+# metrics server flag: --requestheader-allowed-names
+# remark: defined same as CN user name defined in aggregated apiserver client cert (csr)
+#         ie., "kube-aggregated-apiserver-client"
+#
+
+
 metrics_server_yaml_path: "{{ kube_config_path }}/metrics-server"
 

@@ -16,7 +16,7 @@
 - block:
   - name: exec schedule-create-etcd-node
     import_tasks: schedule-create-etcd-node.yml
-  - name: reboot etcd cluster node to make etcd clude node and cert take effect
+  - name: reboot etcd cluster node to make etcd cluster node and cert take effect
     reboot:
   rescue:
     - debug: "error occured in creating etcd cluster node: {{ inventory_hostname }}."

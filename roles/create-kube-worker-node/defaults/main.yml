@@ -6,7 +6,7 @@
 ############################
 # kubelet network specific variables
 
-kubelet_healthz_port: 10248
+#kubelet_healthz_port: 10248
 #kubelet_healthz_bind_address: (use current node ip - dynamic get ip)
 
 

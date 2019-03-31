@@ -81,3 +81,28 @@ kube_proxy_healthz_port: 10256
 kube_proxy_metrics_bind_ip: 0.0.0.0
 kube_proxy_metrics_port: 10249
 
+
+###############################################################################
+# KUBELET
+
+# kubelet listen port
+# secure listen port - default 10250
+kubelet_secure_port: 10250
+# insecure listen port - default 10255. use 0 to disable insecure listen port
+#kubelet_insecure_readonly_port: 10255
+kubelet_insecure_readonly_port: 0
+
+# kubelet healthz listen port - default 10248
+kubelet_healthz_port: 10248
+
+# kubelet traffic bind address
+# (use 0.0.0.0 to bind on all available address; set in kubelet service file if using dedicate ip of nic)
+#kubelet_bind_address: 127.0.0.1
+kubelet_bind_address: 0.0.0.0
+
+# kubelet healthz traffic address
+# (use 0.0.0.0 for bind on all available address; set in kubelet service file if using dedicate ip of nic)
+#kubelet_healthz_bin_address: 127.0.0.1
+kubelet_healthz_bind_address: 0.0.0.0
+
+

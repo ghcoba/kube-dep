@@ -111,15 +111,37 @@ spec:
         imagePullPolicy: IfNotPresent
         command:
           - /metrics-server
-          - --v=3
+          - --v=2
+          #   address type preferred in sequence
           - --kubelet-preferred-address-types=InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP
-          - --requestheader-client-ca-file={{ kube_ca_file }}
-          - --tls-cert-file={{ kube_metrics_server_cert_file }}
-          - --tls-private-key-file={{ kube_metrics_server_key_file }}
+          #
+          #   CA - certification authority to check (sign client cert) client tls traffic
+          - --requestheader-client-ca-file={{ metrics_server_client_ca_file }}
+          #
+          #   metrics serverk certification (server type cert)
+          #   (if not specified, metrics server will generate self-certified certificates. do not use self-certified certificates in production enviroment)
+          - --tls-cert-file={{ metrics_server_tls_cert_file }}
+          - --tls-private-key-file={{ metrics_server_tls_private_key_file }}
+          #
+          #   allowed client name - retrieve from client cert CN (for apiserver to access metrics server)
           - --requestheader-allowed-names="kube-aggregated-apiserver-client"
+          #
+          #   headers prefix, username, and group from apiserver to metrics server for user authorization check
           - --requestheader-group-headers=X-Remote-Group
           - --requestheader-extra-headers-prefix=X-Remote-Extra-
           - --requestheader-username-headers=X-Remote-User
+          #
+          #   secure port of metrics server for apiserver to connect to
+          #   secure port - use default port 443. use port other than default port if not as root user
+          - --secure-port={{ metrics_server_secure_port }}
+          #
+          #   kubelet metric traffic port - kubelet server port for metrics server to connect to as client
+          - --kubelet-port={{ metrics_server_kubelet_port }}
+          #
+          #   metric resolution (duration in seconds, the interval at which metrics will be scraped from kubelet)
+          - --metric-resolution={{ metrics_server_metric_resolution }}
+          #
+          ################# 
           #- --kubelet-insecure-tls
           #- --tls-cert-file=/etc/kubernetes/cert/front-proxy-client.pem
           #- --tls-private-key-file=/etc/kubernetes/cert/front-proxy-client-key.pem
