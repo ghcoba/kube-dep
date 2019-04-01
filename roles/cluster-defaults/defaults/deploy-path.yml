@@ -82,5 +82,9 @@ dep_path_backup_cert: "{{ dep_data_path }}/cert-local"
 dep_path_backup_kube_config: "{{dep_data_path }}/kube-config-local"
 
 ##############################################################################
+# path for kube aggregator client config backup
+#dep_path_backup_kube_aggregator_client_config: "{{dep_data_path }}/kube-config-local"
+
+##############################################################################
 # local temp exchange directory
 dep_path_tmp_exchange: "./.tmp"

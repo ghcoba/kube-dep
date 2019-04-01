@@ -140,58 +140,61 @@ spec:
         image: k8s.gcr.io/metrics-server-amd64:v0.3.1
         #imagePullPolicy: Always
         imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 443
+            name: https
+            protocol: TCP
         command:
           - /metrics-server
           - --v=2
-          #
           #   metric resolution (duration in seconds, the interval at which metrics will be scraped from kubelet)
           - --metric-resolution={{ metrics_server_metric_resolution }}
-          #
           #   secure port of metrics server for apiserver to connect to
           #   secure port - use default port 443. use port other than default port if not as root user
+          #                 if 0 is specified, do not server https at all
           #   default metrics-server secure listen port - 443
           - --secure-port={{ metrics_server_secure_port }}
-          #
           #   kubelet metric traffic port - kubelet server port for metrics server to connect to as client
           #   default kubelet secure port - 10250
           - --kubelet-port={{ metrics_server_kubelet_port }}
-          #
           #   kubelet address type preferred in sequence
           - --kubelet-preferred-address-types=InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP
-          #
+          #   kube aggregated apiserver client kubeconfig 
+          #     need has right to create tokenaccessreviews.authentication.k8s.io 
+          #     (set right in rbac)
+          #- --authentication-kubeconfig={{ metrics_server_authentication_kubeconfig_file }}
+          - --authentication-kubeconfig={{ kube_aggregator_client_config_file }}
+          #   kube aggregated apiserver client kubeconfig
+          #     need has right to to create  subjectaccessreviews.authorization.k8s.io
+          #     (rights set in rbac of this file)
+          #- --authorization-kubeconfig={{ metrics_server_authorization_kubeconfig_file }}
+          - --authorization-kubeconfig={{ kube_aggregator_client_config_file }}
           #   client-CA - certification authority to certificate the client tls traffic 
-          #               ( which the client cert is signed by)
+          #     ( which the client cert is signed by)
           - --requestheader-client-ca-file={{ metrics_server_client_ca_file }}
-          #
           #   metrics serverk certification (server type cert)
           #   (if not specified, metrics server will generate self-certified certificates. 
           #    do not use self-certified certificates in production enviroment)
           - --tls-cert-file={{ metrics_server_tls_cert_file }}
           - --tls-private-key-file={{ metrics_server_tls_private_key_file }}
-          #
           #   allowed client name - it is retrieved from client cert CN (for apiserver to access metrics server)
           - --requestheader-allowed-names="kube-aggregated-apiserver-client"
-          #
           #   headers prefix, username, and group from apiserver to metrics server for user authorization check
           - --requestheader-group-headers=X-Remote-Group
           - --requestheader-extra-headers-prefix=X-Remote-Extra-
           - --requestheader-username-headers=X-Remote-User
           #
-          #
           ################# 
           #- --kubelet-insecure-tls
-          #- --tls-cert-file=/etc/kubernetes/cert/front-proxy-client.pem
-          #- --tls-private-key-file=/etc/kubernetes/cert/front-proxy-client-key.pem
-        ports:
-          - containerPort: 443
-            name: https
-            protocol: TCP
         volumeMounts:
-        - name: front-proxy-client-ca-dir
-          mountPath: /etc/kubernetes/cert
-        - name: tmp-dir
-          mountPath: /tmp
-#
+          - name: front-proxy-client-ca-dir
+            #mountPath: /etc/kubernetes/cert
+            mountPath: {{ kube_cert_path }}
+          - name: aggregator-kubeconfig-dir
+            #mountPath: /etc/kubernetes
+            mountPath: {{ kube_config_path }}
+          - name: tmp-dir
+            mountPath: /tmp
       - name: metrics-server-nanny
         image: k8s.gcr.io/addon-resizer:1.8.4
         resources:
@@ -228,7 +231,6 @@ spec:
           # Specifies the smallest cluster (defined in number of nodes)
           # resources will be scaled to.
           ###- --minClusterSize={{ metrics_server_min_cluster_size }}
-#
       volumes:
         # mount in tmp so we can safely use from-scratch images and/or read-only containers
         - name: tmp-dir
@@ -237,6 +239,10 @@ spec:
           hostPath:
             #path: /etc/kubernetes/cert
             path: {{ kube_cert_path }}
+        - name: aggregator-kubeconfig-dir
+          hostPath:
+            #path: /etc/kubernetes
+            path: {{ kube_config_path }}
         # volumes of metrics-server-nanny - addon-resizer
         - name: metrics-server-config-volume
           configMap:
@@ -261,11 +267,17 @@ metadata:
 spec:
   selector:
     k8s-app: metrics-server
+  type: NodePort
   ports:
-  - port: 443
-    protocol: TCP
-    #targetPort: 443
-    targetPort: https
+    - port: 443
+      protocol: TCP
+      #targetPort: 443
+      # use hostnetwork and https - 4433 port before we fix master networking and 
+      #   will change into use nodePort - 30000
+      #targetPort: https
+      targetPort: {{ metrics_server_secure_port }}
+      # use nodePort - 30000
+      #nodePort: {{ metrics_server_secure_port }}
 
 ---
 # cluster role - system:metrics-server
@@ -336,6 +348,99 @@ subjects:
 - kind: User
   apiGroup: rbac.authorization.k8s.io
   name: kube-aggregated-apiserver-client
+
+---
+# cluster role binding - user-aggregator-client-bind-auth-delegator
+#
+# clusterrole: system:auth-delegator
+#    rights: resource tokekenreviews       - create
+#    rights: resource subjectaccessreviews - create
+#
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: user-aggregator-client-bind-auth-delegator
+  labels:
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: User
+  apiGroup: rbac.authorization.k8s.io
+  name: kube-aggregated-apiserver-client
+
+---
+# clusterrole - system:auth-delegator-enhance
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: system:auth-delegator-enhance
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  - tokenaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+
+---
+# cluster role binding - user-aggregator-client-bind-auth-delegator-enhance
+#
+# clusterrole: system:auth-delegator
+#    rights: resource tokekenreviews       - create
+#    rights: resource subjectaccessreviews - create
+#
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: user-aggregator-client-bind-auth-delegator-enhance
+  labels:
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator-enhance
+subjects:
+- kind: User
+  apiGroup: rbac.authorization.k8s.io
+  name: kube-aggregated-apiserver-client
+
+---
+# cluster role binding - user aggregator client bind access to kubelet api
+# ref: system:kubelet-api-access role is define (also) for apiserver to access
+#   kubelet server api
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: user-aggregator-client-bind-kubelet-api-access
+  labels:
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+  namespace: ""
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kubelet-api-access
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: kube-aggregated-apiserver-client
 
 ---
 # cluster role binding - kubelet-api-admin

@@ -21,7 +21,7 @@ WorkingDirectory={{ kubelet_data_path }}
 EnvironmentFile=-/etc/kubernetes/kubelet
 ExecStart=/usr/bin/kubelet \
         --logtostderr=true \
-        --v=3 \
+        --v=2 \
         \
         --register-node=true \
         --node-ip={{ get_host_ip() }} \

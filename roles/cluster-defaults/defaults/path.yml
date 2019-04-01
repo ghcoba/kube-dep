@@ -274,3 +274,5 @@ kubelet_newtype_config_file: "{{ kube_newtype_config_path }}/kubelet.config"
 kube_proxy_config_file: "{{ kube_config_path }}/kube-proxy.kubeconfig"
 kube_proxy_para_config_file: "{{ kube_config_path }}/kube-proxy.config.yaml"
 
+# kube-aggregator-client
+kube_aggregator_client_config_file: "{{ kube_config_path }}/kube-aggregator-client.kubeconfig"

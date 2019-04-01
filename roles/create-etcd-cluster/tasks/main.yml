@@ -18,6 +18,8 @@
     import_tasks: schedule-create-etcd-node.yml
   - name: reboot etcd cluster node to make etcd cluster node and cert take effect
     reboot:
+  - debug:
+      msg: ". Finish deploying etcd server cluster node on: {{ inventory_hostname }}."
   rescue:
     - debug: "error occured in creating etcd cluster node: {{ inventory_hostname }}."
 # end block

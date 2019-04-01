@@ -1,0 +1,63 @@
+---
+
+# file: create-kube-aggregator-client-config.yml
+#
+
+# generate kube aggregated apiserver client kubeconfig file (set cluster, credential, context, and default context)
+# copy to ansible backup
+# copy to kube config dir
+
+# generate kube aggregator client config file
+- name: generate kube aggregator client config - set cluster
+  command: >
+    "{{ bin_path }}"/kubectl config set-cluster kubernetes
+      --certificate-authority="{{ kube_ca_file }}" 
+      --embed-certs=true 
+      --server="{{ kube_load_balancer_apiserver_url }}"
+      --kubeconfig="{{ kube_aggregator_client_config_file }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube aggregator client config - set credential
+  command: >
+    "{{ bin_path }}"/kubectl config set-credentials kube-aggregated-apiserver-client 
+      --client-certificate="{{ kube_aggregated_apiserver_client_cert_file }}"
+      --client-key="{{ kube_aggregated_apiserver_client_key_file }}"
+      --embed-certs=true 
+      --kubeconfig="{{ kube_aggregator_client_config_file }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube aggregator client config - set context
+  command: >
+    "{{ bin_path }}"/kubectl config set-context kube-aggregated-apiserver-client
+      --cluster=kubernetes
+      --user=kube-aggregated-apiserver-client
+      --kubeconfig="{{ kube_aggregator_client_config_file }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+- name: generate kube aggregator client config - set default context
+  command: >
+    "{{ bin_path }}"/kubectl config use-context kube-aggregated-apiserver-client 
+      --kubeconfig="{{ kube_aggregator_client_config_file }}"
+  args:
+    chdir: "{{ kube_config_path }}/"
+
+# change kube config file attribute
+- name: change file attrib
+  file:
+    path: "{{ kube_aggregator_client_config_file }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0640
+
+# copy kube config file from node #0 of kube-masters group to ansible backup directory
+- name: fetch kube controller-manager config file to ansible backup directory
+  fetch:
+    src: "{{ kube_aggregator_client_config_file }}"
+    dest: "{{ dep_path_backup_kube_config }}/"
+    flat: yes
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+  run_once: true
+

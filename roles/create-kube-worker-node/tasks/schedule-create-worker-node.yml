@@ -140,7 +140,10 @@
 #    create kubectl config and cert on worker node
     - name: create kubectl config enviroment
       import_tasks: kube-kubectl/create-kube-worker-node-kubectl-config.yml
-
+# 8.
+#    create kube aggregator client config on worker node
+    - name: create kube aggregator client config file on worker node
+      import_tasks: kube-aggregator-client/create-kube-worker-node-aggregator-client-config.yml
 
 
 
