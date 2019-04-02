@@ -1,0 +1,31 @@
+---
+
+# file: create-kube-coredns-deployment-file.yml
+#
+
+# func:
+#   . create cluster addon file - coredns deployment and cluster dns horizontal auto-scale deployment file
+
+
+####################################################
+# create coredns addon deployment file directory - /etc/kubernetes/coredns
+#
+
+#- name: create cluster addon directory
+#  file:
+#    path: "{{ kube_coredns_path }}/"
+#    state: directory
+#    owner: "{{ kube_user }}"
+#    group: "{{ kube_group }}"
+#    mode: 0644
+
+- name: create cluster addon - coredns and it autoscale  yaml files
+  template:
+    src: "coredns/{{ item }}.j2" 
+    dest: "{{ kube_coredns_path }}/{{ item }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0644
+  with_items:
+    - coredns.yaml
+    - dns-horizontal-autoscaler.yml

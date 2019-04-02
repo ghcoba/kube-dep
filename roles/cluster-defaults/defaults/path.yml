@@ -92,10 +92,15 @@ kube_log_path: "/var/log/kubernetes"
 # config
 #   path of new type config script for kubernetes (systemd --config option)
 kube_newtype_config_path: "{{ kube_config_path }}/config"
-# addons
+
+# addons - /etc/kubernetes/addons
 #   kube addons directory for static pods
 kube_cluster_addon_path: "{{ kube_config_path }}/addons"
-# metrics-server addon
+
+# coredns deploy yaml file path- /etc/kubernetes/coredns
+kube_coredns_path: "{{ kube_config_path }}/coredns"
+
+# metrics-server addon deploy yaml file path- /etc/kubernetes/metrics-server
 kube_metrics_server_path: "{{ kube_config_path }}/metrics-server"
 
 #### ip-masq-agent config
