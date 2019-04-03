@@ -56,4 +56,5 @@
     - "{{ kube_ipmasq_agent_config_path }}"
     - "{{ kube_coredns_path }}"
     - "{{ kube_metrics_server_path }}"
+    - "{{ kube_node_problem_detector_path }}"
     

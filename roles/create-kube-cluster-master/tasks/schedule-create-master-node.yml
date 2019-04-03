@@ -328,19 +328,24 @@
 #
 
 # 80.
-    - name: create kubernetes addon env and addon-manager file
-      import_tasks: kube-addon/create-cluster-addons-manager-file.yml
+    - name: create kube addon env and addon-manager, deploy pod
+      import_tasks: kube-addon/deploy-cluster-addons-manager.yml
 # 81.
-    - name: create kubernetes metrics-server addon file
-      import_tasks: kube-addon/create-cluster-addon-metrics-server-file.yml
-
+    - name: create kube metrics-server addon file, deploy metrics-server
+      import_tasks: kube-metrics-server/deploy-kube-metrics-server.yml
+# 82.
+    - name: create kube coredns addon and its autoscaler file and deploy pods
+      import_tasks: kube-coredns/deploy-kube-coredns-service.yml
+# 83.
+    - name: create kube node-problem-detector daemonset and config
+      import_tasks: kube-node-problem-detector/deploy-kube-node-problem-detector-daemonset.yml
 
 
 #############################################################################################################
 # . final processes for kubenetes master deployment
 #
 
-# 81.
+# 90.
 #    - name: take final process
 #      import_tasks: kube-post-process/take-final-process.yml
 
@@ -367,8 +372,6 @@
 # - condition of block:
 #     when for block (exec block when condition true - need create kube cluster master node)
   when: ( kube_config_path_exist_result.stat.exists == false )
-
-
 
 
 

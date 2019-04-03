@@ -103,6 +103,9 @@ kube_coredns_path: "{{ kube_config_path }}/coredns"
 # metrics-server addon deploy yaml file path- /etc/kubernetes/metrics-server
 kube_metrics_server_path: "{{ kube_config_path }}/metrics-server"
 
+# node-problem-detector addon daemonset yaml file path - /etc/kubernetes/node-problem-detector
+kube_node_problem_detector_path: "{{ kube_config_path }}/node-problem-detector"
+
 #### ip-masq-agent config
 #      /etc/config/ip-masq-agent
 kube_ipmasq_agent_config_path: "/etc/config/ip-masq-agent"

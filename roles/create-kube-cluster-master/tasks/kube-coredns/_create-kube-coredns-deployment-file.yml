@@ -28,4 +28,4 @@
     mode: 0644
   with_items:
     - coredns.yaml
-    - dns-horizontal-autoscaler.yml
+    - dns-horizontal-autoscaler.yaml
