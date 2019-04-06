@@ -27,11 +27,17 @@
 
 # 3.
 #   create kubelet service systemd file
-
+#   (take care of difference of kubelet service on master node and worker node - set kubelet to set taint for master node when resitering node)
 - name: create kubelet service systemd unit file
   template:
      src: kubelet.service.j2
      dest: /etc/systemd/system/kubelet.service
+  when: not ( inventory_hostname in groups['kube-masters'] ) 
+- name: create kubelet service systemd unit file
+  template:
+     src: master-node.kubelet.service.j2
+     dest: /etc/systemd/system/kubelet.service
+  when: ( inventory_hostname in groups['kube-masters'] )
 
 # 4.
 #   enable kubelet service

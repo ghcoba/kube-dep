@@ -1,0 +1,35 @@
+---
+
+# file: switch-journal.yml
+
+# swith journal system storage 
+#   . move ram log (tmpfs - /run/log/ ) to persistent disk storage /var/log/journal/ 
+#     - remark: system-journald also aggregate journal from
+#       rsyslog system (except system log system). centos use systemd-journald as log center,
+#       use rsyslog for log persistence, and use logrotate to roll-up log files
+#   . (node-problem-detector need journal at /var/log/journal/ directory)
+
+#- name: make journal path /var/log/journal
+#  command: mkdir /var/log/journal
+#- name: change group
+#  command: chgrp systemd-journal /var/log/journal
+#- name: change attrib
+#  command: chmod g+s /var/log/journal
+#- name: restart systemd-journald service
+#  command: systemctl restart systemd-journald
+
+- name: make journal path /var/log/journal
+  file:
+    path: /var/log/journal
+    owner: root
+    group: systemd-journal
+    state: directory
+    mode: 660
+- name: add g+s attrib
+  command: chmod g+s /var/log/journal
+  args:
+    warn: no
+- name: restart systemd-journald service
+  command: systemctl restart systemd-journald
+  args:
+    warn: no   

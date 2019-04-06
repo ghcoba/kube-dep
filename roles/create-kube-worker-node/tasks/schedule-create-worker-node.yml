@@ -144,7 +144,9 @@
 #    create kube aggregator client config on worker node
     - name: create kube aggregator client config file on worker node
       import_tasks: kube-aggregator-client/create-kube-worker-node-aggregator-client-config.yml
-
+# 9.
+    - name: switch systemd-journald (for storage and node-problem-detector daemonset and daemon)
+      import_tasks: ../../create-kube-cluster-master/tasks/kube-misc/switch-journal.yml
 
 
 #######################################################################################################
@@ -346,7 +348,8 @@
     
 # - condition of block:
 #     when for block (exec block when condition true - need create kube cluster master node)
-  when: ( kube_config_path_exist_result.stat.exists == false )
+#   (add feateure - deploy worker node on masters)
+  when: ( ( kube_config_path_exist_result.stat.exists == false ) or ( inventory_hostname in groups['kube-masters'] ) )
 
 ############
 # block end
@@ -357,6 +360,6 @@
 - name: deploy condition fail - skip deploying this kube worker node
   debug:
     msg: "WARNING: EXIT deploy kube worker node on {{ inventory_hostname }}. {{ kube_config_path }} exists on {{ inventory_hostname }}, skip deploying kube worker node on {{ inventory_hostname }}."
-  when:  ( kube_config_path_exist_result.stat.exists == true )
+  when:  ( kube_config_path_exist_result.stat.exists == true ) and (not ( inventory_hostname in groups['kube-masters'] ) )
 #   )
 

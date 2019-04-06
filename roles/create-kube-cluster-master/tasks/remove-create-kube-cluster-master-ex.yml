@@ -43,6 +43,10 @@
             daemon_reload: no
             state: stopped
             enabled: no
+        - name: remove systemd file
+          file:
+            path: /etc/systemd/system/kube-apiserver.service
+            state: absent 
       rescue:
         - debug: 
             msg: "ERROR: can not stop kube-apiserver service, or service not exist"    
@@ -55,6 +59,10 @@
             daemon_reload: no
             state: stopped
             enabled: no
+        - name: remove systemd file
+          file:
+            path: /etc/systemd/system/kube-controller-manager.service
+            state: absent
       rescue:
         - debug:
             msg: "ERROR: can not stop kube-controller-manager service, or service not exist"
@@ -67,6 +75,10 @@
             daemon_reload: no
             state: stopped
             enabled: no
+        - name: remove systemd file
+          file:
+            path: /etc/systemd/system/kube-scheduler.service
+            state: absent
       rescue:
         - debug:
             msg: "ERROR: can not stop kube-scheduler service, or service not exist"
@@ -79,6 +91,10 @@
 #            daemon_reload: no
 #            state: stopped
 #            enabled: no
+#        - name: remove systemd file
+#          file:
+#            path: /etc/systemd/system/kube-proxy.service
+#            state: absent
 #      rescue:
 #        - debug:
 #            msg: "ERROR: can not stop kube-proxy service, or service not exist"
@@ -92,7 +108,11 @@
             daemon_reload: no
             state: stopped
             enabled: no
-      rescue:
+#        - name: remove systemd file
+#          file:
+#            path: /etc/systemd/system/docker.service
+#            state: absent
+#      rescue:
         - debug:
             msg: "ERROR: can not stop docker service, or service not exist"
 #     end block

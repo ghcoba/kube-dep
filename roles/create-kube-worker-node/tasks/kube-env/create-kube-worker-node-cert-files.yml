@@ -7,6 +7,10 @@
 #
 
 # copy ca/cert to worker node from cert cach directory
+# -
+# fech from cert cache on ansible to temp on ansible
+# copy from tem on ansible to worker node to deploy to
+#
 
 # 1.
 #   kube root ca cert

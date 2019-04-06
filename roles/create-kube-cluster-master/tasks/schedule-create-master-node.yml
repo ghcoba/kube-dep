@@ -144,7 +144,9 @@
 # 8.
     - name: create kube aggregator-client config enviroment
       import_tasks: kube-aggregator-client/create-kube-aggregator-client-config.yml
-
+# 9.
+    - name: switch systemd-journald journal log ( for storage and node-problem-detector service)
+      import_tasks: kube-misc/switch-journal.yml
 
 ###########################################################################################################
 # . firewall - (NOT USE NOE - have change into use system default fireewall setting - use iptables service)

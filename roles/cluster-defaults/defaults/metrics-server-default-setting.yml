@@ -20,11 +20,9 @@ metrics_server_metric_resolution: 1m0s
 #
 # metrics server secure port - default port 443. use port other than default port (443) if not as root user
 # metrics server flag: --secure-port 
-# (we will use cluster-IP and nodePort - 30000 )
-#metrics_server_secure_port: 30000
-# use host network and port, before fix master networking to cluster ip
-#metrics_server_secure_port: 443
-metrics_server_secure_port: 4443
+metrics_server_secure_port: 443
+metrics_server_targetport: 443
+metrics_server_nodeport: 30000
 
 
 ### KUBELET PORT

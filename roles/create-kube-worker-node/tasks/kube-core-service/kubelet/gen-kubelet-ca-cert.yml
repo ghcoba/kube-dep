@@ -13,6 +13,11 @@
 # . populate to work
 # . create backup on ansible machine 
 
+# REMARK:
+# fetch data from ansible machine, and
+# CREATE CERT in /tmp/work-dir-gen-cert/ of worker node to deploy
+# then fetch back to ansible cache temp directory
+# finally copy back to worker directory from above ansible cache temp directory
 
 # --------------------------------------------------------------------------------------
 #

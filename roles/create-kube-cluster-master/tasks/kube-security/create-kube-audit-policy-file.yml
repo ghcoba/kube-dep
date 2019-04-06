@@ -27,5 +27,4 @@
     dest: "{{ dep_path_backup_kube_config }}/"
     flat: yes
   run_once: true
-  delegate_to: "{{ groups['kube-masters'][0] }}" 
 

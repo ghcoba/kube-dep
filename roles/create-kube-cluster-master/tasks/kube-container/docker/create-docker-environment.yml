@@ -21,7 +21,7 @@
 
 - name: ensure required packages for docker
   yum:
-    name: ['yum-utils', 'device-mapper-persistent-data', 'lvm2']
+    name: ['wget', 'yum-utils', 'bridge-utils', 'jq', 'device-mapper-persistent-data', 'lvm2']
     state: present
 
 - name: add docker ce repo

@@ -5,7 +5,10 @@
 
 # func:
 #   . create cluster addon file - node-problem-detector-daemonset addon
-
+#
+# remark:
+#   . daemonset startup log (daemonset and daemon exec) stored in file /var/log/node-problem-detector.log
+#     retrieve this file for debuging
 
 ####################################################
 #

@@ -94,7 +94,25 @@ spec:
         tier: node
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ kuberouter_prometheus_metrics_port }}"
     spec:
+    spec:
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        value: ""
+        operator: Equal
+        effect: NoSchedule
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoSchedule
+        key: node.kubernetes.io/not-ready
+        operator: Exists
+#      - key: node-role.kubernetes.io/master
+#        effect: NoSchedule
+#      - effect: NoSchedule
+#        key: node-role.kubernetes.io/master
+#        operator: Exists
       serviceAccountName: kube-router
       serviceAccount: kube-router
       containers:
@@ -102,13 +120,14 @@ spec:
         securityContext:
           privileged: true
         image: docker.io/cloudnativelabs/kube-router
-        imagePullPolicy: Always
-        #imagePullPolicy: IfNotPresent
+        #imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
           - "--run-router=true"
           - "--run-firewall=true"
           - "--run-service-proxy=true"
           - "--v={{ kuberouter_log_level }}"
+          - "--metrics-port={{ kuberouter_prometheus_metrics_port }}"
           - "--kubeconfig={{ kuberouter_kubeconfig_file_path }}"
           - "--cluster-cidr={{ cluster_pod_cidr }}"
           - "--hairpin-mode={{ kuberouter_hairpin_mode }}"
@@ -119,8 +138,8 @@ spec:
           - "--advertise-cluster-ip={{ kuberouter_advertise_cluster_ip }}"
           - "--enable-overlay={{ kuberouter_enable_overlay }}"
           - "--enable-pod-egress={{ kuberouter_enable_pod_egress }}"
+          - "--advertise-external-ip={{ kuberouter_advertise_external_ip }}"
           #
-          # - "--advertise-external-ip={{ kuberouter_advertise_external_ip }}"
           # - "--bgp-graceful-restart={{ kuberouter_bgp_graceful_restart }}"
           #
           #- "--peer-router-ips={{ kuberouter_peer_router_ips }}"
@@ -178,8 +197,8 @@ spec:
       initContainers:
       - name: install-cni
         image: busybox
-        imagePullPolicy: Always
-        #imagePullPolicy: IfNotPresent
+        #imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
         - /bin/sh
         - -c
@@ -199,15 +218,6 @@ spec:
       hostNetwork: {{ kuberouter_host_network }}
       hostIPC: {{ kuberouter_host_ipc }}
       hostPID: {{ kuberouter_host_pid }}
-      tolerations:
-      - key: CriticalAddonsOnly
-        operator: Exists
-      - effect: NoSchedule
-        key: node-role.kubernetes.io/master
-        operator: Exists
-      - effect: NoSchedule
-        key: node.kubernetes.io/not-ready
-        operator: Exists
       volumes:
       - name: lib-modules
         hostPath:

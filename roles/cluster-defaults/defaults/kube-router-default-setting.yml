@@ -108,3 +108,6 @@ kuberouter_bgp_port: 179
 
 # kube-router healthz port
 kuberouter_healthz_port: 20244
+
+# kube-router metrics port for prometheus
+kuberouter_prometheus_metrics_port: 8080

@@ -30,3 +30,10 @@ file: read.txt
      are stored in /etc/cert-cache directory (on ansible deploy machine)
 
 
+remark:
+. use curl to check apiserver
+# cd /etc/kubernetes/cert
+# curl -v --cacert ./ca.pem --cert ./kube-admin.pem --key ./kube-admin-key.pem https://10.0.0.101:6443/version
+
+
+

@@ -25,7 +25,7 @@
       register: date_command
     - name: log time stamp record on local
       local_action:
-        copy content="{{ date_command.stdout }}" dest="{{ dep_path_tmp_exchange }}/timestamp.log"
+        copy content=date_command.stdout dest="{{ dep_path_tmp_exchange }}/timestamp.log"
     - name: push record on local to remote
       copy:
         src: "{{ dep_path_tmp_exchange }}/timestamp.log"

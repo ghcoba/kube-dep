@@ -18,6 +18,10 @@
         daemon_reload: no
         state: stopped
         enabled: no
+    - name: remove systemd file
+      file:
+        path: /etc/systemd/system/kubelet.service
+        state: absent
   rescue:
     - debug: 
         msg: "ERROR: can not stop kubelet service, or kubelet service not exist"
@@ -32,6 +36,10 @@
 #        daemon_reload: no
 #        state: stopped
 #        enabled: no
+#    - name: remove systemd file
+#      file:
+#        path: /etc/systemd/system/kube-proxy.service
+#        state: absent
 #  rescue:
 #    - debug:
 #        msg: "ERROR: can not stop kube-proxy service, or kube-proxy service not exist"
@@ -46,6 +54,10 @@
         daemon_reload: no
         state: stopped
         enabled: no
+#    - name: remove systemd file
+#      file:
+#        path: /etc/systemd/system/docker.service
+#        state: absent
   rescue:
     - debug:
         msg: "ERROR: can not stop docker service, or docker service not exist"

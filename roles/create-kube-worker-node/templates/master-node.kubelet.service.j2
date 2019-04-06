@@ -24,7 +24,8 @@ ExecStart=/usr/bin/kubelet \
         --v=2 \
         \
         --register-node=true \
-        --node-labels=worker=true,kubernetes.io/role=worker \
+        --register-with-taints=node-role.kubernetes.io/master=:NoSchedule \
+        --node-labels=master=true,kubernetes.io/role=master \
         --node-ip={{ get_host_ip() }} \
         --pod-cidr={{ cluster_pod_cidr }} \
         --allow-privileged=true \

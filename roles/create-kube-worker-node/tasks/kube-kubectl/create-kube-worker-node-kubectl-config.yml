@@ -102,5 +102,5 @@
 #    src: "{{ kubectl_config_file }}"
 #    dest: "{{ dep_path_backup_kube_config }}/"
 #    flat: yes
-#  delegate_to: "{{ groups['kube-masters'][0] }}"
+#  delegate_to: "{{ groups['ansible-nodes'][0] }}"
 #  run_once: true

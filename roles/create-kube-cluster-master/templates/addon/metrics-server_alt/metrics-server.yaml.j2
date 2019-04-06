@@ -134,14 +134,15 @@ spec:
     spec:
       priorityClassName: system-cluster-critical
       serviceAccountName: metrics-server
-      hostNetwork: true
+      #hostNetwork: true
       containers:
       - name: metrics-server
         image: k8s.gcr.io/metrics-server-amd64:v0.3.1
         #imagePullPolicy: Always
         imagePullPolicy: IfNotPresent
         ports:
-          - containerPort: 443
+          #- containerPort: 443
+          - containerPort: {{ metrics_server_secure_port }}
             name: https
             protocol: TCP
         command:
@@ -269,15 +270,13 @@ spec:
     k8s-app: metrics-server
   type: NodePort
   ports:
-    - port: 443
+    # port - 443
+    - port: {{ metrics_server_secure_port }}
       protocol: TCP
-      #targetPort: 443
-      # use hostnetwork and https - 4433 port before we fix master networking and 
-      #   will change into use nodePort - 30000
-      #targetPort: https
-      targetPort: {{ metrics_server_secure_port }}
-      # use nodePort - 30000
-      #nodePort: {{ metrics_server_secure_port }}
+      # target port - 443
+      targetPort: {{ metrics_server_targetport }}
+      # node port - 30000
+      nodePort: {{ metrics_server_nodeport }}
 
 ---
 # cluster role - system:metrics-server
