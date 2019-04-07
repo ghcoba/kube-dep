@@ -287,7 +287,10 @@
 #   deploy 3 myip test pods
     - name: deploy 3 myip test pods
       import_tasks: pod-deployment/deploy-myip-test-pod.yml
-
+# 54.
+#   deploy 3 hello test pods
+    - name: deploy 3 hello test pods
+      import_tasks: pod-deployment/deploy-hello-pod.yml
 
 
 

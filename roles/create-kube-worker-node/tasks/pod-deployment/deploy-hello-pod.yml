@@ -1,0 +1,23 @@
+---
+
+# file: deploy-hello-pod.yml
+#
+
+# deploy 3 hello pods using yaml - for test only
+# clusterIP type service
+# use # curl hello  to check response and pod name
+#
+
+# create hello yaml 
+- name: create hello file ( yaml )
+  template:
+    src: hello.yaml.j2
+    dest: "{{ kube_yaml_config_path }}/hello.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create hello pod
+- name: create hello pod
+  command: "{{ bin_path }}/kubectl create -f {{ kube_yaml_config_path }}/hello.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
