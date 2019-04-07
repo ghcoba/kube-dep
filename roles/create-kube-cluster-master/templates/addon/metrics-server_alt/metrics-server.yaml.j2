@@ -103,6 +103,9 @@ data:
   NannyConfiguration: |-
     apiVersion: nannyconfig/v1alpha1
     kind: NannyConfiguration
+    baseCPU: 100m
+    cpuPerNode: 5m
+    baseMemory: 200Mi
 
 ---
 # deployment - metrics-server-v0.3.1
@@ -110,7 +113,7 @@ data:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: metrics-server-v0.3.1
+  name: metrics-server
   namespace: kube-system
   labels:
     k8s-app: metrics-server
@@ -200,11 +203,11 @@ spec:
         image: k8s.gcr.io/addon-resizer:1.8.4
         resources:
           limits:
-            cpu: 100m
-            memory: 300Mi
+            cpu: 300m
+            memory: 400Mi
           requests:
-            cpu: 5m
-            memory: 50Mi
+            cpu: 100m
+            memory: 200Mi
         env:
           - name: MY_POD_NAME
             valueFrom:
@@ -221,11 +224,11 @@ spec:
           - /pod_nanny
           - --config-dir=/etc/config
           - --cpu={{ base_metrics_server_cpu }}
-          - --extra-cpu=0.5m
+          - --extra-cpu=5m
           - --memory={{ base_metrics_server_memory }}
           - --extra-memory={{ metrics_server_memory_per_node }}
           - --threshold=5
-          - --deployment=metrics-server-v0.3.1
+          - --deployment=metrics-server
           - --container=metrics-server
           - --poll-period=300000
           - --estimator=exponential

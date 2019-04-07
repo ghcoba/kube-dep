@@ -5,9 +5,9 @@
 
 ### PERFORMANCE AND SCALE
 #
-base_metrics_server_cpu: 80m
-base_metrics_server_memory: 80Mi
-metrics_server_memory_per_node: 8Mi
+base_metrics_server_cpu: 100m
+base_metrics_server_memory: 200Mi
+metrics_server_memory_per_node: 10Mi
 
 metrics_server_min_cluster_size: 1
 
