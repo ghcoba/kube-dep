@@ -1,0 +1,200 @@
+dashboard - 
+
+
+ref:
+
+
+--------
+
+1. create client cert for dashboard to be certified as client to access cluster
+     (also used to create kubeconfig file for dashboard ui login)
+
+use CN - kubernetes-dashboard
+
+(file: dashboard.csr -> dashboard.pem, dashboard-key.pem, dashboard.crt)
+
+
+(in ansible deploy: CN - dashboard-admin, kube-dashboard-admin.pem ... )
+
+----
+2. create service account and cluster role binding  AND apply 
+   ( for cluster to identify and authorize dashboard to have right to access cluster api)
+   ( also used to authorize client user have rights to login dashboard ui)
+
+create:
+service account name: dashboard-admin (use namespace: kube-system)
+
+create:
+cluster role binding: binding service account - dashboard-admin with cluster role cluster-admin
+
+(remark: when a service account created, a token will also create in sevice account as a secret)
+
+(e.g., service account - default will include  
+         - a mountalbe secrets with name of default-token-xxxxx, 
+         - and a service account token with the same name of default-token-xxxxx 
+         - also embede ca.crt
+         - also embede namespace
+
+a sample sevice account secret (token):
+
+Name:         admin-user-token-qrj82
+Namespace:    kube-system
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name=admin-user
+              kubernetes.io/service-account.uid=6cd60673-4d13-11e8-a548-00155d000529
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLXFyajgyIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI2Y2Q2MDY3My00ZDEzLTExZTgtYTU0OC0wMDE1NWQwMDA1MjkiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06YWRtaW4tdXNlciJ9.C5mjsa2uqJwjscWQ9x4mEsWALUTJu3OSfLYecqpS1niYXxp328mgx0t-QY8A7GQvAr5fWoIhhC_NOHkSkn2ubn0U22VGh2msU6zAbz9sZZ7BMXG4DLMq3AaXTXY8LzS3PQyEOCaLieyEDe-tuTZz4pbqoZQJ6V6zaKJtE9u6-zMBC2_iFujBwhBViaAP9KBbE5WfREEc0SQR9siN8W8gLSc8ZL4snndv527Pe9SxojpDGw6qP_8R-i51bP2nZGlpPadEPXj-lQqz4g5pgGziQqnsInSMpctJmHbfAh7s9lIMoBFW7GVE8AQNSoLHuuevbLArJ7sHriQtDB76_j4fmA
+ca.crt:     1025 bytes
+namespace:  11 bytes          
+)
+
+
+----
+3. get token data of service account (will be used to login dashboard ui - using token data login method; and
+     will be enbedded in kubeconfig file - using kubeconfig file login method)
+
+(see how to get token data of service account)
+
+---
+4. create kubeconfig file for dashboard login (use kubeconfig login method)
+
+remark: create kubeconfig file - with enbedded client cert, api server url, and also need token data
+
+
+
+----
+5. create cert secret for dashboard tls certification
+   (for dashboard tls client certification to cluster)
+
+? create generic secret
+# kubectl create secret generic kubernetes-dashboard-certs --from-file=/etc/kubernetes/cert -n kube-system
+( input: dashboard.crt, dashboard.key file in cert directory)
+(file create : secret/kubernetes-dashboard-certs )
+
+. create tls secret
+# kubectl -n kube-system create secret tls dashboard-admin-cert --key /etc/kubernetes/cert/dashboard-key.pem --cert /etc/kubernetes/cert/dashboard.pem 
+(input file see above command line setting, 
+ output is secrect/dashboard-admin-cert with name of dashboard-admin-cert and type of kubernetes.io/tls
+ remark: when this secret is mounted in pod, it will include data (file) of as following:
+           1. tls.crt   (of cert file)
+           2. tls.key   (of key file)
+ ??? need include --ca (ca.crt file)  - NOT NEED
+
+rem: secret type include: generic, tls secret, container secret,  registry secret
+  . docker-registry Create a secret for use with a Docker registry
+  . generic         Create a secret from a local file, directory or literal value
+  . tls             Create a TLS secret
+
+)
+
+
+
+
+
+
+----
+5. change yaml
+
+ref url-
+https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+
+
+edit file: kubernetes-dashboard.yaml
+
+--
+change service to use NodePOrt - 
+
+spec:
+  type: NodePort
+  ports:
+  - port: 443
+    targetPort: 8443
+  selector:
+    k8s-app: kubernetes-dashboard
+
+
+
+
+
+------------------------------------------------------------
+
+
+
+###. to get secret ( service account token ) data from cluster when using token data to login dashboard
+
+# kubectl describe secret/$(kubectl get secret -n kube-system |grep dashboard-admin|awk '{print $1}') -nkube-system
+
+
+
+
+
+------- ref: token related
+
+. describe secret
+# kubectl describe secret default-token-v79t2
+Name:         default-token-v79t2
+Namespace:    default
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: default
+              kubernetes.io/service-account.uid: 4c47d667-598a-11e9-8938-005056bf94e6
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1383 bytes
+namespace:  7 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tdjc5dDIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRjNDdkNjY3LTU5OGEtMTFlOS04OTM4LTAwNTA1NmJmOTRlNiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.j-lZ2oyBukuHffKXv3q7UpYhWM2Edz5lhSXQu5nAq99V-FJoROSlB3oL3HlQgnL9UUW4dMg8U1zNTXsnWReEhc8VrC8eauLvABnzdnu0A5Hh_UylYguJJ90Q04oXfzCllBxvEsWNWGetB1n4qdNQMBZ579r_0UXLw9qtWbOE4yJIbf6UADFCoVcMoDltjDA6JYUdzCBg66P0FeVol9pEkPxAdnGpkZCNUJuq21JsDsOTy8LcPsPOYrn5LQiwZnWfOWyXH1ajArSNShgDJnSdVkpNS3m4eyeWE9KAssfUIcH_2L_bDB0rnFLQxc5xsxqj0Oj2klbmCC_kYbC8tSctfg
+
+(remark: above token data is base64 decoded)
+
+---
+. to get base64 decoded token (use base64 -d    rem: -d means decode)
+# kubectl get secret default-token-v79t2 -o jsonpath={.data.token}|base64 -d
+eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tdjc5dDIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRjNDdkNjY3LTU5OGEtMTFlOS04OTM4LTAwNTA1NmJmOTRlNiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.j-lZ2oyBukuHffKXv3q7UpYhWM2Edz5lhSXQu5nAq99V-FJoROSlB3oL3HlQgnL9UUW4dMg8U1zNTXsnWReEhc8VrC8eauLvABnzdnu0A5Hh_UylYguJJ90Q04oXfzCllBxvEsWNWGetB1n4qdNQMBZ579r_0UXLw9qtWbOE4yJIbf6UADFCoVcMoDltjDA6JYUdzCBg66P0FeVol9pEkPxAdnGpkZCNUJuq21JsDsOTy8LcPsPOYrn5LQiwZnWfOWyXH1ajArSNShgDJnSdVkpNS3m4eyeWE9KAssfUIcH_2L_bDB0rnFLQxc5xsxqj0Oj2klbmCC_kYbC8tSctfg
+
+(data is base64 decoded)
+
+---
+. to get not decoded (base64 encoded)
+# kubectl get secret default-token-v79t2 -o jsonpath={.data.token}
+ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklpSjkuZXlKcGMzTWlPaUpyZFdKbGNtNWxkR1Z6TDNObGNuWnBZMlZoWTJOdmRXNTBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5dVlXMWxjM0JoWTJVaU9pSmtaV1poZFd4MElpd2lhM1ZpWlhKdVpYUmxjeTVwYnk5elpYSjJhV05sWVdOamIzVnVkQzl6WldOeVpYUXVibUZ0WlNJNkltUmxabUYxYkhRdGRHOXJaVzR0ZGpjNWRESWlMQ0pyZFdKbGNtNWxkR1Z6TG1sdkwzTmxjblpwWTJWaFkyTnZkVzUwTDNObGNuWnBZMlV0WVdOamIzVnVkQzV1WVcxbElqb2laR1ZtWVhWc2RDSXNJbXQxWW1WeWJtVjBaWE11YVc4dmMyVnlkbWxqWldGalkyOTFiblF2YzJWeWRtbGpaUzFoWTJOdmRXNTBMblZwWkNJNklqUmpORGRrTmpZM0xUVTVPR0V0TVRGbE9TMDRPVE00TFRBd05UQTFObUptT1RSbE5pSXNJbk4xWWlJNkluTjVjM1JsYlRwelpYSjJhV05sWVdOamIzVnVkRHBrWldaaGRXeDBPbVJsWm1GMWJIUWlmUS5qLWxaMm95QnVrdUhmZktYdjNxN1VwWWhXTTJFZHo1bGhTWFF1NW5BcTk5Vi1GSm9ST1NsQjNvTDNIbFFnbkw5VVVXNGRNZzhVMXpOVFhzbldSZUVoYzhWckM4ZWF1THZBQm56ZG51MEE1SGhfVXlsWWd1Sko5MFEwNG9YZnpDbGxCeHZFc1dOV0dldEIxbjRxZE5RTUJaNTc5cl8wVVhMdzlxdFdiT0U0eUpJYmY2VUFERkNvVmNNb0RsdGpEQTZKWVVkekNCZzY2UDBGZVZvbDlwRWtQeEFkbkdwa1pDTlVKdXEyMUpzRHNPVHk4TGNQc1BPWXJuNUxRaXdabldmT1d5WEgxYWpBclNOU2hnREpuU2RWa3BOUzNtNGV5ZVdFOUtBc3NmVUljSF8yTF9iREIwcm5GTFF4YzV4c3hxajBPajJrbGJtQ0Nfa1liQzh0U2N0Zmc=
+
+(above data is not decoded)
+
+---
+. to get decoded toke data (whithout need to input full secret name)
+# kubectl -n default describe secret $(kubectl -n default get secret | awk '/^default-token-/{print $1}') | awk '$1=="token:"{print $2}'
+eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tdjc5dDIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRjNDdkNjY3LTU5OGEtMTFlOS04OTM4LTAwNTA1NmJmOTRlNiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.j-lZ2oyBukuHffKXv3q7UpYhWM2Edz5lhSXQu5nAq99V-FJoROSlB3oL3HlQgnL9UUW4dMg8U1zNTXsnWReEhc8VrC8eauLvABnzdnu0A5Hh_UylYguJJ90Q04oXfzCllBxvEsWNWGetB1n4qdNQMBZ579r_0UXLw9qtWbOE4yJIbf6UADFCoVcMoDltjDA6JYUdzCBg66P0FeVol9pEkPxAdnGpkZCNUJuq21JsDsOTy8LcPsPOYrn5LQiwZnWfOWyXH1ajArSNShgDJnSdVkpNS3m4eyeWE9KAssfUIcH_2L_bDB0rnFLQxc5xsxqj0Oj2klbmCC_kYbC8tSctfg
+
+(remark: above data is decoded)
+
+
+(ref - for namespace -n kube-system)
+# kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | awk '/^deployment-controller-token-/{print $1}') | awk '$1=="token:"{print $2}'
+
+multi-line version of above command line
+
+i.e.,
+# kubectl -n kube-system describe secret $(
+  kubectl -n kube-system get secret | \
+  awk '/^deployment-controller-token-/{print $1}'
+) | \
+awk '$1=="token:"{print $2}'
+
+
+
+
+----
+to access dashboard ui
+
+in firefox or chrome browser, browse url:
+https://10.0.0.101:30001
+
+> select using token authentication for web ui, input dashboard-admin-token-xxxx' token data item
+
+
