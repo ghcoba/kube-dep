@@ -36,6 +36,8 @@
     - "{{ cert_cache_path_kube_front_proxy_client }}"
     - "{{ cert_cache_path_kube_metrics_server }}"
     - "{{ cert_cache_path_kube_aggregated_apiserver_client }}"
+    - "{{ cert_cache_path_kube_dashboard_admin }}"
+    - "{{ cert_cache_path_kube_prometheus_client }}"
   run_once: true
   delegate_to: "{{ groups['ansible-nodes'][0] }}"
 

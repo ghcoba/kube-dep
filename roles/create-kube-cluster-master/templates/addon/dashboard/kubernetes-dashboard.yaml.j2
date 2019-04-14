@@ -1,0 +1,313 @@
+# Copyright 2017 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ------------------- Dashboard ConfigMap ------------------- #
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+    # Allows editing resource and makes sure it is created first.
+    addonmanager.kubernetes.io/mode: EnsureExists
+  name: kubernetes-dashboard-settings
+  namespace: kube-system
+
+---
+# ------------------- Dashboard Secret ------------------- #
+
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+    # Allows editing resource and makes sure it is created first.
+    addonmanager.kubernetes.io/mode: EnsureExists
+  name: kubernetes-dashboard-certs
+  namespace: kube-system
+type: Opaque
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+    # Allows editing resource and makes sure it is created first.
+    addonmanager.kubernetes.io/mode: EnsureExists
+  name: kubernetes-dashboard-key-holder
+  namespace: kube-system
+type: Opaque
+
+---
+# ------------------- Dashboard Service Account ------------------- #
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kube-system
+
+---
+# ------------------- Dashboard Role & Role Binding ------------------- #
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+    addonmanager.kubernetes.io/mode: Reconcile
+  name: kubernetes-dashboard-minimal
+  namespace: kube-system
+rules:
+  # Allow Dashboard to create 'kubernetes-dashboard-key-holder' secret.
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["create"]
+  # Allow Dashboard to create 'kubernetes-dashboard-settings' config map.
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create"]
+  # Allow Dashboard to get, update and delete Dashboard exclusive secrets.
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["kubernetes-dashboard-key-holder", "kubernetes-dashboard-certs", "dashboard-admin-cert"]
+  verbs: ["get", "update", "delete"]
+  # Allow Dashboard to get and update 'kubernetes-dashboard-settings' config map.
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames: ["kubernetes-dashboard-settings"]
+  verbs: ["get", "update"]
+  # Allow Dashboard to get metrics from heapster.
+- apiGroups: [""]
+  resources: ["services"]
+  # -rev- for using metrics-server to replace heapster
+  #resourceNames: ["heapster"]
+  resourceNames: ["metrics-server", "heapster"]
+  verbs: ["proxy"]
+- apiGroups: [""]
+  resources: ["services/proxy"]
+  # -rev- for using metrics-server to replace heapster
+  #resourceNames: ["heapster", "http:heapster:", "https:heapster:"]
+  resourceNames: ["metrics-server", "http:metrics-server:", "https:metrics-server:", "heapster", "http:heapster:", "https:heapster:"]
+  verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubernetes-dashboard-minimal
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubernetes-dashboard-minimal
+subjects:
+- kind: ServiceAccount
+  name: kubernetes-dashboard
+  namespace: kube-system
+
+---
+# ------------  cluster role binding - sa dashboard-admin/cluster-admin cluster role  ------- #
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: dashboard-admin
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: dashboard-admin
+  namespace: kube-system
+
+#---
+# -------------  Dashboard Secret - dashboard-admin-cert  ---------------------------- #
+# REMARK:
+# secret dashboard-admin-cert will created before applying kubernetes-dashboard.yaml deployment
+#
+# secret - dashboard-admin-cert 
+# function: (TLS certificate data secret for dashboard to access cluster as client)
+# contents:
+#   . tls.key (tls certificate key file)
+#   . tls.crt (tls certificate cert file)
+# created from:
+#   . /etc/kubernetes/cert/kube-dashboard-admin.pem
+#   . /etc/kubernetes/cert/kube-dashboard-admin-key.pem
+#   (using CN - dashboard-admin, namespace - kube-system.  kube-system:dashboard-admin )
+#
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  labels:
+#    k8s-app: kubernetes-dashboard
+#  name: dashboard-admin-cert
+#  namespace: kube-system
+#type: Opaque
+
+
+# REMARK: service account - dashboard-admin need to be created before applying this deployment
+#
+#---
+# ------------  Dashboard admin service account - dashboard-admin --------------------------- #
+#apiVersion: v1
+#kind: ServiceAccount
+#metadata:
+#  name: dashboard-admin
+#  namespace: kube-system
+#  labels:
+#    kubernetes.io/cluster-service: "true"
+#    addonmanager.kubernetes.io/mode: Reconcile
+
+---
+# ------------  Dashboard Deployment -------------------------------------------------------- #
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+  name: kubernetes-dashboard
+  namespace: kube-system
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      k8s-app: kubernetes-dashboard
+  template:
+    metadata:
+      labels:
+        k8s-app: kubernetes-dashboard
+    spec:
+      # ------ priority class name -------------------------------------------------------
+      priorityClassName: system-cluster-critical
+      # ------ tolerations ---------------------------------------------------------------
+      # Comment the following tolerations if Dashboard must not be deployed on master
+      tolerations:
+      #- key: node-role.kubernetes.io/master
+      #  effect: NoSchedule
+      #
+      # ###
+      # ### change to use following toleration to enable dashboard can run on master node
+      - key: node-role.kubernetes.io/master
+        value: ""
+        operator: Equal
+        effect: NoSchedule
+      # ------ service account -----------------------------------------------------------
+      # for using minimal role rights when skip certificate, uncomment following line
+      serviceAccountName: kubernetes-dashboard
+      #------------
+      # for using admin role right when skip certificate, uncomment following line 
+      # to use sa dashboard-admin
+      #serviceAccountName: dashboard-admin
+      # ----- volumes --------------------------------------------------------------------
+      volumes:
+      # for default setting - use kubernetes-dashboard-cert secret(dashboard.crt, dashboard.key)
+      #- name: kubernetes-dashboard-certs
+      #  secret:
+      #    secretName: kubernetes-dashboard-certs
+      # ------------
+      # -rev-
+      # for customer setting - secret dashboard-admin-cert (tls.crt, tls.key file)
+      - name: dashboard-admin-cert-vol
+        secret:
+          secretName: dashboard-admin-cert
+      - name: tmp-volume
+        emptyDir: {}
+      # ------ container ------------------------------------------------------------------
+      containers:
+      - name: kubernetes-dashboard
+        image: k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.1
+        resources:
+          limits:
+            cpu: 100m
+            memory: 300Mi
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        ports:
+        - containerPort: 8443
+          protocol: TCP
+        args:
+          # for default setting - use auto-generate-certificate for tls
+          #   (store in /certs - for secret with name of kubernetes-dashboard-certs)
+          # setting tls certificate data
+          #- --auto-generate-certificates
+          #---------  
+          # -rev-
+          # for customer setting - use secret with name of dashboard-admin-cert
+          #   (include files: tls.key, tls.crt in /certs directory)
+          #  ### path issue
+          #- --tls-key-file=/certs/tls.key
+          #- --tls-cert-file=/certs/tls.crt
+          # dashboard auto add path prefix '/certs/' to --tls-xxx-file option flag,
+          #   so, must only use tls.key as input. i.e., /certs/(prefix) + tls.key -> /certs/tls.key
+          - --tls-key-file=tls.key
+          - --tls-cert-file=tls.crt
+          # Uncomment the following line to manually specify Kubernetes API server Host
+          # If not specified, Dashboard will attempt to auto discover the API server and connect
+          # to it. Uncomment only if the default does not work.
+          # - --apiserver-host=http://my-address:port
+        volumeMounts:
+        # default setting - must create generic secret in name of kubernetes-dashboard-certs
+        #   which is create from certs/dashboard.crt and certs/dashboard.key file
+        #- name: kubernetes-dashboard-certs
+        #  mountPath: /certs
+        # ----------
+        # -rev- 
+        # for customer setting 
+        - name: dashboard-admin-cert-vol
+          mountPath: /certs
+        # Create on-disk volume to store exec logs
+        - name: tmp-volume
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /
+            port: 8443
+        #  initialDelaySeconds: 30
+          initialDelaySeconds: 60
+          timeoutSeconds: 30
+          timeoutSeconds: 60
+
+---
+# ------------------- Dashboard Service ------------------- #
+
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+  name: kubernetes-dashboard
+  namespace: kube-system
+spec:
+  selector:
+    k8s-app: kubernetes-dashboard
+  # -rev- to use NodePort
+  type: NodePort
+  ports:
+    - port: 443
+      targetPort: 8443
+      nodePort: 30001

@@ -1,0 +1,27 @@
+---
+
+# file: deploy-kube-dashboard.yml
+
+# function:
+# . create secrect - dashboard-admin-cert (xfer tls cert, key for dashboard tls communication)
+# . create service account - dashboard-admin (to authorize dashboard access rights)
+# . get token data of service account - dashboard-admin, and register 
+#     (which will be embedded in dashboard-admin kubeconfig file - use can use this 
+#      dashboard-admin kubeconfig to login dashboard ui)
+# . create deployment yaml file
+# . apply deployment yaml file to create dashboard pod
+#
+
+- name: create secrect - dashboard-admin-cert (tls certificate for dashboard as client)
+  import_tasks: kube-dashboard/create-dashboard-admin-cert-secret.yml
+  run_once: true
+
+- name: create sevice account yaml file and create serviceaccount - dashboard-admin
+  import_tasks: kube-dashboard/create-dashboard-admin-serviceaccount.yml
+
+- name: create kubeconfig - kube-dashboard-admin.kubeconfig (get and register token data first)
+  import_tasks: kube-dashboard/create-kube-dashboard-admin-kubeconfig.yml
+
+- name: create dashboard deploy file and apply dashboard deployment
+  import_tasks: kube-dashboard/create-dashboard-deploy-file-and-apply-deployment.yml 
+

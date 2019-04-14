@@ -76,4 +76,9 @@ cert_backup_path_kube_metrics_server: "{{ dep_path_backup_cert }}/kube-metrics-s
 # path for aggregated-apiserver-client client cert
 cert_backup_path_kube_aggregated_apiserver_client: "{{ dep_path_backup_cert }}/kube-aggregated-apiserver-client"
 
+# path for dashboard admin (client) cert
+cert_backup_path_kube_dashboard_admin: "{{ dep_path_backup_cert }}/kube-dashboard-admin"
+
+# path for prometheus client cert
+cert_backup_path_kube_prometheus_client: "{{ dep_path_backup_cert }}/kube-prometheus-client"
 

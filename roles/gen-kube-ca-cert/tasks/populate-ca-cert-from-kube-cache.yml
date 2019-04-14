@@ -79,6 +79,14 @@
         - kube-aggregated-apiserver-client.csr
         - kube-aggregated-apiserver-client.pem
         - kube-aggregated-apiserver-client-key.pem
+        - kube-dashboard-admin-csr.json
+        - kube-dashboard-admin.csr
+        - kube-dashboard-admin.pem
+        - kube-dashboard-admin-key.pem
+        - kube-prometheus-client-csr.json
+        - kube-prometheus-client.csr
+        - kube-prometheus-client.pem
+        - kube-prometheus-client-key.pem
  
     - name: copy kube-admin cert from kube cache to kube-admin cache directory
       copy:
@@ -211,6 +219,34 @@
         - kube-aggregated-apiserver-client.csr
         - kube-aggregated-apiserver-client.pem
         - kube-aggregated-apiserver-client-key.pem
+
+    - name: copy kube-dashboard-admin client cert from kube cache to kube-dashboard-admin cache
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_dashboard_admin }}/"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-dashboard-admin-csr.json
+        - kube-dashboard-admin.csr
+        - kube-dashboard-admin.pem
+        - kube-dashboard-admin-key.pem
+
+    - name: copy kube-prometheus-client cert from kube cache to kube-prometheus-client cache
+      copy:
+        src: "{{ dep_path_tmp_exchange }}/{{ item }}"
+        dest: "{{ cert_cache_path_kube_prometheus_client }}/"
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-prometheus-client-csr.json
+        - kube-prometheus-client.csr
+        - kube-prometheus-client.pem
+        - kube-prometheus-client-key.pem
 
   rescue:
     - debug:

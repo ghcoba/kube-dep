@@ -76,6 +76,15 @@
         - kube-aggregated-apiserver-client.csr
         - kube-aggregated-apiserver-client.pem
         - kube-aggregated-apiserver-client-key.pem
+        - kube-dashboard-admin-csr.json
+        - kube-dashboard-admin.csr
+        - kube-dashboard-admin.pem
+        - kube-dashboard-admin-key.pem
+        - kube-prometheus-client-csr.json
+        - kube-prometheus-client.csr
+        - kube-prometheus-client.pem
+        - kube-prometheus-client-key.pem
+
 
 #     # fetch kube-admin cert from remote cache to ansible kube-admin backup directory
     - name: fetch kube-admin cert from remote cache
@@ -227,6 +236,38 @@
         - kube-aggregated-apiserver-client.csr
         - kube-aggregated-apiserver-client.pem
         - kube-aggregated-apiserver-client-key.pem
+
+#     # fetch kube-dashboard-admin client cert from remote cache to ansible backup directory
+    - name: fetch kube-dashboard-admin client cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_dashboard_admin }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_dashboard_admin }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-dashboard-admin-csr.json
+        - kube-dashboard-admin.csr
+        - kube-dashboard-admin.pem
+        - kube-dashboard-admin-key.pem
+
+#     # fetch kube-prometheus-client cert from remote cache to ansible backup directory
+    - name: fetch kube-prometheus-client client cert from remote cache
+      fetch:
+        src: "{{ cert_cache_path_kube_prometheus_client }}/{{ item }}"
+        dest: "{{ cert_backup_path_kube_prometheus_client }}/"
+        flat: true
+      with_items:
+        - ca-config.json
+        - ca.pem
+        - ca-key.pem
+        - timestamp.log
+        - kube-prometheus-client-csr.json
+        - kube-prometheus-client.csr
+        - kube-prometheus-client.pem
+        - kube-prometheus-client-key.pem
 
 #   end procedure
 

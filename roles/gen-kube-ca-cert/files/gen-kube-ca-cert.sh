@@ -538,6 +538,66 @@ if ! (cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profil
     exit 2
 fi
 
+# 1.2. kube-dashboard-admin
+####    generate kube dashboard-admin csr json file (use client profile of ca-config.json, client)
+# kube user: dashboard-admin
+# kube group: kube-system 
+# (namespace - kube-system, client id is kube-system:dashboard-admin)
+
+cat <<EOF > kube-dashboard-admin-csr.json
+{
+    "CN": "dashboard-admin",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "Shenzhen",
+            "ST": "Shenzhen",
+            "O": "kube-system",
+            "OU": "internet"
+        }
+    ]
+}
+EOF
+
+if ! (cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client kube-dashboard-admin-csr.json | cfssljson -bare kube-dashboard-admin) >/dev/null 2>&1; then
+    echo "=== Failed to generate kube-dashboard-admin client certificates: Aborting ===" 1>&2
+    exit 2
+fi
+
+
+# 1.3. kube-prometheus-client
+####    generate kube prometheus client csr json file (use client profile of ca-config.json, client)
+# kube user: prometheus-client
+# kube group: monitoring
+# (namespace - monitoring, client id is monitoring:prometheus-client)
+
+cat <<EOF > kube-prometheus-client-csr.json
+{
+    "CN": "prometheus-client",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "Shenzhen",
+            "ST": "Shenzhen",
+            "O": "monitoring",
+            "OU": "internet"
+        }
+    ]
+}
+EOF
+
+if ! (cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client kube-prometheus-client-csr.json | cfssljson -bare kube-prometheus-client) >/dev/null 2>&1; then
+    echo "=== Failed to generate kube-prometheus-client certificates: Aborting ===" 1>&2
+    exit 2
+fi
 
 # debug trace log
 #echo "finished gen kube-serviceaccount cert" >> trace.log

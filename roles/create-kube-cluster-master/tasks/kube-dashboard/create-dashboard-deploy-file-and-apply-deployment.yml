@@ -1,0 +1,33 @@
+---
+
+# file: kube-dashboard/create-dashboard-deploy-file-and-apply-deployment.yml
+
+# function:
+# . create dashboard deploy yaml file on each cluster master node
+# . apply deploy yaml file to deploy dashboar (run once)
+#
+
+# create serviceaccount file
+- name: create serviceaccount yaml file for dashboard-admin serviceaccount
+  template:
+    src: "addon/dashboard/{{ item }}.j2"
+    dest: "{{ kube_dashboard_path }}/{{ item }}"
+    owner: "{{ kube_user }}"
+    group: "{{ kube_group }}"
+    mode: 0644
+  with_items:
+    - kubernetes-dashboard.yaml
+
+- block:
+    - name: create kubernetes dashboard pod
+      command: "{{ bin_path }}/kubectl create -f {{ kube_dashboard_path }}/kubernetes-dashboard.yaml"
+      register: deploy_dashboard_result
+    - debug:
+        msg: "exec output: {{ deploy_dashboard_result.stdout }}"
+    - debug:
+        msg: "kubernetes dashboard pod created"
+  rescue:
+    - debug:
+        msg: "error creating kubernetes dashboard pod"
+  run_once: true
+# end block

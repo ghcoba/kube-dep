@@ -341,7 +341,12 @@
 # 83.
     - name: create kube node-problem-detector daemonset and config
       import_tasks: kube-node-problem-detector/deploy-kube-node-problem-detector-daemonset.yml
-
+# 84.
+    - name: create kube dashboard enviroment and deploy
+      import_tasks: kube-dashboard/deploy-kube-dashboard.yml
+# 85.
+#    - name: create kube prormetheus monitoring enviroment and deploy
+#      import_tasks: kube-prometheus/deploy-kube-prometheus.yml
 
 #############################################################################################################
 # . final processes for kubenetes master deployment

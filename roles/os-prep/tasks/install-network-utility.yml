@@ -2,11 +2,16 @@
 
 # file: install-network-utility.yml
 
+- name: install epel repository
+  yum:
+    name: ['epel-release']
+    state: latest
+
 # install network utilities
 #
 - name: install network utility
   yum:
-    name: ['iproute', 'net-tools', 'bind-utils', 'iptables', 'bridge-utils', 'wget', 'jq']
+    name: ['iproute', 'net-tools', 'bind-utils', 'iptables', 'bridge-utils', 'wget', 'jq', 'htop']
     state: latest
 
 

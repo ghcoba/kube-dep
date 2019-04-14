@@ -106,6 +106,12 @@ kube_metrics_server_path: "{{ kube_config_path }}/metrics-server"
 # node-problem-detector addon daemonset yaml file path - /etc/kubernetes/node-problem-detector
 kube_node_problem_detector_path: "{{ kube_config_path }}/node-problem-detector"
 
+# dashboard addon deploy yaml file path - /etc/kubernetes/dashboard
+kube_dashboard_path: "{{ kube_config_path }}/dashboard"
+
+# prometheus addon deploy yaml file path - /etc/kubernetes/prometheus
+kube_prometheus_path: "{{ kube_config_path }}/prometheus"
+
 #### ip-masq-agent config
 #      /etc/config/ip-masq-agent
 kube_ipmasq_agent_config_path: "/etc/config/ip-masq-agent"
@@ -205,6 +211,13 @@ kube_aggregated_apiserver_client_key_file: "{{ kube_cert_path }}/kube-aggregated
 ###
 ###
 
+######### kubernetes addon dashboard admin (client) cert file
+kube_dashboard_admin_cert_file: "{{ kube_cert_path }}/kube-dashboard-admin.pem"
+kube_dashboard_admin_key_file: "{{ kube_cert_path }}/kube-dashboard-admin-key.pem"
+
+######### kubernetes addon prometheus client cert file
+kube_prometheus_client_cert_file: "{{ kube_cert_path }}/kube-prometheus-client.pem"
+kube_prometheus_client_key_file: "{{ kube_cert_path }}/kube-prometheus-client-key.pem"
 
 
 ########### ETCD client cert file - for KUBE MASTER and NODE
@@ -284,3 +297,9 @@ kube_proxy_para_config_file: "{{ kube_config_path }}/kube-proxy.config.yaml"
 
 # kube-aggregator-client
 kube_aggregator_client_config_file: "{{ kube_config_path }}/kube-aggregator-client.kubeconfig"
+
+# kube-dashboard-admin (client)
+kube_dashboard_admin_config_file: "{{ kube_config_path }}/kube-dashboard-admin.kubeconfig"
+
+# kube prometheus client
+kube_prometheus_client_config_file: "{{ kube_config_path }}/kube-prometheus-client.kubeconfig"
