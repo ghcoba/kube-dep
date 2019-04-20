@@ -11,7 +11,7 @@
 #
 - name: install network utility
   yum:
-    name: ['iproute', 'net-tools', 'bind-utils', 'iptables', 'bridge-utils', 'wget', 'jq', 'htop']
+    name: ['iproute', 'net-tools', 'bind-utils', 'iptables', 'bridge-utils', 'wget', 'jq', 'htop', 'nmap-ncat.x86_64']
     state: latest
 
 

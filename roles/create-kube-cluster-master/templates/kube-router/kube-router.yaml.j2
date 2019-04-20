@@ -130,23 +130,24 @@ spec:
           - "--metrics-port={{ kuberouter_prometheus_metrics_port }}"
           - "--kubeconfig={{ kuberouter_kubeconfig_file_path }}"
           - "--cluster-cidr={{ cluster_pod_cidr }}"
-          - "--hairpin-mode={{ kuberouter_hairpin_mode }}"
+          - "--hairpin-mode={{ kuberouter_enable_hairpin_mode }}"
           - "--cluster-asn={{ kuberouter_cluster_asn }}"
-          - "--masquerade-all={{ kuberouter_masquerade_all }}"
-          - "--nodes-full-mesh={{ kuberouter_node_full_mesh }}"
+          - "--masquerade-all={{ kuberouter_enable_masquerade_all }}"
+          - "--nodes-full-mesh={{ kuberouter_enable_node_full_mesh }}"
           - "--enable-ibgp={{ kuberouter_enable_igbp }}"
-          - "--advertise-cluster-ip={{ kuberouter_advertise_cluster_ip }}"
+          - "--advertise-cluster-ip={{ kuberouter_enable_advertise_cluster_ip }}"
           - "--enable-overlay={{ kuberouter_enable_overlay }}"
           - "--enable-pod-egress={{ kuberouter_enable_pod_egress }}"
-          - "--advertise-external-ip={{ kuberouter_advertise_external_ip }}"
+          - "--advertise-external-ip={{ kuberouter_enable_advertise_external_ip }}"
+          - "--advertise-loadbalancer-ip={{ kuberouter_enable_advertise_loadbalancer_ip }}"
           #
-          # - "--bgp-graceful-restart={{ kuberouter_bgp_graceful_restart }}"
+          # - "--bgp-graceful-restart={{ kuberouter_enable_bgp_graceful_restart }}"
           #
           #- "--peer-router-ips={{ kuberouter_peer_router_ips }}"
           #- "--peer-router-asns={{ kuberouter_peer_router_asns }}"
           #
-          ## for advertise load balancer ip
-          # - "--advertise-loadbalancer-ip=true"
+          ## for advertise load balancer ip (ca work with metallb loadbalancer)
+          # - "--advertise-loadbalancer-ip={{ kuberouter_enable_advertise_loadbalancer_ip }}"
           #
           ## for advertise service external ip
           ## for direct server return - DSR
@@ -215,9 +216,9 @@ spec:
         - name: kube-router-cfg
           #mountPath: /etc/kube-router
           mountPath: {{ kuberouter_config_path }}
-      hostNetwork: {{ kuberouter_host_network }}
-      hostIPC: {{ kuberouter_host_ipc }}
-      hostPID: {{ kuberouter_host_pid }}
+      hostNetwork: {{ kuberouter_use_host_network }}
+      hostIPC: {{ kuberouter_enable_host_ipc }}
+      hostPID: {{ kuberouter_enable_host_pid }}
       volumes:
       - name: lib-modules
         hostPath:

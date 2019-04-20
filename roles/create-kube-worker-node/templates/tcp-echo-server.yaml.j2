@@ -1,0 +1,21 @@
+---
+kind: DaemonSet
+apiVersion: extensions/v1beta1
+metadata:
+  name: tcp-echo-server
+  labels:
+    app: tcp-echo-server 
+spec:
+  template:
+    metadata:
+      name: tcp-echo-server
+      labels:
+        app: tcp-echo-server
+    spec:
+      hostNetwork: true
+      containers:
+      - image: maniankara/tcp-echo:1.0
+        ports:
+        - containerPort: 446
+        name: tcp-echo-server
+        args: ["--port", "446"]

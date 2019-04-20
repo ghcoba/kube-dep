@@ -71,28 +71,31 @@ kuberouter_log_level: "3"
 # kube-router hairpin mode (true, false) - global for all services
 # can be set per-service by annotate service using:
 #   # kubectl annotate service my-service "kube-router.io/service.hairpin="  ???? true
-kuberouter_hairpin_mode: "true"
+kuberouter_enable_hairpin_mode: "true"
 
-# kube-router advertise cluster ip
-kuberouter_advertise_cluster_ip: "true"
+# kube-router enable advertise cluster ip
+kuberouter_enable_advertise_cluster_ip: "true"
 
-# kube-router advertise service external ip
-kuberouter_advertise_external_ip: "true"
+# kube-router enable advertise service external ip
+kuberouter_enable_advertise_external_ip: "true"
+
+# kube-router enable advertise load balancer ip (using load balancer ip delieved by metallb)
+kuberouter_enable_advertise_loadbalancer_ip: "true"
 
 # kube-router enable overlay - using ipinip tunneling
 kuberouter_enable_overlay: "true"
-# kube-router host network
-kuberouter_host_network: "true"
-# kub-router host ipc
-kuberouter_host_ipc: "true"
-# kube-router host pid
-kuberouter_host_pid: "true"
+# kube-router enable kube-router pod use host network
+kuberouter_use_host_network: "true"
+# kub-router enable host ipc
+kuberouter_enable_host_ipc: "true"
+# kube-router enable host pid
+kuberouter_enable_host_pid: "true"
 
-# kube-router masquerade-all
-kuberouter_masquerade_all: "true"
+# kube-router enable masquerade-all
+kuberouter_enable_masquerade_all: "true"
 
-# kube-router node full mesh
-kuberouter_node_full_mesh: "true"
+# kube-router enable node full mesh
+kuberouter_enable_node_full_mesh: "true"
 
 # kube-router enable pod egress
 kuberouter_enable_pod_egress: "true"
@@ -100,8 +103,8 @@ kuberouter_enable_pod_egress: "true"
 # kube-router enable ibgp 
 kuberouter_enable_igbp: "true"
 
-# kube-router bgp graceful restart
-kuberouter_bgp_graceful_restart: "true"
+# kube-router enable bgp graceful restart
+kuberouter_enable_bgp_graceful_restart: "true"
 
 # kube-router gbp port
 kuberouter_bgp_port: 179
@@ -111,3 +114,4 @@ kuberouter_healthz_port: 20244
 
 # kube-router metrics port for prometheus
 kuberouter_prometheus_metrics_port: 8080
+
