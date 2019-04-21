@@ -16,17 +16,17 @@ data:
       avoid-buggy-ips: true
       addresses:
       - {{ metallb_ip_pool_start_ip_cidr }}
-    bgp-advertisements:
-    - aggregation-length: 32
-      localpref: 100
-      communities:
-      - 64512:1
-      #- no-export  
-    #bgp-communities:
-      # no-export is a well-known BGP community that prevents
-      # re-advertisement outside of the immediate autonomous system,
-      # but people don't usually recognize its numerical value. :)
-      #no-export: 65535:65281
+#    bgp-advertisements:
+#    - aggregation-length: 32
+#      localpref: 100
+#      communities:
+#      - 64512:1
+#      #- no-export  
+#    #bgp-communities:
+#      # no-export is a well-known BGP community that prevents
+#      # re-advertisement outside of the immediate autonomous system,
+#      # but people don't usually recognize its numerical value. :)
+#      #no-export: 65535:65281
 #
 #    - name: ip-pool-for-web-sites
 #      protocol: layer2
