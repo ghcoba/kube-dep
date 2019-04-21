@@ -5,17 +5,27 @@ metadata:
   name: config
 data:
   config: |
-    peers:
-    - peer-address: {{ metallb_bgp_peer_ip }}
-      peer-asn: {{ metallb_bgp_peer_asn }}
-      my-asn: {{ metallb_bgp_my_asn }}
     address-pools:
     - name: lb-lan-ip-pool
-      protocol: bgp
-      #auto-assign: false
-      avoid-buggy-ips: true
+      protocol: layer2
       addresses:
-      - {{ metallb_ip_pool_start_ip_cidr }}
+      #- 10.0.0.224-10.0.0.244
+      - {{ metallb_arp_ip_pool_range }}
+#
+#data:
+#  config: |
+#    peers:
+#    - peer-address: {{ metallb_bgp_peer_ip }}
+#      peer-asn: {{ metallb_bgp_peer_asn }}
+#      my-asn: {{ metallb_bgp_my_asn }}
+#    address-pools:
+#    - name: lb-lan-ip-pool
+#      protocol: bgp
+#      #auto-assign: false
+#      avoid-buggy-ips: true
+#      addresses:
+#      - {{ metallb_ip_pool_start_ip_cidr }}
+####
 #    bgp-advertisements:
 #    - aggregation-length: 32
 #      localpref: 100

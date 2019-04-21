@@ -88,3 +88,6 @@ metallb_bgp_peer_ip: "{{ cluster_master_bgp_peer_ip }}"
 metallb_bgp_peer_asn: "{{ cluster_bgp_asn }}"
 metallb_bgp_my_asn: "{{ cluster_bgp_asn }}"
 metallb_ip_pool_start_ip_cidr: "10.0.0.244/27"
+
+# METALB loadbalancer (lan, arp - layer2, using mac arp)
+metallb_arp_ip_pool_range: "10.0.0.224-10.0.0.244"

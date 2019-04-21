@@ -37,7 +37,7 @@
 # install libary dependancies for docker
 - name: ensure required packages for docker
   yum:
-    name: ['libtool-ltdl', 'libseccomp', 'container-selinux', 'conntrack']
+    name: ['libtool-ltdl', 'libseccomp', 'container-selinux', 'conntrack', 'nmap-ncat.x86_64']
     state: present
 
 # install binary local packages
