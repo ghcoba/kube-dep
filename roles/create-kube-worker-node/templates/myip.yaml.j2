@@ -37,12 +37,23 @@ metadata:
     app: myip
   name: myip
   namespace: default
+#spec:
+#  ports:
+#  - nodePort: 30089
+#    port: 8080
+#    protocol: TCP
+#    targetPort: 8080
+#  selector:
+#    app: myip
+#  type: NodePort
 spec:
-  ports:
-  - nodePort: 30089
-    port: 8080
-    protocol: TCP
-    targetPort: 8080
+  type: LoadBalancer
+  # use externalTrafficPolicy: Local to make node attract traffic if there are running one or more of service pod locally 
+  # remark: externalTrafficPolicy not set or set to Cluster, we will can not connect from node without local running service pod - e.g., from master
+  #externalTrafficPolicy: Local
   selector:
     app: myip
-  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

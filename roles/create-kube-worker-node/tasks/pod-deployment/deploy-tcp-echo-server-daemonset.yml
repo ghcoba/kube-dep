@@ -1,0 +1,18 @@
+---
+
+# file: pod-deployment/deploy-tcp-echo-server-daemonset.yml
+#
+
+# create tcp echo server yaml
+- name: create test tcp echo server deploy file ( yaml )
+  template:
+    src: tcp-echo-server.yaml.j2
+    dest: "{{ kube_yaml_config_path }}/tcp-echo-server.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+# create test tcp echo server daemonset pods
+- name: create test tcp echo server daemonset pods
+  command: "{{ bin_path }}/kubectl create -f {{ kube_yaml_config_path }}/tcp-echo-server.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"

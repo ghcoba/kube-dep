@@ -35,8 +35,8 @@ kuberouter_cni_plugin_binary_dep_path: "{{ dep_path_local_bin }}/kube-router-bin
 #  ######
 
 # for full mesh in one ASN or seperate between different ASNs (only full mesh in same ASN)
-# kube-router cluster ASN
-kuberouter_cluster_asn: 64512
+# kube-router cluster ASN - 64512
+kuberouter_cluster_asn: "{{ cluster_bgp_asn }}"
 
 # kube-router Router Reflector clusterID (for server and client)
 #   . only client-server only peering with same router reflector clusterID
@@ -47,7 +47,7 @@ kuberouter_cluster_asn: 64512
 kuberouter_router_reflector_cluster_id: 42
 
 # for peering outside the cluster
-#  - Global external GBP peers
+#  - Global external BGP peers
 # ref:
 # --peer-router-ips="192.168.1.99,192.168.1.100"
 # --peer-router-asns=65000,65000

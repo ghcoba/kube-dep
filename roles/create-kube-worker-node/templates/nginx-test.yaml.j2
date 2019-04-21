@@ -8,7 +8,7 @@ metadata:
   annotations:
     monitoring: "true"
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: nginx
@@ -33,16 +33,45 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: nginx-svc-lb
+  namespace: default
   labels:
     app: nginx
-  name: nginx
-  namespace: default
+  annotations:
+    # allow shared-ip
+    metallb.universe.tf/allow-sharead-ip: shared-key-for-a-specific-web-sites
+    #metallb.universe.tf/address-pool: ip-pool-for-web-sites
+    metallb.universe.tf/address-pool: lb-lan-ip-pool
+    # select kube-router loadbalance method: lc, rr, sh, dh
+    #kube-router.io/service.scheduler=lc
+    # DSR - direct service response return - need kube-router enable dsr related setting
+    #kube-router.io/service.dsr=tunnel
+### for NodePort type
+#spec:
+#  ports:
+#  - nodePort: 40080
+#    port: 80
+#    protocol: TCP
+#    targetPort: 80
+#  selector:
+#    app: nginx
+#  type: NodePort
+#
+### for LoadBalancer type
 spec:
-  ports:
-  - nodePort: 40080
-    port: 80
-    protocol: TCP
-    targetPort: 80
+  type: LoadBalancer
+  # use Local for node attract traffic of service when there are running service pod
+  # (if not set or set Cluster, will can not connect from node no running sevice pod, e.g., master node)
+  #externalTrafficPolicy: Local
+  externalTrafficPolicy: Cluster
+  #loadBalancerIP: 10.0.0.244
   selector:
     app: nginx
-  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+#status:
+#  loadBalancer:
+#    ingress:
+#    - ip: 10.0.0.244

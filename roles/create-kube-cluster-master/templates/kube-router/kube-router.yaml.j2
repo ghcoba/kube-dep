@@ -25,7 +25,7 @@ data:
              "type":"bridge",
              "bridge":"kube-bridge",
              "isDefaultGateway":true,
-             "hairpinMode":{{ kuberouter_hairpin_mode }},
+             "hairpinMode":{{ kuberouter_enable_hairpin_mode }},
              "ipam":{
                 "type":"host-local"
              }
@@ -96,7 +96,6 @@ spec:
         scheduler.alpha.kubernetes.io/critical-pod: ''
         prometheus.io/scrape: "true"
         prometheus.io/port: "{{ kuberouter_prometheus_metrics_port }}"
-    spec:
     spec:
       tolerations:
       - key: node-role.kubernetes.io/master

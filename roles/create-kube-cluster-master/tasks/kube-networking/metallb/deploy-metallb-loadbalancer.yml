@@ -1,0 +1,36 @@
+---
+
+# file: kube-networking/metallb/deploy-metallb-loadbalancer.yml
+#
+
+### create metallb loadbalancer
+
+# create metallb loadbalancer(speaker daemonset and controller deployment) deploy yamal file 
+# and ip-pool config deploy yaml file
+
+- name: create metallb deploy ( yaml ) file
+  template:
+    src: metallb/metallb.yaml.j2
+    dest: "{{ kube_metallb_path }}/metallb.yaml"
+- name: create metallb ip-pool config deploy ( yaml ) file
+  template:
+    src: metallb/metallb-ip-pool-config.yaml.j2
+    dest: "{{ kube_metallb_path }}/metallb-ip-pool-config.yaml"
+
+### deploy metallb speaker daemonset and metallb controller pod
+
+- name: deploy metallb speaker daemonset and controller
+  command: "{{ bin_path }}/kubectl create -f {{ kube_metallb_path }}/metallb.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+### deploy metallb ip-pool config
+
+- name: deploy metallb speaker daemonset and controller
+  command: "{{ bin_path }}/kubectl create -f {{ kube_metallb_path }}/metallb-ip-pool-config.yaml"
+  run_once: true
+  delegate_to: "{{ groups['kube-masters'][0] }}"
+
+- name:
+  debug:
+    msg: "metallb loadbalancer speaker daemonset and controller deployed on cluster."

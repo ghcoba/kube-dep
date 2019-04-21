@@ -79,3 +79,12 @@ docker_http_proxy_env: "HTTP_PROXY=http://10.0.0.9:30080/"
 #docker_https_proxy_env: ""
 docker_https_proxy_env: "HTTPS_PROXY=http://10.0.0.9:30080/"
 
+# BGP settings - local
+cluster_bgp_asn: 64512
+cluster_master_bgp_peer_ip: "{{ hostvars['lb-node']['host_ip_address'] }}"
+
+# METALLB loadbalancer (lan, bgp)
+metallb_bgp_peer_ip: "{{ cluster_master_bgp_peer_ip }}"
+metallb_bgp_peer_asn: "{{ cluster_bgp_asn }}"
+metallb_bgp_my_asn: "{{ cluster_bgp_asn }}"
+metallb_ip_pool_start_ip_cidr: "10.0.0.244/27"

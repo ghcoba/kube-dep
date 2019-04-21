@@ -276,13 +276,6 @@
       import_tasks: kube-networking/kube-router/deploy-kube-router-networking-daemonset.yml
       run_once: true
       delegate_to: "{{ groups['kube-masters'][0] }}"
-# 47.
-#   - not yet finished ( so not actually exected on masters now)
-#   deploy kube-router systemd service on master node
-#   func: deploy service and enable and start service. service will create and run a kube-router container
-#    - name: deploy kube-router service on master node
-#      import_tasks: kube-networking/kube-router/deploy-kube-router-service.yml
-#      when: inventory_hostname in groups['kube-masters']
 
 
 
@@ -330,21 +323,24 @@
 #
 
 # 80.
+    - name: create metallb load balancer
+      import_tasks: kube-networking/metallb/deploy-metallb-loadbalancer.yml
+# 82.
     - name: create kube addon env and addon-manager, deploy pod
       import_tasks: kube-addon/deploy-cluster-addons-manager.yml
-# 81.
+# 83.
     - name: create kube metrics-server addon file, deploy metrics-server
       import_tasks: kube-metrics-server/deploy-kube-metrics-server.yml
-# 82.
+# 84.
     - name: create kube coredns addon and its autoscaler file and deploy pods
       import_tasks: kube-coredns/deploy-kube-coredns-service.yml
-# 83.
+# 85.
     - name: create kube node-problem-detector daemonset and config
       import_tasks: kube-node-problem-detector/deploy-kube-node-problem-detector-daemonset.yml
-# 84.
+# 86.
     - name: create kube dashboard enviroment and deploy
       import_tasks: kube-dashboard/deploy-kube-dashboard.yml
-# 85.
+# 87.
 #    - name: create kube prormetheus monitoring enviroment and deploy
 #      import_tasks: kube-prometheus/deploy-kube-prometheus.yml
 

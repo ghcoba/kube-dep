@@ -291,7 +291,10 @@
 #   deploy 3 hello test pods
     - name: deploy 3 hello test pods
       import_tasks: pod-deployment/deploy-hello-pod.yml
-
+# 55.
+#   deploy test daemonset pods - tcp echo server
+    - name: deploy daemonset pods - tcp echo server
+      import_tasks: pod-deployment/deploy-tcp-echo-server-daemonset.yml
 
 
 #########################################################################################################

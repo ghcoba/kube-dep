@@ -58,4 +58,5 @@
     - "{{ kube_metrics_server_path }}"
     - "{{ kube_node_problem_detector_path }}"
     - "{{ kube_dashboard_path }}"
-    - "{{ kube_prometheus_path }}"    
+    - "{{ kube_prometheus_path }}"
+    - "{{ kube_metallb_path }}"

@@ -112,6 +112,9 @@ kube_dashboard_path: "{{ kube_config_path }}/dashboard"
 # prometheus addon deploy yaml file path - /etc/kubernetes/prometheus
 kube_prometheus_path: "{{ kube_config_path }}/prometheus"
 
+# metallb loadbalancer deploy yaml file path - /etc/kubernetes/metallb
+kube_metallb_path: "{{ kube_config_path }}/metallb"
+
 #### ip-masq-agent config
 #      /etc/config/ip-masq-agent
 kube_ipmasq_agent_config_path: "/etc/config/ip-masq-agent"

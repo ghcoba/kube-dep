@@ -19,3 +19,19 @@ spec:
         - containerPort: 446
         name: tcp-echo-server
         args: ["--port", "446"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: tcp-echo-server
+  name: echo-server
+  namespace: default
+spec:
+  type: LoadBalancer
+  selector:
+    app: tcp-echo-server
+  ports:
+    - protocol: TCP
+      port: 446
+      targetPort: 446
