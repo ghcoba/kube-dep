@@ -6,6 +6,7 @@ file: read.txt
 
 2. before deplyment, you need setup following environment settings:
    . cluster inventory (inventories/dev/hosts, inventories/dev/host_vars/*, inventories/dev/group/vars/* )
+     rem: [dedicated] list is used by playbook dedicated-deploy-os-prep.yml to os-prep one or more dedicated machine. 
    . cluster network configurations (roles/cluster-defaults/defaults/network.yml)
    . docker https_proxy setting (roles/cluster-defaults/defaults/network.yml)
    . prepare binary files according directory structure and file format (dep-data/bin-local/*)
@@ -35,5 +36,322 @@ remark:
 # cd /etc/kubernetes/cert
 # curl -v --cacert ./ca.pem --cert ./kube-admin.pem --key ./kube-admin-key.pem https://10.0.0.101:6443/version
 
+. check etcd health 
+# etcdctl cluster-health
+member 7654dfa919b9a8f is healthy: got healthy result from https://10.0.0.123:2379
+member 538d45017f2c9fe7 is healthy: got healthy result from https://10.0.0.122:2379
+member ae26936a9dc5c76b is healthy: got healthy result from https://10.0.0.121:2379
+cluster is healthy
+. check etcd member list and status 
+# etcdctl member list
+7654dfa919b9a8f: name=node23 peerURLs=https://10.0.0.123:2380 clientURLs=https://10.0.0.123:2379 isLeader=false
+538d45017f2c9fe7: name=node22 peerURLs=https://10.0.0.122:2380 clientURLs=https://10.0.0.122:2379 isLeader=false
+ae26936a9dc5c76b: name=node21 peerURLs=https://10.0.0.121:2380 clientURLs=https://10.0.0.121:2379 isLeader=true
+
+. check cluster info
+# kubectl cluster-info
+Kubernetes master is running at https://10.0.0.101:6443
+CoreDNS is running at https://10.0.0.101:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+kubernetes-dashboard is running at https://10.0.0.101:6443/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy
+Metrics-server is running at https://10.0.0.101:6443/api/v1/namespaces/kube-system/services/https:metrics-server:/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
+. get pod list and info 
+# kubectl get pod --all-namespaces -o wide
+NAMESPACE        NAME                                    READY   STATUS    RESTARTS   AGE    IP            NODE    NOMINATED NODE   READINESS GATES
+default          busybox                                 1/1     Running   2          132m   10.244.0.35   node4   <none>           <none>
+default          hello-59587c6947-hkd47                  1/1     Running   0          132m   10.244.2.35   node5   <none>           <none>
+default          hello-59587c6947-m5czc                  1/1     Running   0          132m   10.244.0.40   node4   <none>           <none>
+default          hello-59587c6947-snwqx                  1/1     Running   0          132m   10.244.2.36   node5   <none>           <none>
+default          hostnames-85bc9c579-6lbmw               1/1     Running   0          133m   10.244.0.42   node4   <none>           <none>
+default          hostnames-85bc9c579-csqjg               1/1     Running   0          133m   10.244.0.39   node4   <none>           <none>
+default          myip-7564d897c9-qf2bq                   1/1     Running   0          132m   10.244.2.30   node5   <none>           <none>
+default          myip-7564d897c9-trkcx                   1/1     Running   0          132m   10.244.2.34   node5   <none>           <none>
+default          myip-7564d897c9-zvjvp                   1/1     Running   0          132m   10.244.2.33   node5   <none>           <none>
+default          nginx-797f5b677d-4zfw8                  1/1     Running   0          132m   10.244.0.38   node4   <none>           <none>
+default          nginx-797f5b677d-652rm                  1/1     Running   0          132m   10.244.0.43   node4   <none>           <none>
+default          nginx-797f5b677d-svk6z                  1/1     Running   0          132m   10.244.2.31   node5   <none>           <none>
+default          sh-656d5c5647-vdbbz                     1/1     Running   2          74m    10.244.3.6    node6   <none>           <none>
+default          tcp-echo-server-47mq5                   1/1     Running   1          132m   10.0.0.105    node5   <none>           <none>
+default          tcp-echo-server-sqsp4                   1/1     Running   1          132m   10.0.0.104    node4   <none>           <none>
+default          tcp-echo-server-st85m                   1/1     Running   0          130m   10.0.0.106    node6   <none>           <none>
+kube-system      coredns-5fbcf49d57-97cbv                1/1     Running   1          141m   10.244.0.37   node4   <none>           <none>
+kube-system      coredns-5fbcf49d57-gbk28                1/1     Running   0          130m   10.244.3.4    node6   <none>           <none>
+kube-system      dns-autoscaler-76c866f78-8gf7t          1/1     Running   0          141m   10.244.0.33   node4   <none>           <none>
+kube-system      kube-addon-manager                      1/1     Running   1          141m   10.0.0.104    node4   <none>           <none>
+kube-system      kube-router-bgdpt                       1/1     Running   1          133m   10.0.0.102    node2   <none>           <none>
+kube-system      kube-router-ndx2h                       1/1     Running   1          133m   10.0.0.105    node5   <none>           <none>
+kube-system      kube-router-nwj7t                       1/1     Running   1          133m   10.0.0.104    node4   <none>           <none>
+kube-system      kube-router-qslcq                       1/1     Running   1          133m   10.0.0.101    node1   <none>           <none>
+kube-system      kube-router-tlrnb                       1/1     Running   0          133m   10.0.0.106    node6   <none>           <none>
+kube-system      kubernetes-dashboard-66dd5484c8-g58f5   1/1     Running   0          140m   10.244.0.36   node4   <none>           <none>
+kube-system      metrics-server-f958fc78-k9mct           2/2     Running   0          129m   10.244.3.5    node6   <none>           <none>
+mkube-system      npd-v0.6.3-gxqgs                        1/1     Running   1          132m   10.244.4.3    node2   <none>           <none>
+kube-system      npd-v0.6.3-mhghk                        1/1     Running   1          132m   10.244.1.3    node1   <none>           <none>
+kube-system      npd-v0.6.3-mnwcd                        1/1     Running   0          130m   10.244.3.3    node6   <none>           <none>
+kube-system      npd-v0.6.3-rhrlb                        1/1     Running   0          132m   10.244.2.32   node5   <none>           <none>
+kube-system      npd-v0.6.3-vmznq                        1/1     Running   0          132m   10.244.0.41   node4   <none>           <none>
+metallb-system   controller-6f9f479857-9bbm9             1/1     Running   0          141m   10.244.0.34   node4   <none>           <none>
+metallb-system   speaker-9278j                           1/1     Running   1          132m   10.0.0.101    node1   <none>           <none>
+metallb-system   speaker-dznmw                           1/1     Running   0          130m   10.0.0.106    node6   <none>           <none>
+metallb-system   speaker-gblh6                           1/1     Running   0          132m   10.0.0.104    node4   <none>           <none>
+metallb-system   speaker-t5q47                           1/1     Running   1          132m   10.0.0.102    node2   <none>           <none>
+metallb-system   speaker-tl6s9                           1/1     Running   1          132m   10.0.0.105    node5   <none>           <none>
+
+. get service list and info
+# kubectl get svc --all-namespaces -o wide
+NAMESPACE     NAME                   TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                  AGE    SELECTOR
+default       echo-server            LoadBalancer   10.96.130.180   10.0.0.226    446:41730/TCP            133m   app=tcp-echo-server
+default       hello                  ClusterIP      10.96.171.212   <none>        80/TCP                   133m   app=hello,department=dev
+default       hostnames              ClusterIP      10.96.65.138    <none>        80/TCP                   133m   app=hostnames
+default       kubernetes             ClusterIP      10.96.0.1       <none>        443/TCP                  143m   <none>
+default       myip                   LoadBalancer   10.96.207.209   10.0.0.225    8080:37559/TCP           133m   app=myip
+default       nginx-svc-lb           LoadBalancer   10.96.2.196     10.0.0.224    80:33951/TCP             133m   app=nginx
+kube-system   kube-dns               ClusterIP      10.96.0.2       <none>        53/UDP,53/TCP,9153/TCP   142m   k8s-app=kube-dns
+kube-system   kubernetes-dashboard   NodePort       10.96.92.184    <none>        443:30001/TCP            141m   k8s-app=kubernetes-dashboard
+kube-system   metrics-server         NodePort       10.96.149.206   <none>        443:30000/TCP            142m   k8s-app=metrics-server
+
+. check service and dns ( service name to check is "myip" in following)
+# kubectl exec -it busybox sh
+sh: shopt: not found
+[ root@busybox:/ ]$ nslookup myip
+Server:    10.96.0.2
+Address 1: 10.96.0.2 kube-dns.kube-system.svc.cluster.local
+
+Name:      myip
+Address 1: 10.96.207.209 myip.default.svc.cluster.local
+[ root@busybox:/ ]$ nslookup www.baidu.com
+Server:    10.96.0.2
+Address 1: 10.96.0.2 kube-dns.kube-system.svc.cluster.local
+
+Name:      www.baidu.com
+Address 1: 183.232.231.172
+Address 2: 183.232.231.174
+
+
+
+-----------------------------
+
+ref:
+directory structure of package files will be used during deployment -
+
+. (kube-dep) 
+├── 
+├── dep-data
+│   ├── bin-local
+│   │   ├── cfssl-bin-local
+│   │   │   └── cfssl
+│   │   │       ├── cfssl-certinfo_linux-amd64
+│   │   │       ├── cfssljson_linux-amd64
+│   │   │       ├── cfssl_linux-amd64
+│   │   │       ├── cfssl-newkey_linux-amd64
+│   │   │       └── cfssl-scan_linux-amd64
+│   │   ├── cni-bin-local
+│   │   │   ├── cni
+│   │   │   │   └── bin
+│   │   │   │       ├── bridge
+│   │   │   │       ├── dhcp
+│   │   │   │       ├── flannel
+│   │   │   │       ├── host-device
+│   │   │   │       ├── host-local
+│   │   │   │       ├── ipvlan
+│   │   │   │       ├── loopback
+│   │   │   │       ├── macvlan
+│   │   │   │       ├── portmap
+│   │   │   │       ├── ptp
+│   │   │   │       ├── sample
+│   │   │   │       ├── tuning
+│   │   │   │       └── vlan
+│   │   │   └── cni-plugins-amd64-v0.7.5.tgz
+│   │   ├── docker-ce-bin-local
+│   │   │   ├── containerd.io-1.2.0-3.el7.x86_64.rpm
+│   │   │   ├── docker-ce-18.09.1-3.el7.x86_64.rpm
+│   │   │   └── docker-ce-cli-19.03.4-3.el7.x86_64.rpm
+│   │   ├── etcd-bin-local
+│   │   │   ├── etcd-v3.3.10-linux-amd64
+│   │   │   │   ├── Documentation
+│   │   │   │   │   ├── benchmarks
+│   │   │   │   │   │   ├── etcd-2-1-0-alpha-benchmarks.md
+│   │   │   │   │   │   ├── etcd-2-2-0-benchmarks.md
+│   │   │   │   │   │   ├── etcd-2-2-0-rc-benchmarks.md
+│   │   │   │   │   │   ├── etcd-2-2-0-rc-memory-benchmarks.md
+│   │   │   │   │   │   ├── etcd-3-demo-benchmarks.md
+│   │   │   │   │   │   ├── etcd-3-watch-memory-benchmark.md
+│   │   │   │   │   │   ├── etcd-storage-memory-benchmark.md
+│   │   │   │   │   │   └── README.md
+│   │   │   │   │   ├── branch_management.md
+│   │   │   │   │   ├── demo.md
+│   │   │   │   │   ├── dev-guide
+│   │   │   │   │   │   ├── api_concurrency_reference_v3.md
+│   │   │   │   │   │   ├── api_grpc_gateway.md
+│   │   │   │   │   │   ├── api_reference_v3.md
+│   │   │   │   │   │   ├── apispec
+│   │   │   │   │   │   │   └── swagger
+│   │   │   │   │   │   │       ├── rpc.swagger.json
+│   │   │   │   │   │   │       ├── v3election.swagger.json
+│   │   │   │   │   │   │       └── v3lock.swagger.json
+│   │   │   │   │   │   ├── experimental_apis.md
+│   │   │   │   │   │   ├── grpc_naming.md
+│   │   │   │   │   │   ├── interacting_v3.md
+│   │   │   │   │   │   ├── limit.md
+│   │   │   │   │   │   └── local_cluster.md
+│   │   │   │   │   ├── dev-internal
+│   │   │   │   │   │   ├── discovery_protocol.md
+│   │   │   │   │   │   ├── logging.md
+│   │   │   │   │   │   └── release.md
+│   │   │   │   │   ├── dl_build.md
+│   │   │   │   │   ├── docs.md
+│   │   │   │   │   ├── faq.md
+│   │   │   │   │   ├── integrations.md
+│   │   │   │   │   ├── learning
+│   │   │   │   │   │   ├── api_guarantees.md
+│   │   │   │   │   │   ├── api.md
+│   │   │   │   │   │   ├── auth_design.md
+│   │   │   │   │   │   ├── data_model.md
+│   │   │   │   │   │   ├── glossary.md
+│   │   │   │   │   │   └── why.md
+│   │   │   │   │   ├── metrics.md
+│   │   │   │   │   ├── op-guide
+│   │   │   │   │   │   ├── authentication.md
+│   │   │   │   │   │   ├── clustering.md
+│   │   │   │   │   │   ├── configuration.md
+│   │   │   │   │   │   ├── container.md
+│   │   │   │   │   │   ├── etcd3_alert.rules
+│   │   │   │   │   │   ├── etcd3_alert.rules.yml
+│   │   │   │   │   │   ├── etcd-sample-grafana.png
+│   │   │   │   │   │   ├── failures.md
+│   │   │   │   │   │   ├── gateway.md
+│   │   │   │   │   │   ├── grafana.json
+│   │   │   │   │   │   ├── grpc_proxy.md
+│   │   │   │   │   │   ├── hardware.md
+│   │   │   │   │   │   ├── maintenance.md
+│   │   │   │   │   │   ├── monitoring.md
+│   │   │   │   │   │   ├── performance.md
+│   │   │   │   │   │   ├── recovery.md
+│   │   │   │   │   │   ├── runtime-configuration.md
+│   │   │   │   │   │   ├── runtime-reconf-design.md
+│   │   │   │   │   │   ├── security.md
+│   │   │   │   │   │   ├── supported-platform.md
+│   │   │   │   │   │   ├── v2-migration.md
+│   │   │   │   │   │   └── versioning.md
+│   │   │   │   │   ├── platforms
+│   │   │   │   │   │   ├── aws.md
+│   │   │   │   │   │   ├── container-linux-systemd.md
+│   │   │   │   │   │   └── freebsd.md
+│   │   │   │   │   ├── production-users.md
+│   │   │   │   │   ├── README.md -> docs.md
+│   │   │   │   │   ├── reporting_bugs.md
+│   │   │   │   │   ├── rfc
+│   │   │   │   │   │   └── v3api.md
+│   │   │   │   │   ├── tuning.md
+│   │   │   │   │   ├── upgrades
+│   │   │   │   │   │   ├── upgrade_3_0.md
+│   │   │   │   │   │   ├── upgrade_3_1.md
+│   │   │   │   │   │   ├── upgrade_3_2.md
+│   │   │   │   │   │   ├── upgrade_3_3.md
+│   │   │   │   │   │   ├── upgrade_3_4.md
+│   │   │   │   │   │   └── upgrading-etcd.md
+│   │   │   │   │   └── v2
+│   │   │   │   │       ├── 04_to_2_snapshot_migration.md
+│   │   │   │   │       ├── admin_guide.md
+│   │   │   │   │       ├── api.md
+│   │   │   │   │       ├── api_v3.md
+│   │   │   │   │       ├── auth_api.md
+│   │   │   │   │       ├── authentication.md
+│   │   │   │   │       ├── backward_compatibility.md
+│   │   │   │   │       ├── benchmarks
+│   │   │   │   │       │   ├── etcd-2-1-0-alpha-benchmarks.md
+│   │   │   │   │       │   ├── etcd-2-2-0-benchmarks.md
+│   │   │   │   │       │   ├── etcd-2-2-0-rc-benchmarks.md
+│   │   │   │   │       │   ├── etcd-2-2-0-rc-memory-benchmarks.md
+│   │   │   │   │       │   ├── etcd-3-demo-benchmarks.md
+│   │   │   │   │       │   ├── etcd-3-watch-memory-benchmark.md
+│   │   │   │   │       │   ├── etcd-storage-memory-benchmark.md
+│   │   │   │   │       │   └── README.md
+│   │   │   │   │       ├── branch_management.md
+│   │   │   │   │       ├── clustering.md
+│   │   │   │   │       ├── configuration.md
+│   │   │   │   │       ├── dev
+│   │   │   │   │       │   └── release.md
+│   │   │   │   │       ├── discovery_protocol.md
+│   │   │   │   │       ├── docker_guide.md
+│   │   │   │   │       ├── errorcode.md
+│   │   │   │   │       ├── etcd_alert.rules
+│   │   │   │   │       ├── etcd_alert.rules.yml
+│   │   │   │   │       ├── faq.md
+│   │   │   │   │       ├── glossary.md
+│   │   │   │   │       ├── internal-protocol-versioning.md
+│   │   │   │   │       ├── libraries-and-tools.md
+│   │   │   │   │       ├── members_api.md
+│   │   │   │   │       ├── metrics.md
+│   │   │   │   │       ├── other_apis.md
+│   │   │   │   │       ├── platforms
+│   │   │   │   │       │   └── freebsd.md
+│   │   │   │   │       ├── production-users.md
+│   │   │   │   │       ├── proxy.md
+│   │   │   │   │       ├── README.md
+│   │   │   │   │       ├── reporting_bugs.md
+│   │   │   │   │       ├── rfc
+│   │   │   │   │       │   └── v3api.md
+│   │   │   │   │       ├── runtime-configuration.md
+│   │   │   │   │       ├── runtime-reconf-design.md
+│   │   │   │   │       ├── security.md
+│   │   │   │   │       ├── tuning.md
+│   │   │   │   │       ├── upgrade_2_1.md
+│   │   │   │   │       ├── upgrade_2_2.md
+│   │   │   │   │       └── upgrade_2_3.md
+│   │   │   │   ├── etcd
+│   │   │   │   ├── etcdctl
+│   │   │   │   ├── README-etcdctl.md
+│   │   │   │   ├── README.md
+│   │   │   │   └── READMEv2-etcdctl.md
+│   │   │   └── etcd-v3.3.10-linux-amd64.tar.gz
+│   │   ├── kubernetes-node-bin-local
+│   │   │   ├── kubernetes
+│   │   │   │   ├── kubernetes-src.tar.gz
+│   │   │   │   ├── LICENSES
+│   │   │   │   └── node
+│   │   │   │       └── bin
+│   │   │   │           ├── kubeadm
+│   │   │   │           ├── kubectl
+│   │   │   │           ├── kubelet
+│   │   │   │           └── kube-proxy
+│   │   │   └── kubernetes-node-linux-amd64.tar.gz
+│   │   ├── kubernetes-server-bin-local
+│   │   │   ├── kubernetes
+│   │   │   │   ├── addons
+│   │   │   │   ├── kubernetes-src.tar.gz
+│   │   │   │   ├── LICENSES
+│   │   │   │   └── server
+│   │   │   │       └── bin
+│   │   │   │           ├── apiextensions-apiserver
+│   │   │   │           ├── cloud-controller-manager
+│   │   │   │           ├── cloud-controller-manager.docker_tag
+│   │   │   │           ├── cloud-controller-manager.tar
+│   │   │   │           ├── hyperkube
+│   │   │   │           ├── kubeadm
+│   │   │   │           ├── kube-apiserver
+│   │   │   │           ├── kube-apiserver.docker_tag
+│   │   │   │           ├── kube-apiserver.tar
+│   │   │   │           ├── kube-controller-manager
+│   │   │   │           ├── kube-controller-manager.docker_tag
+│   │   │   │           ├── kube-controller-manager.tar
+│   │   │   │           ├── kubectl
+│   │   │   │           ├── kubelet
+│   │   │   │           ├── kube-proxy
+│   │   │   │           ├── kube-proxy.docker_tag
+│   │   │   │           ├── kube-proxy.tar
+│   │   │   │           ├── kube-scheduler
+│   │   │   │           ├── kube-scheduler.docker_tag
+│   │   │   │           ├── kube-scheduler.tar
+│   │   │   │           └── mounter
+│   │   │   └── kubernetes-server-linux-amd64.tar.gz
+│   │   └── kube-router-bin-local
+│   │       ├── kube-router
+│   │       ├── kube-router_0.3.0_linux_amd64.tar.gz
+│   │       ├── kube-router_0.3.1_linux_amd64.tar.gz
+│   │       ├── LICENSE
+│   │       └── README.md
 
 

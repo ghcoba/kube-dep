@@ -21,7 +21,8 @@
 
 - name: ensure required packages for docker
   yum:
-    name: ['wget', 'yum-utils', 'bridge-utils', 'jq', 'device-mapper-persistent-data', 'lvm2']
+    # name: ['wget', 'yum-utils', 'bridge-utils', 'jq', 'device-mapper-persistent-data', 'lvm2']
+    name: ['wget', 'yum-utils', 'jq', 'device-mapper-persistent-data', 'lvm2']
     state: present
 
 - name: add docker ce repo
@@ -37,11 +38,31 @@
 # install libary dependancies for docker
 - name: ensure required packages for docker
   yum:
-    name: ['libtool-ltdl', 'libseccomp', 'container-selinux', 'conntrack', 'nmap-ncat.x86_64']
+    # name: ['libtool-ltdl', 'libseccomp', 'container-selinux', 'checkpolicy', 'libcgroup', 'policycoreutils-python-utils', 'python3', 'python3-audit', 'python3-libselinux', 'python3-libsemanage', 'python3-policycoreutils', 'python3-setools', 'conntrack', 'nmap-ncat.x86_64']
+    name: ['libtool-ltdl', 'libseccomp', 'conntrack', 'nmap-ncat.x86_64']
     state: present
+
+# remove any version of docker for to ensure desinated docker-ce version environment
+- name: remove any version of docker-ce enviroment
+  yum:
+    name: ['docker-ce', 'containerd', 'docker-ce-cli']
+    state: absent
 
 # install binary local packages
 # 1. 
+- name: copy to node
+  copy:
+    src: "{{dep_path_local_bin_docker }}/{{ docker_ce_cli_rpm_filename }}"
+    dest: /tmp/.
+- name: install local docker package to node using yum
+  yum:
+    name: "/tmp/{{ docker_ce_cli_rpm_filename }}"
+    state: present
+- name: remvove tmp package
+  file:
+    path: "/tmp/{{ docker_ce_cli_rpm_filename }}"
+    state: absent
+
 - name: copy to node
   copy:
     src: "{{dep_path_local_bin_docker }}/{{ containerd_io_rpm_filename }}"
@@ -53,19 +74,6 @@
 - name: remove tmp package
   file:
     path: "/tmp/{{ containerd_io_rpm_filename }}"
-    state: absent
-
-- name: copy to node
-  copy:
-    src: "{{dep_path_local_bin_docker }}/{{ docker_cd_cli_rpm_filename }}"
-    dest: /tmp/.
-- name: install local docker package to node using yum
-  yum:
-    name: "/tmp/{{ docker_cd_cli_rpm_filename }}"
-    state: present
-- name: remvove tmp package
-  file:
-    path: "/tmp/{{ docker_cd_cli_rpm_filename }}"
     state: absent
 
 - name: copy to node

@@ -1,0 +1,26 @@
+
+modules change log:
+
+1. flannel routing - deprecated. replaced by kube-router. it can be deleted
+
+2. calico routing - deprecated. replaced by kube-router. it can be deleted
+
+3. kube-proxy (k8s proxy system) - deprecated. replaced by kube-router. it can be deleted 
+
+4. kube-dns plugin - deprecated. replaced by coredns. it can be deleted 
+
+
+
+
+
+
+
+
+
+remarks:
+
+1. coredns - daemonset, installed by using remote docker image
+
+2. kube-router - daemonset, installed by using remote docker image
+
+3. 

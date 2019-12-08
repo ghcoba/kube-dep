@@ -1,0 +1,45 @@
+
+checklist in dep 3 (from pre centos 7 to centos 8) 
+
+
+
+-------------------------
+
+. disable ipv6 (prev 7 using change grub file - 
+  > in centos 8 
+    . disable ipv6 setting in /etc/sysconfig/network-scripts/ifcfg-ens192 (by manual) 
+    . using /etc/sysctl.conf to disable ipv6 network setting (using ansible role to change sysctl conf file) 
+    . and also change grub config to disable ipv6 in os bootstrap (using ansible role to change grb file) 
+
+. disable swap (prev 7 using swap part string diff with current setting of 8 ) 
+  > in centos 8
+    . swap part name/lable changed according to vm part setting ( in ansible role )
+
+. disable selinux 
+  > in centos 8
+    . not need to disable selinux (change selinux package and python3 selinux lib in ansible role )
+
+. ipvs package
+  > in centos 8 
+    . centos 8 do have ipvs support installed by default, no need to install ipvs package/module ( changed in ansible role ) 
+    . ipvsadm utility is needed also. (install ipvsadm utility package in ansible role ) 
+
+. enable iptables and disable firewalld service  
+  > in centos 8
+    .iptables default rule file and config file settings. 
+     centos 8 - default rule file /etc/sysconfig/iptables,
+             - default conf file /etc/sysconfig/iptables-conf
+
+    remark: 
+      . ansible role setting has changed to install and enable iptables service.  
+      . firwalld service has been stopped/disabled, and also removed.
+
+. check ipset utility settings in centos 8
+  > in centos 8
+    . ipset utility is included by default in centos 8. no need to install ipset package. 
+
+. check network utility install in centos 8
+
+. check netfilter and port forward setting in centos 8
+
+

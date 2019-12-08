@@ -9,9 +9,14 @@
 
 # install network utilities
 #
+# revision:
+# . bridge-utils not available on centos 8, replaced by networkmanager command nmcli
+# . iptables package replaced by iptables-services
+#
 - name: install network utility
   yum:
-    name: ['iproute', 'net-tools', 'bind-utils', 'iptables', 'bridge-utils', 'wget', 'jq', 'htop', 'nmap-ncat.x86_64']
+    #name: ['iproute', 'net-tools', 'bind-utils', 'iptables', 'bridge-utils', 'wget', 'jq', 'htop', 'nmap-ncat.x86_64']
+    name: ['iproute', 'net-tools', 'bind-utils', 'iptables-services', 'dnsmasq', 'wget', 'jq', 'htop', 'nmap-ncat.x86_64']
     state: latest
 
 

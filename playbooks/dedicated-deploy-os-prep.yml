@@ -1,0 +1,12 @@
+---
+# file: dedicated-deploy-os-prep.yml
+
+# func: deploy os preparations and baisc system exec environment on [dedicated] machine/s 
+#       for kubernetes system operation
+#
+
+
+- hosts: dedicated
+  become: yes
+  roles:
+    - { role: ../roles/os-prep }

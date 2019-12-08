@@ -2,16 +2,14 @@
 Description=docker service - docker application container engine - name: docker.service
 Documentation=https://docs.docker.com
 BindsTo=containerd.service
-After=network-online.target firewalld.service
+# After=network-online.target firewalld.service iptables.service
+After=network-online.target
 Requires=docker.socket
 
 [Service]
 Type=notify
 Environment={{ docker_https_proxy }}
-
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/bin:/sbin
-# need this enviroment file to get flannel network env setting, not use '-' to surpress error
-#   when file not exist
 
 # the default is not to use systemd for cgroups because the delegate issues still
 # exists and systemd currently does not support the cgroup feature set required
@@ -19,18 +17,15 @@ Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/bi
 
 # attention: $DOCKER_NETWORK_OPTIONS need place at end of line if use, or it will cause error(not start, reason unknow )
 #   $DOCKER_... not ${DOCKER_..}, or service fail to run
-#
 # for flannel
-#ExecStart=/usr/bin/dockerd --label machine.hostname={{ inventory_hostname }} --iptables=false --ip-forward=true $DOCKER_NETWORK_OPTIONS
+# ExecStart=/usr/bin/dockerd --label machine.hostname={{ inventory_hostname }} --iptables=false --ip-forward=true $DOCKER_NETWORK_OPTIONS
 #
 # for calico or kube-router networking - use manual managed docker subnet - as we do not have auto configuration facility like flannel
 # subnet cidr used for node :  hostvars[inventory_hostname]['docker_subnet_bip']  - whcich is set in inventery data
 
-
 #### EXECSTART
-ExecStart=/usr/bin/dockerd --label machine.hostname={{ inventory_hostname }} --bip={{ hostvars[inventory_hostname]['docker_subnet_bip'] }}
+ExecStart=/usr/bin/dockerd -H fd:// --label machine.hostname={{ inventory_hostname }} --bip={{ hostvars[inventory_hostname]['docker_subnet_bip'] }}
 # --iptables=false --ip-forward=true 
-
 
 #### EXECSTARTPOST  - not used
 #ExecStartPost=/sbin/iptables -I FORWARD -s 0.0.0.0/0 -j ACCEPT
@@ -38,11 +33,27 @@ ExecStart=/usr/bin/dockerd --label machine.hostname={{ inventory_hostname }} --b
 #### EXECRELOAD
 ExecReload=/bin/kill -s HUP $MAINPID
 
+# Set delegate yes so that systemd does not reset the cgroups of docker containers
+Delegate=yes
 
+# Container mount point namespace population (none, shared, slave, private) 
+# MountFlags=shared
+# (MountFlags=shared will cause dockerd mount point issue, and disabled here. docker-ce version - 18.09.xx version) 
+# # docker run hello-world   -- will get following error message:
+# - docker: Error response from daemon: OCI runtime create failed: 
+# container_linux.go:348: starting container process caused "exec: 
+# \"/hello\": stat /hello: no such file or directory": unknown.)
 
+# Restart the docker process if it exits prematurely
 #TimeoutSec=0
 #RestartSec=2
 #Restart=always
+Restart=on-failure
+RestartSec=3
+TimeoutSec=0
+
+# kill only the docker process, not all processes in the cgroup
+KillMode=process
 
 # Having non-zero Limit*s causes performance problems due to accounting overhead
 # in the kernel. We recommend using cgroups to do container-local accounting.
@@ -55,19 +66,15 @@ LimitCORE=infinity
 #TasksMax=infinity
 TimeoutStartSec=0
 
-# set delegate yes so that systemd does not reset the cgroups of docker containers
-Delegate=yes
-
-# kill only the docker process, not all processes in the cgroup
-KillMode=process
-
-# restart the docker process if it exits prematurely
-Restart=on-failure
-RestartSec=3
+# Note that StartLimit* options were moved from "Service" to "Unit" in systemd 229.
+# Both the old, and new location are accepted by systemd 229 and up, so using the old location
+# to make them work for either version of systemd.
 StartLimitBurst=3
-StartLimitInterval=60s
 
-MountFlags=shared
+# Note that StartLimitInterval was renamed to StartLimitIntervalSec in systemd 230.
+# Both the old, and new name are accepted by systemd 230 and up, so using the old name to make
+# this option work for either version of systemd.
+StartLimitInterval=60s
 
 [Install]
 WantedBy=multi-user.target

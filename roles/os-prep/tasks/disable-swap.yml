@@ -35,8 +35,10 @@
     - name: change fstab setting
       lineinfile:
         path: /etc/fstab
-        regexp: '^/dev/mapper/centos-swap'
-        line: '#/dev/mapper/centos-swap swap                    swap    defaults        0 0'
+        # regexp: '^/dev/mapper/centos-swap'
+        regexp: '^/dev/mapper/cl-swap'
+        # line: '#/dev/mapper/centos-swap swap                    swap    defaults        0 0'
+        line: '#/dev/mapper/cl-swap swap                    swap    defaults        0 0'
 #    - name: reboot to make disable-swap take effect
 #      command: reboot
   rescue:

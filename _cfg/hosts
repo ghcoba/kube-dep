@@ -13,6 +13,7 @@
 #10.0.0.103 node3 node3.domain.local node3.local
 
 # cluster work nodes
+# ( 10.0.0.101 - 10.0.0.102 are set to act as both kube master and work node)
 10.0.0.104 node4 node4.domain.local kube-node1
 10.0.0.105 node5 node5.domain.local kube-node2
 10.0.0.106 node6 node6.domain.local kube-node3
@@ -23,9 +24,9 @@
 #10.0.0.110 node10 node10.domain.local node10.local
 
 # etcd cluster nodes
-10.0.0.111 node11 node11.domain.local etcd1
-10.0.0.112 node12 node12.domain.local etcd2
-10.0.0.113 node13 node13.domain.local etcd3
+10.0.0.121 node11 node11.domain.local etcd1
+10.0.0.122 node12 node12.domain.local etcd2
+10.0.0.123 node13 node13.domain.local etcd3
 
 #10.0.0.114 node14 node14.domain.local node14.local
 #10.0.0.115 node15 node15.domain.local node15.local

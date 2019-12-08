@@ -38,3 +38,4 @@
     - name: etc sysconfig modules - ipvs.modules file created
       debug:
         msg: ' /etc/sysconfig/modules/ipvs.modules created. to check # bash /etc/sysconfig/modules/ipvs.modules  and  # lsmod | grep -e ip_vs -e nf_conntrack_ipv4 '
+# remark: check passed. ipvs and nf_conntrack check pass by using above command line         

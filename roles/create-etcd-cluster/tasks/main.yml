@@ -18,6 +18,7 @@
     import_tasks: schedule-create-etcd-node.yml
   - name: reboot etcd cluster node to make etcd cluster node and cert take effect
     reboot:
+      reboot_timeout: 150
   - debug:
       msg: ". Finish deploying etcd server cluster node on: {{ inventory_hostname }}."
   rescue:

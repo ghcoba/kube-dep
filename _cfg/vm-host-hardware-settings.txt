@@ -1,0 +1,7 @@
+
+to avoid memory low may cause host delay, increase memory of hosts
+
+a. masters - use 2GiB or 4GiB ram
+b. nodes - use 2GiB ram 
+c. masters and nodes - change vm 3d memory setting from 256Mib to 16MiB
+

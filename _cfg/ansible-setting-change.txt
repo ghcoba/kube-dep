@@ -1,0 +1,10 @@
+
+1. ansible settings to change:
+
+to avoid ssh timeout cause fail "Timeout (12s) waiting for privilege escalation prompt", change ansible setting:
+
+[default]
+timeout = 60
+
+
+

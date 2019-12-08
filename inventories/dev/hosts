@@ -25,11 +25,10 @@ node4
 node5
 node6
 
-
 [etcd-nodes]
-node11
-node12
-node13
+node21
+node22
+node23
 
 [docker-nodes]
 node1
@@ -42,3 +41,5 @@ node6
 [ntp-master-node]
 node1
 
+[dedicated]
+node6

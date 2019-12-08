@@ -3,6 +3,5 @@
 # file: reboot.yml
 
 - name: reboot to make configuration take effect
-  boot:
-
-
+  reboot:
+    reboot_timeout: 120

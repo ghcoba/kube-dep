@@ -33,4 +33,4 @@ remark:
 command line to check etcd using etcdctl:
 (following command line parameters works)
 
-# etcdctl --ca-file=/etc/etcd/cert/etcd-ca.pem --cert-file=/etc/etcd/cert/etcd-client.pem --key-file=/etc/etcd/cert/etcd-client-key.pem --endpoints=https://10.0.0.111:2379 cluster-health
+# etcdctl --ca-file=/etc/etcd/cert/etcd-ca.pem --cert-file=/etc/etcd/cert/etcd-client.pem --key-file=/etc/etcd/cert/etcd-client-key.pem --endpoints=https://10.0.0.121:2379 cluster-health

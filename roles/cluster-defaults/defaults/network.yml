@@ -70,14 +70,14 @@ cluster_dns_svc_ip: "10.96.0.2"
 cluster_dns_domain: "cluster.local"
 
 # upstream dns resolver for coredns
-upstream_dns_resolver: "10.0.0.2:53"
-
+#upstream_dns_resolver: "10.0.0.2:53"
+upstream_dns_resolver: "180.76.76.76:53"
 
 # DOCKER proxy environment settings - for docker pull using http/https proxy
 #docker_http_proxy_env: ""
-docker_http_proxy_env: "HTTP_PROXY=http://10.0.0.9:30080/"
+docker_http_proxy_env: "HTTP_PROXY=http://10.0.0.61:10809/"
 #docker_https_proxy_env: ""
-docker_https_proxy_env: "HTTPS_PROXY=http://10.0.0.9:30080/"
+docker_https_proxy_env: "HTTPS_PROXY=http://10.0.0.61:10809/"
 
 # BGP settings - local
 cluster_bgp_asn: 64512

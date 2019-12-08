@@ -1,0 +1,430 @@
+deployment data path (on ansible)
+
+
+remark: deployment data path on ansible machine is used to store:
+. data of binary packages for local installation of packages 
+    (large capacity package not suitable for remote install)
+. generated data record or itermediate data record 
+    (such as generated key, config file) as a backup or for checking
+
+
+
+current project directory:
+
+(~/prj/kube-dep/ is the start postion to store project file)
+
+
+
+- project directory:
+  /root/prj/kube-dep/
+                    inventories/
+                    playbooks/
+                    roles/
+                    ...
+
+
+
+- deployment data path :
+    (binary packages data for installation and generated data during installation )
+  ( ref: dep_data_path: "../dep-data" )
+
+  /root/prj/kube-dep/dep-data/
+
+
+
+- deployment local binary packages data path:
+  ( ref: dep_path_local_bin: "{{ dep_data_path }}/bin-local" )
+
+  /root/prj/kube-dep/dep-data/bin-local
+
+
+
+package (module) deployment binary path definitions:
+
+(see file /root/prj/kube-dep/roles/cluster-defaults/defaults/deploy-path.yml and kube-router-default-setting.yml for details)
+
+---------
+
+1. CFSSL ssl cert generate utility package
+
+(ref: cfssl_bin_local_path: "{{ dep_path_local_bin }}/cfssl-bin-local/cfssl" )
+/root/prj/dep-data/bin-local/cfssl-bin-local/cfssl/
+
+file web urls:
+https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 
+https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64
+https://pkg.cfssl.org/R1.2/cfssl-newkey_linux-amd64
+https://pkg.cfssl.org/R1.2/cfssl-scan_linux-amd64
+
+file items:
+( ref: src: "{{ cfssl_bin_local_path }}/{{ item }}_linux-amd64" )
+ with_items:
+    - cfssl
+    - cfssljson
+    - cfssl-certinfo
+    - cfssl-newkey
+    - cfssl-scan
+
+
+
+2. ETCD package
+
+# etcd version number
+etcd_version: 3.3.10
+
+file web url: https://github.com/etcd-io/etcd/releases/download/v3.3.10/etcd-v3.3.10-linux-amd64.tar.gz
+( ref: etcd_bin_local_path: "{{ dep_path_local_bin }}/etcd-bin-local/etcd-v{{ etcd_version }}-linux-amd64" )
+
+file items:
+( ref:src: "{{ dep_path_local_bin }}/etcd-bin-local/etcd-v{{ etcd_version }}-linux-amd64/{{ item }}" )
+    - etcd
+    - etcdctl
+
+
+
+3. kubernetes server package
+
+# ########## kubernetes server
+# kubernetes version number
+#kube_version: 1.13.2
+kube_version: 1.13.4
+
+# kubernetes server local bianry storage path
+dep_path_local_bin_kube_server: "{{ dep_path_local_bin }}/kubernetes-server-bin-local/kubernetes/server/bin"
+
+# ref - binary url on internet
+# https://dl.k8s.io/v1.13.4/kubernetes-server-linux-amd64.tar.gz
+
+file items:
+(ref: src: "{{ dep_path_local_bin_kube_server }}/{{ item }}" )
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - kubelet
+    - kube-proxy
+    - kubeadm
+    - apiextensions-apiserver
+    - cloud-controller-manager
+    - hyperkube
+    - mounter
+
+
+4. kubernetes node package ( kubelet and kube-proxy, and kubeadm, kubectl utility)
+
+########### kubernetes node
+#kube_node_version: 1.13.2
+kube_node_version: 1.13.4
+
+dep_path_local_bin_kube_node: "{{ dep_path_local_bin }}/kubernetes-node-bin-local/kubernetes/node/bin"
+
+
+# ref - binary url on internet
+# https://dl.k8s.io/v1.13.4/kubernetes-node-linux-amd64.tar.gz
+
+file items:
+( ref: src: "{{ dep_path_local_bin_kube_node }}/{{ item }}" )
+  with_items:
+    - kubeadm
+    - kubectl
+    - kubelet
+    - kube-proxy
+
+
+
+5. docker-ce package
+
+########## docker
+dep_path_local_bin_docker: "{{ dep_path_local_bin }}/docker-ce-bin-local"
+
+# file path of binary package packages to install
+
+
+# file items:
+# docker-ce-cli version
+#      docker_cli_version: 19.03.4-3.el7
+# file: docker-ce-cli-19.03.4-3.el7.x86_64.rpm
+( src: "{{dep_path_local_bin_docker }}/{{ docker_cd_cli_rpm_filename }}" )
+# XXX url: https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-cli-18.09.1-3.el7.x86_64.rpm
+# file url: https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-cli-19.03.4-3.el7.x86_64.rpm
+
+
+# file items:
+# docker containerd.io version
+#XXX      containerd_io_version: 1.2.2-3.el7
+# containerd_io_version: 1.2.0-3.el7
+# file: containerd.io-1.2.0-3.el7.x86_64.rpm
+( ref: src: "{{dep_path_local_bin_docker }}/{{ containerd_io_rpm_filename }}" )
+# url:  https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.2.0-3.el7.x86_64.rpm
+
+
+docker_version: 18.09.1-3.el7
+# docker-ce-18.09.1-3.el7.x86_64.rpm 
+# file: docker-ce-18.09.1-3.el7.x86_64.rpm
+# file web url: https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.09.1-3.el7.x86_64.rpm
+# XXX file url: https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-19.03.4-3.el7.x86_64.rpm
+
+# ( see reference for install on centos 8: https://linoxide.com/linux-how-to/how-to-install-docker-on-centos/ ) 
+
+docker_ce_rpm_filename: "docker-ce-{{ docker_version }}.x86_64.rpm"
+
+(
+  attention:
+    . depandency need: name: ['wget', 'yum-utils', 'jq', 'device-mapper-persistent-data', 'lvm2']
+    . repo need: 
+--
+- name: add docker ce repo
+  shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+#  register: docker_yum_repo 
+--
+    . packages for docker need: name: ['libtool-ltdl', 'libseccomp', 'container-selinux', 'conntrack', 'nmap-ncat.x86_64']
+      (remark: libtool-ltdl, libseccomp is available in centos8 installtion, no need to install. )
+)
+
+
+
+6. CNI plugin package  - NOT USED. ( replaced by kube-router. cni plugin is not need now. kube-router using its own bridge cni module )
+
+########## CNI plugin
+# cni version number
+cni_version: 0.7.4 
+# attention: change into use 0.7.5 or 0.82
+# file web url: https://github.com/containernetworking/plugins/releases/download/v0.8.2/cni-plugins-linux-amd64-v0.8.2.tgz
+# file web url: https://github.com/containernetworking/plugins/releases/download/v0.7.5/cni-plugins-amd64-v0.7.5.tgz
+
+dep_path_local_bin_cni: "{{ dep_path_local_bin }}/cni-bin-local/cni/bin"
+
+file items:
+( ref: src: "{{ dep_path_local_bin_cni }}/{{ item }}" )
+  with_items:
+    - bridge
+    - dhcp
+    - flannel
+    - host-device
+    - host-local
+    - ipvlan
+    - loopback
+    - macvlan
+    - portmap
+    - ptp
+    - sample
+    - tuning
+    - vlan
+
+
+
+7. Flannel plugin package - NOT USED ( flannel overlay networking is replaced by kube-router networking module)
+
+########## flannel service plugin
+# flannel version number
+flannel_version: v0.10.0
+
+dep_path_local_bin_flannel: "{{ dep_path_local_bin }}/flannel-bin-local/flannel"
+
+
+
+
+8. Kube-router networking modue - CHECK ? NOT NEED (install as daemonset using remote docker image file)
+
+# version: 0.3.0
+# ( change into 0.3.1 - to fix regression introduced in 0.3 while adding support for --overlay-type=fulll/subnet )
+
+# 0.3.1 url: https://github.com/cloudnativelabs/kube-router/releases/download/v0.3.1/kube-router_0.3.1_linux_amd64.tar.gz
+# 0.3.0 url: https://github.com/cloudnativelabs/kube-router/releases/download/v0.3.0/kube-router_0.3.0_linux_amd64.tar.gz
+
+# kube-router cni plugin binary dep path
+kuberouter_cni_plugin_binary_dep_path: "{{ dep_path_local_bin }}/kube-router-bin-local"
+
+file items:
+( ref: src: "{{ kuberouter_cni_plugin_binary_dep_path }}/{{ item }}" )
+  with_items:
+    - kube-router
+
+
+
+
+
+
+
+
+
+
+
+
+9+ .
+
+----------------------
+
+- CERT backup path on ansible machine:
+    
+  (ref: dep_path_backup_cert: "{{ dep_data_path }}/cert-local" )
+
+  /root/prj/kube-dep/dep-data/cert-local/
+
+
+- CERT cache path on ansible machine:
+  (to store cert files created on client station)
+  ( ref: cert_cache_path: "/etc/cert-cache" )
+
+
+-----------
+# file: roles/cluster-defaults/defaults/cert-backup-path.yml
+
+# definition of directory to store cert files on ansible deploy site 
+#   works as: 
+#     1. backup; 
+#     2. source file for deployment
+#   directory: dep-data/cert-local/<item_directory_name>
+#
+
+# --------------------
+# cert backup path (on ansible deploy site)
+#
+
+# {{ dep_path_backup_cert }} - dep-data/cert-local
+
+
+# path for ca-config
+cert_backup_path_ca_config: "{{ dep_path_backup_cert }}/ca-config"
+
+# path for root ca
+cert_backup_path_ca: "{{ dep_path_backup_cert }}/ca"
+
+# path for intermediate-ca config
+cert_backup_path_intermediate_ca_config: "{{ dep_path_backup_cert }}/intermediate-ca-config"
+
+# path for intermediate-ca
+cert_backup_path_intermediate_ca: "{{ dep_path_backup_cert }}/intermediate-ca"
+
+# path for admin ( admin account of kubectl client)
+cert_backup_path_kube_admin: "{{ dep_path_backup_cert }}/kube-admin"
+
+# path for etcd cluster
+cert_backup_path_etcd: "{{ dep_path_backup_cert }}/etcd"
+
+# path for flannel daemon
+cert_backup_path_flanneld: "{{ dep_path_backup_cert }}/flanneld"
+
+# path for kubernetes cert
+cert_backup_path_kubernetes: "{{ dep_path_backup_cert }}/kubernetes"
+
+# path for kube apiserver cert
+cert_backup_path_kube_apiserver: "{{ dep_path_backup_cert }}/kube-apiserver"
+
+# path for kube controller-manager cert
+cert_backup_path_kube_controller_manager: "{{ dep_path_backup_cert }}/kube-controller-manager"
+
+# path for kube scheduler cert
+cert_backup_path_kube_scheduler: "{{ dep_path_backup_cert }}/kube-scheduler"
+
+# path for kube proxy cert
+cert_backup_path_kube_proxy: "{{ dep_path_backup_cert }}/kube-proxy"
+
+# path for kube service account cert ( sa - service account )
+cert_backup_path_kube_serviceaccount: "{{ dep_path_backup_cert }}/kube-serviceaccount"
+
+# path for kubelet cert (server and client cert), every node has it sub dire
+cert_backup_path_kubelet: "{{ dep_path_backup_cert }}/kubelet"
+
+
+### kube front proxy (aggregator) client cert
+
+# path for front proxy client ca config backup
+cert_backup_path_kube_front_proxy_client_ca_config: "{{ dep_path_backup_cert }}/front-proxy-client-ca-config"
+
+# path for front proxy client ca backup
+cert_backup_path_kube_front_proxy_client_ca: "{{ dep_path_backup_cert }}/front-proxy-client-ca"
+
+# path for front proxy client cert backup 
+cert_backup_path_kube_front_proxy_client: "{{ dep_path_backup_cert }}/front-proxy-client"
+
+# path for metrics-server server cert backup
+cert_backup_path_kube_metrics_server: "{{ dep_path_backup_cert }}/kube-metrics-server"
+
+# path for aggregated-apiserver-client client cert
+cert_backup_path_kube_aggregated_apiserver_client: "{{ dep_path_backup_cert }}/kube-aggregated-apiserver-client"
+
+# path for dashboard admin (client) cert
+cert_backup_path_kube_dashboard_admin: "{{ dep_path_backup_cert }}/kube-dashboard-admin"
+
+# path for prometheus client cert
+cert_backup_path_kube_prometheus_client: "{{ dep_path_backup_cert }}/kube-prometheus-client"
+
+
+
+
+------------------------------ cert cache path 
+# file: roles/cluster-defaults/defaults/cert-cache-path.yml
+
+# definition of directory to store cert files created ( as cache for deployment ) on master node-0
+
+# --------------------
+# cert cache path (on node#0 of ansible-nodes)
+#
+
+# cert cache path (main directory of cert cache)
+cert_cache_path: "/etc/cert-cache"
+
+# path for ca-config
+cert_cache_path_ca_config: "{{ cert_cache_path }}/ca-config"
+
+# path for root ca
+cert_cache_path_ca: "{{ cert_cache_path }}/ca"
+
+# path for admin ( admin account of kubectl client)
+cert_cache_path_kube_admin: "{{ cert_cache_path }}/kube-admin"
+
+# path for etcd cluster
+cert_cache_path_etcd: "{{ cert_cache_path }}/etcd"
+
+# path for flannel daemon
+cert_cache_path_flanneld: "{{ cert_cache_path }}/flanneld"
+
+# path for kubernetes cert
+cert_cache_path_kubernetes: "{{ cert_cache_path }}/kubernetes"
+
+# path for kube apiserver cert
+cert_cache_path_kube_apiserver: "{{ cert_cache_path }}/kube-apiserver"
+
+# path for kube controller-manager cert
+cert_cache_path_kube_controller_manager: "{{ cert_cache_path }}/kube-controller-manager"
+
+# path for kube scheduler cert
+cert_cache_path_kube_scheduler: "{{ cert_cache_path }}/kube-scheduler"
+
+# path for kube proxy cert
+cert_cache_path_kube_proxy: "{{ cert_cache_path }}/kube-proxy"
+
+# path for kube serviceaccount cert ( sa - service account )
+cert_cache_path_kube_serviceaccount: "{{ cert_cache_path }}/kube-serviceaccount"
+
+# not use -- (we use bootstrap auto authentication for kubelet) 
+# cert_cache_path_kubelet: "{{ cert_cache_path }}/kubelet"
+
+
+# attention: 
+#   . in cert-cache, kube front proxy client ca config is stored  in same directory as root ca config
+
+# path for kube front proxy (aggregator) client ca
+# front proxy ca file store in same directory as root ca (/etc/cert-cache/ca/)
+#cert_cache_path_kube_front_proxy_client_ca: "{{ cert_cache_path }}/kube-front-proxy-client-ca"
+
+# path for kube front proxy (aggregator) client cert
+cert_cache_path_kube_front_proxy_client: "{{ cert_cache_path }}/kube-front-proxy-client"
+
+# path for metrics-server server cert
+cert_cache_path_kube_metrics_server: "{{ cert_cache_path }}/kube-metrics-server"
+
+# path for aggregated-apiserver-client cert (client to access aggregated apiservers)
+cert_cache_path_kube_aggregated_apiserver_client: "{{ cert_cache_path }}/kube-aggregated-apiserver-client"
+
+# path for dashboard admin (client) cert 
+cert_cache_path_kube_dashboard_admin: "{{ cert_cache_path }}/kube-dashboard-admin"
+
+# path for prometheus client cert
+cert_cache_path_kube_prometheus_client: "{{ cert_cache_path }}/kube-prometheus-client"
+
+

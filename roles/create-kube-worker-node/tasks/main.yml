@@ -53,6 +53,7 @@
       import_tasks: schedule-create-worker-node.yml
     - name: reboot worker node to make deployment and cert take effect
       reboot:
+        reboot_timeout: 120
     - debug:
         msg: ". Finish deploying kubernetes worker node on: {{ inventory_hostname }}."
   rescue:

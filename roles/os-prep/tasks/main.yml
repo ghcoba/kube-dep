@@ -58,8 +58,3 @@
 # reboot to take effect all settings
 - name: tasks - reboot machine
   import_tasks: reboot.yml
-
-
-
-
-

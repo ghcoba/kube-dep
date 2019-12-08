@@ -25,7 +25,8 @@
       lineinfile:
         path: /etc/default/grub
         regexp: '^GRUB_CMDLINE_LINUX='
-        line: 'GRUB_CMDLINE_LINUX="ipv6.disable=1 crashkernel=auto rd.lvm.lv=centos/root rd.lvm.lv=centos/swap rhgb quiet"'
+        # line: 'GRUB_CMDLINE_LINUX="ipv6.disable=1 crashkernel=auto rd.lvm.lv=centos/root rd.lvm.lv=centos/swap rhgb quiet"'
+        line: 'GRUB_CMDLINE_LINUX="ipv6.disable=1 crashkernel=auto resume=/dev/mapper/cl-swap rd.lvm.lv=cl/root rd.lvm.lv=cl/swap rhgb quiet"'        
     - name: regenerate new grub config file
       command: grub2-mkconfig -o /boot/grub2/grub.cfg
     - name: add AddressFamily inet in sshd_config
